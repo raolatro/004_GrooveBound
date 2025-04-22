@@ -44,10 +44,44 @@ function love.update(dt)
         debug.log("Enemy spawned.")
         enemy_spawn_timer = 0
     end
-    -- Shooting logic is now handled in love.mousepressed (left click)
+    -- Auto-Fire and manual fire logic
     player.fire_timer = player.fire_timer or 0
     player.fire_timer = player.fire_timer - dt
-    -- (Space bar shooting removed)
+
+    if not settings_menu.auto_fire_enabled then
+        -- Manual: fire only while mouse is held
+        if player.is_mouse_down and player.fire_timer <= 0 then
+            local dir = gamepad.dir or 0
+            local on_beat = player.on_beat_fire
+            weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
+            debug.log("Weapon fired (mouse held down).")
+            player.register_fire()
+            player.fire_timer = settings.projectile.fire_rate
+        end
+    else
+        -- Auto-Fire: fire if aiming at enemy
+        local found = false
+        for _, e in ipairs(enemy.enemies) do
+            local dx, dy = e.x - gamepad.x, e.y - gamepad.y
+            local dist = math.sqrt(dx*dx + dy*dy)
+            if dist > 0 then
+                local angle_to_enemy = math.atan2(dy, dx)
+                local angle_diff = math.abs((angle_to_enemy - (gamepad.dir or 0) + math.pi) % (2*math.pi) - math.pi)
+                if angle_diff < (settings.main.auto_fire_angle or 0.15) then -- configurable auto-fire angle
+                    found = true
+                    break
+                end
+            end
+        end
+        if found and player.fire_timer <= 0 then
+            local dir = gamepad.dir or 0
+            local on_beat = player.on_beat_fire
+            weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
+            debug.log("Weapon auto-fired at enemy.")
+            player.register_fire()
+            player.fire_timer = settings.projectile.fire_rate
+        end
+    end
 
 end
 
@@ -88,18 +122,17 @@ function love.mousepressed(x, y, button)
     print('DEBUG: love.mousepressed called, forwarding to settings_menu')
     settings_menu.mousepressed(x, y, button)
     if settings_menu.active then return end
-    -- Player shooting with left mouse button
+    -- Track mouse down for firing
     if button == 1 then
-        if player.fire_timer == nil or player.fire_timer <= 0 then
-            local dir = gamepad.dir or 0
-            local on_beat = player.on_beat_fire
-            weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
-            debug.log("Weapon fired (mouse click).")
-            player.register_fire()
-            player.fire_timer = settings.projectile.fire_rate
-        end
+        player.is_mouse_down = true
     end
     -- (rest of your mouse handling logic here)
+end
+
+function love.mousereleased(x, y, button)
+    if button == 1 then
+        player.is_mouse_down = false
+    end
 end
 
 function love.keypressed(key)

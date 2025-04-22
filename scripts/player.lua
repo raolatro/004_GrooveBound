@@ -107,8 +107,32 @@ function player.update(dt)
 end
 
 function player.draw()
-    -- === Beat Checker Visual Parameters (from settings) ===
+    -- Draw dashed aim line from player to mouse
     local center_x, center_y = gamepad.x, gamepad.y
+    local mx, my = love.mouse.getPosition()
+    -- Convert mouse to world coordinates (camera centered on player)
+    local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
+    local wx = gamepad.x + (mx - cx)
+    local wy = gamepad.y + (my - cy)
+    love.graphics.setColor(1,1,1,0.3)
+    love.graphics.setLineWidth(1)
+    local dash = 12
+    local gap = 7
+    local dx, dy = wx - center_x, wy - center_y
+    local len = math.sqrt(dx*dx + dy*dy)
+    local steps = math.floor(len / (dash + gap))
+    for i=0,steps-1 do
+        local t1 = (i * (dash + gap)) / len
+        local t2 = ((i * (dash + gap)) + dash) / len
+        if t2 > 1 then t2 = 1 end
+        local x1 = center_x + dx * t1
+        local y1 = center_y + dy * t1
+        local x2 = center_x + dx * t2
+        local y2 = center_y + dy * t2
+        love.graphics.line(x1, y1, x2, y2)
+    end
+    love.graphics.setColor(1,1,1,1)
+    -- === Beat Checker Visual Parameters (from settings) ===
     local main = settings.main
     local base_radius = gamepad.radius + (main.beat_checker_base_radius or 32)
     local full_beat_outline_width = main.beat_checker_full_outline_width or 2

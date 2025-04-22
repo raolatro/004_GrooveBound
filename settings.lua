@@ -1,6 +1,7 @@
 -- settings.lua: All designer-tunable variables
 local settings = {
     main = {
+        auto_fire_angle = 0.03, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
         bpm = 32,
@@ -37,18 +38,18 @@ local settings = {
         -- Damage values for different projectile types (scalable for future weapons)
         normal_damage = 1,
         on_beat_damage = 5,
-        range = 800,                -- how far the projectile can travel (pixels)
-        speed = 500,                -- speed of the projectile (pixels/sec)
-        fire_rate = 0.2,           -- seconds between shots
+        range = 1000,                -- how far the projectile can travel (pixels)
+        speed = 800,                -- speed of the projectile (pixels/sec)
+        fire_rate = 0.07,          -- seconds between shots
         -- on_beat_color and on_beat_scale are now set globally in settings.main
         normal_color = {1,1,1,1},   -- RGBA for normal projectile
         normal_scale = 0.7,         -- scale for normal projectile
     },
     enemy = {
-        speed = 20,
+        speed = 40,
         hp = 5,
         radius = 20,                -- radius of enemy (for drawing and collision)
-        spawn_rate = 3.0,           -- seconds between spawns
+        spawn_rate = 2.0,           -- seconds between spawns
         max_enemies = 6,            -- max enemies on screen
         flash_duration = 0.15,      -- seconds
     },

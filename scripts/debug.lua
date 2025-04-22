@@ -4,7 +4,7 @@ debug.messages = {}
 
 debug.enabled = true
 
-debug.max_lines = 10
+debug.max_lines = 30
 
 function debug.log(msg)
     table.insert(debug.messages, 1, msg)

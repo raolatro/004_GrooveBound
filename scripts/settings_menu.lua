@@ -11,6 +11,7 @@ settings_menu.pages = {"main"}
 settings_menu.icon_size = 36
 settings_menu.icon_margin = 12
 settings_menu.selected = 1 -- selected row in menu
+settings_menu.auto_fire_enabled = false -- Auto-Fire toggle
 
 -- List of settings to show on the first page (main)
 settings_menu.main_settings = {
@@ -46,13 +47,22 @@ end
 
 function settings_menu.mousepressed(x, y, button)
     print('DEBUG: mousepressed called, active='..tostring(settings_menu.active)..', x='..x..', y='..y..', button='..tostring(button))
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local ix, iy = w - settings_menu.icon_size - settings_menu.icon_margin, settings_menu.icon_margin
+    local af_width = 220
+    local af_height = 38
+    local af_x = ix - af_width - 24
+    local af_y = iy
+    -- Check Auto-Fire toggle button (always clickable)
+    if button == 1 and x >= af_x and x <= af_x+af_width and y >= af_y and y <= af_y+af_height then
+        settings_menu.auto_fire_enabled = not settings_menu.auto_fire_enabled
+        print('DEBUG: Auto-Fire toggled to', tostring(settings_menu.auto_fire_enabled))
+        return
+    end
     if not settings_menu.active then
         -- Check if hamburger icon clicked (only left mouse button)
         if button == 1 then
             print('DEBUG: Left mouse button pressed')
-            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-            local ix, iy = w - settings_menu.icon_size - settings_menu.icon_margin, settings_menu.icon_margin
-            print('DEBUG: Icon bounds ix='..ix..', iy='..iy..', size='..settings_menu.icon_size)
             if x >= ix and x <= ix+settings_menu.icon_size and y >= iy and y <= iy+settings_menu.icon_size then
                 print('DEBUG: Hamburger icon clicked! Activating menu.')
                 settings_menu.active = true
@@ -74,6 +84,19 @@ function settings_menu.draw()
     for i=1,3 do
         love.graphics.rectangle("fill", ix+8, iy+8*i, settings_menu.icon_size-16, 4, 2, 2)
     end
+    love.graphics.setColor(1,1,1,1)
+    -- Draw prominent Auto-Fire toggle button (horizontal, wide, one line)
+    local af_width = 220
+    local af_height = 38
+    local af_x = ix - af_width - 24
+    local af_y = iy
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", af_x, af_y, af_width, af_height, 12, 12)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setFont(love.graphics.newFont(18))
+    love.graphics.printf("Auto-Fire", af_x + 0, af_y + 8, af_width - 36, "right")
+    love.graphics.setColor(settings_menu.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
+    love.graphics.circle("fill", af_x + af_width - 20, af_y + af_height/2, 12)
     love.graphics.setColor(1,1,1,1)
     -- Draw popup menu if active
     if settings_menu.active then
@@ -106,6 +129,16 @@ function settings_menu.draw()
         end
         love.graphics.setColor(1,1,1,1)
     end
+    -- Draw bottom-center instruction (always visible)
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    love.graphics.setColor(0,0,0,0.7)
+    love.graphics.rectangle("fill", w/2-230, h-54, 460, 36, 10, 10)
+    love.graphics.setColor(1,1,1,1)
+    local old_font = love.graphics.getFont()
+    local instr_font = love.graphics.newFont(18)
+    love.graphics.setFont(instr_font)
+    love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-220, h-48, 440, "center")
+    love.graphics.setFont(old_font)
 end
 
 return settings_menu
