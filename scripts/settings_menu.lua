@@ -4,6 +4,8 @@
 
 local settings = require "settings"
 local settings_menu = {}
+settings_menu.score = 0
+settings_menu.kills = 0
 
 settings_menu.active = false
 settings_menu.page = 1
@@ -12,6 +14,8 @@ settings_menu.icon_size = 36
 settings_menu.icon_margin = 12
 settings_menu.selected = 1 -- selected row in menu
 settings_menu.auto_fire_enabled = false -- Auto-Fire toggle
+settings_menu.score = 0 -- Total score
+settings_menu.kills = 0 -- Total kills
 
 -- List of settings to show on the first page (main)
 settings_menu.main_settings = {
@@ -97,6 +101,17 @@ function settings_menu.draw()
     love.graphics.printf("Auto-Fire", af_x + 0, af_y + 8, af_width - 36, "right")
     love.graphics.setColor(settings_menu.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
     love.graphics.circle("fill", af_x + af_width - 20, af_y + af_height/2, 12)
+    love.graphics.setColor(1,1,1,1)
+    -- Draw score box next to auto-fire
+    local score_width = 180
+    local score_height = af_height
+    local score_x = af_x - score_width - 16
+    local score_y = af_y
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", score_x, score_y, score_width, score_height, 12, 12)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setFont(love.graphics.newFont(18))
+    love.graphics.printf("Score: "..tostring(settings_menu.score).."  Kills: "..tostring(settings_menu.kills), score_x+0, score_y+8, score_width, "center")
     love.graphics.setColor(1,1,1,1)
     -- Draw popup menu if active
     if settings_menu.active then

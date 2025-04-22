@@ -116,8 +116,8 @@ function player.draw()
     local wy = gamepad.y + (my - cy)
     love.graphics.setColor(1,1,1,0.3)
     love.graphics.setLineWidth(1)
-    local dash = 12
-    local gap = 7
+    local dash = 5
+    local gap = 3
     local dx, dy = wx - center_x, wy - center_y
     local len = math.sqrt(dx*dx + dy*dy)
     local steps = math.floor(len / (dash + gap))

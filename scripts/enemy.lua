@@ -4,6 +4,8 @@ local settings = require "settings"
 local collision = require "scripts/collision"
 local debug = require "scripts/debug"
 
+local settings_menu = require "scripts/settings_menu"
+local scoring = require "scripts/scoring"
 local enemy = {}
 enemy.enemies = {}
 enemy.corpses = {}
@@ -67,6 +69,8 @@ function enemy.update(dt, player_x, player_y, projectiles)
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
                     table.remove(enemy.enemies, i)
                     debug.log("Enemy dead!")
+                    -- Score system
+                    scoring.add_kill(killed_by_groove)
                     -- Popup if killed by groove
                     if killed_by_groove then
                         local popup = require "scripts/popup"

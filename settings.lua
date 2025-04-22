@@ -1,6 +1,10 @@
 -- settings.lua: All designer-tunable variables
 local settings = {
     main = {
+        scoring = {
+            kill_point = 10,         -- points for normal kill
+            groove_kill_point = 50, -- points for groove kill
+        },
         auto_fire_angle = 0.03, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
@@ -47,7 +51,7 @@ local settings = {
     },
     enemy = {
         speed = 40,
-        hp = 5,
+        hp = 20,
         radius = 20,                -- radius of enemy (for drawing and collision)
         spawn_rate = 2.0,           -- seconds between spawns
         max_enemies = 6,            -- max enemies on screen

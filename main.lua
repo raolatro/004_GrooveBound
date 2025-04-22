@@ -54,7 +54,7 @@ function love.update(dt)
             local dir = gamepad.dir or 0
             local on_beat = player.on_beat_fire
             weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
-            debug.log("Weapon fired (mouse held down).")
+            -- debug.log("Weapon fired (mouse held down).")
             player.register_fire()
             player.fire_timer = settings.projectile.fire_rate
         end
