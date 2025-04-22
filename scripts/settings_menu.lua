@@ -16,6 +16,14 @@ settings_menu.selected = 1 -- selected row in menu
 settings_menu.auto_fire_enabled = false -- Auto-Fire toggle
 settings_menu.score = 0 -- Total score
 settings_menu.kills = 0 -- Total kills
+settings_menu.player_hp = nil -- Player current HP (set at game start)
+settings_menu.player_max_hp = nil -- Player max HP (set at game start)
+
+-- Heart sprite
+local paths = require "paths"
+settings_menu.hp_img = settings_menu.hp_img or love.graphics.newImage(paths.assets.hp)
+settings_menu.hp_full_quad = love.graphics.newQuad(0,0,64,56,settings_menu.hp_img:getDimensions())
+settings_menu.hp_empty_quad = love.graphics.newQuad(64,0,64,56,settings_menu.hp_img:getDimensions())
 
 -- List of settings to show on the first page (main)
 settings_menu.main_settings = {
@@ -89,29 +97,42 @@ function settings_menu.draw()
         love.graphics.rectangle("fill", ix+8, iy+8*i, settings_menu.icon_size-16, 4, 2, 2)
     end
     love.graphics.setColor(1,1,1,1)
-    -- Draw prominent Auto-Fire toggle button (horizontal, wide, one line)
-    local af_width = 220
-    local af_height = 38
-    local af_x = ix - af_width - 24
-    local af_y = iy
+    -- Draw top bar: hearts, score, kills, auto-fire toggle all in one row
+    local bar_height = 38
+    local margin = 16
+    local heart_w, heart_h = 32, 28
+    local n_hearts = settings_menu.player_max_hp or 3
+    local bar_x = margin
+    local bar_y = margin
+    -- Draw hearts as sprites
+    for i=1,n_hearts do
+        local x = bar_x + (i-1)*heart_w
+        local quad = (i <= (settings_menu.player_hp or 0)) and settings_menu.hp_full_quad or settings_menu.hp_empty_quad
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.draw(settings_menu.hp_img, quad, x, bar_y, 0, heart_w/64, heart_h/56)
+    end
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24
+    -- Score
     love.graphics.setColor(0.12,0.12,0.12,0.92)
-    love.graphics.rectangle("fill", af_x, af_y, af_width, af_height, 12, 12)
+    love.graphics.rectangle("fill", after_hearts_x, bar_y, 100, bar_height, 10, 10)
     love.graphics.setColor(1,1,1,1)
     love.graphics.setFont(love.graphics.newFont(18))
-    love.graphics.printf("Auto-Fire", af_x + 0, af_y + 8, af_width - 36, "right")
+    love.graphics.printf("Score: "..tostring(settings_menu.score), after_hearts_x, bar_y+8, 100, "center")
+    local after_score_x = after_hearts_x + 100 + 12
+    -- Kills
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", after_score_x, bar_y, 80, bar_height, 10, 10)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.printf("Kills: "..tostring(settings_menu.kills), after_score_x, bar_y+8, 80, "center")
+    local after_kills_x = after_score_x + 80 + 12
+    -- Auto-Fire toggle
+    local af_width = 160
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", after_kills_x, bar_y, af_width, bar_height, 10, 10)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.printf("Auto-Fire", after_kills_x+0, bar_y+8, af_width-36, "right")
     love.graphics.setColor(settings_menu.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
-    love.graphics.circle("fill", af_x + af_width - 20, af_y + af_height/2, 12)
-    love.graphics.setColor(1,1,1,1)
-    -- Draw score box next to auto-fire
-    local score_width = 180
-    local score_height = af_height
-    local score_x = af_x - score_width - 16
-    local score_y = af_y
-    love.graphics.setColor(0.12,0.12,0.12,0.92)
-    love.graphics.rectangle("fill", score_x, score_y, score_width, score_height, 12, 12)
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.setFont(love.graphics.newFont(18))
-    love.graphics.printf("Score: "..tostring(settings_menu.score).."  Kills: "..tostring(settings_menu.kills), score_x+0, score_y+8, score_width, "center")
+    love.graphics.circle("fill", after_kills_x+af_width-20, bar_y+bar_height/2, 12)
     love.graphics.setColor(1,1,1,1)
     -- Draw popup menu if active
     if settings_menu.active then

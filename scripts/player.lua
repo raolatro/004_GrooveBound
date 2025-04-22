@@ -65,9 +65,23 @@ end
 
 function player.init()
     gamepad.init(settings.main.window_width / 2, settings.main.window_height / 2)
-    player.hp = settings.player.hp
+    player.max_hp = settings.player.hp or 3
+    player.hp = player.max_hp
     player.want_to_fire = false
     player.fire_timer = 0
+    -- Sync HP to settings_menu for UI
+    local settings_menu = require "scripts/settings_menu"
+    settings_menu.player_max_hp = player.max_hp
+    settings_menu.player_hp = player.hp
+end
+
+function player.damage(amount)
+    local settings_menu = require "scripts/settings_menu"
+    player.hp = math.max(0, player.hp - (amount or 1))
+    settings_menu.player_hp = player.hp
+    if player.hp <= 0 then
+        settings_menu.game_over = true
+    end
 end
 
 function player.update(dt)

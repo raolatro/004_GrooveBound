@@ -43,6 +43,7 @@ end
 function enemy.update(dt, player_x, player_y, projectiles)
     local player_radius = 16
     local enemy_radius = 12
+    enemy.explosions = enemy.explosions or {}
     for i = #enemy.enemies, 1, -1 do
         local e = enemy.enemies[i]
         -- Draw HP above enemy (move this to enemy.draw or love.draw)
@@ -53,6 +54,16 @@ function enemy.update(dt, player_x, player_y, projectiles)
         if dist > player_radius + enemy_radius then
             e.x = e.x + get_settings('enemy_speed') * dx/dist * dt
             e.y = e.y + get_settings('enemy_speed') * dy/dist * dt
+        else
+            -- Enemy touches player: sacrifice, deal damage, and explode
+            local player = require "scripts/player"
+            player.damage(1)
+            -- Mark explosion (store with timestamp)
+            table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
+            table.remove(enemy.enemies, i)
+            debug.log("Enemy sacrificed: player damaged!")
+            -- No corpse left
+            -- continue to next enemy (no goto)
         end
         -- check collision with projectiles
         for j = #projectiles, 1, -1 do
@@ -102,6 +113,25 @@ function enemy.draw()
     local hp_settings = settings.enemy_hp_display
     -- Cache font by size
     enemy._hp_font = enemy._hp_font or love.graphics.newFont(hp_settings.font_size)
+    -- Draw explosions (sacrificed enemies)
+    enemy.explosions = enemy.explosions or {}
+    local now = love.timer.getTime()
+    for i = #enemy.explosions, 1, -1 do
+        local ex = enemy.explosions[i]
+        local t = now - ex.t
+        local duration = 0.6
+        if t > duration then
+            table.remove(enemy.explosions, i)
+        else
+            local alpha = 1 - t/duration
+            local radius = 20 + 60 * (t/duration)
+            love.graphics.setColor(1,0.4,0.1,alpha)
+            love.graphics.circle("fill", ex.x, ex.y, radius)
+            love.graphics.setColor(1,1,0.3,alpha*0.6)
+            love.graphics.circle("fill", ex.x, ex.y, radius*0.6)
+            love.graphics.setColor(1,1,1,1)
+        end
+    end
     for _, e in ipairs(enemy.enemies) do
         -- Draw enemy body (simple circle for now)
         love.graphics.setColor(1,0.2,0.2,1)

@@ -36,7 +36,7 @@ local settings = {
 
     player = {
         speed = 15,
-        hp = 3,
+        hp = 5,
     },
     projectile = {
         -- Damage values for different projectile types (scalable for future weapons)
@@ -50,8 +50,8 @@ local settings = {
         normal_scale = 0.7,         -- scale for normal projectile
     },
     enemy = {
-        speed = 40,
-        hp = 20,
+        speed = 50,
+        hp = 30,
         radius = 20,                -- radius of enemy (for drawing and collision)
         spawn_rate = 2.0,           -- seconds between spawns
         max_enemies = 6,            -- max enemies on screen

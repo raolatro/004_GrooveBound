@@ -30,7 +30,7 @@ end
 
 function love.update(dt)
     settings_menu.update(dt)
-    if settings_menu.active then return end -- Pause game logic if menu is open
+    if settings_menu.active or settings_menu.game_over then return end -- Pause game logic if menu is open or game over
     beat.update(dt)
     player.update(dt)
     weapon.update(dt)

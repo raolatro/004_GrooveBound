@@ -2,7 +2,7 @@
 local debug = {}
 debug.messages = {}
 
-debug.enabled = true
+debug.enabled = false
 
 debug.max_lines = 30
 

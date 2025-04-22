@@ -2,27 +2,28 @@
 local paths = {
     -- Fixed (core) paths
     scripts = {
-        player = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/player.lua",
-        enemy = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/enemy.lua",
-        weapon = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/weapon.lua",
-        beat = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/beat.lua",
-        debug = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/debug.lua",
-        camera = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/camera.lua",
-        gamepad = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/gamepad.lua",
-        collision = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/scripts/collision.lua",
+        player = "scripts/player.lua",
+        enemy = "scripts/enemy.lua",
+        weapon = "scripts/weapon.lua",
+        beat = "scripts/beat.lua",
+        debug = "scripts/debug.lua",
+        camera = "scripts/camera.lua",
+        gamepad = "scripts/gamepad.lua",
+        collision = "scripts/collision.lua",
     },
     assets = {
-        img = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/assets/img/",
-        sfx = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/assets/sfx/",
-        music = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/assets/music/",
+        img = "assets/img/",
+        hp = "assets/img/hp.png",
+        sfx = "assets/sfx/",
+        music = "assets/music/",
     },
-    settings = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/settings.lua",
-    conf = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/conf.lua",
-    main = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/main.lua",
+    settings = "settings.lua",
+    conf = "conf.lua",
+    main = "main.lua",
     -- Variable/future paths (add as needed)
-    saves = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/saves/",
-    localization = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/localization/",
-    shaders = "/Users/raonilima/raolatro/GAMES/004_GrooveBound/shaders/",
+    saves = "saves/",
+    localization = "localization/",
+    shaders = "shaders/", 
     -- Add more as your project grows
 }
 return paths
