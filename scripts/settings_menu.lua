@@ -13,7 +13,8 @@ settings_menu.pages = {"main"}
 settings_menu.icon_size = 36
 settings_menu.icon_margin = 12
 settings_menu.selected = 1 -- selected row in menu
-settings_menu.auto_fire_enabled = false -- Auto-Fire toggle
+settings_menu.auto_fire_enabled = false
+settings_menu.aim_line_enabled = true -- Auto-Fire toggle
 settings_menu.score = 0 -- Total score
 settings_menu.kills = 0 -- Total kills
 settings_menu.player_hp = nil -- Player current HP (set at game start)
@@ -60,19 +61,25 @@ end
 function settings_menu.mousepressed(x, y, button)
     print('DEBUG: mousepressed called, active='..tostring(settings_menu.active)..', x='..x..', y='..y..', button='..tostring(button))
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-    local ix, iy = w - settings_menu.icon_size - settings_menu.icon_margin, settings_menu.icon_margin
-    local af_width = 220
-    local af_height = 38
-    local af_x = ix - af_width - 24
-    local af_y = iy
+    local margin = 16
+    local bar_height = 38
+    local heart_w = 32
+    local n_hearts = tonumber(settings_menu.player_max_hp) or 5
+    local bar_x = margin
+    local bar_y = margin
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24
+    local after_score_x = after_hearts_x + 100 + 12
+    local after_kills_x = after_score_x + 80 + 12
+    local af_width = 160
     -- Check Auto-Fire toggle button (always clickable)
-    if button == 1 and x >= af_x and x <= af_x+af_width and y >= af_y and y <= af_y+af_height then
+    if button == 1 and x >= after_kills_x and x <= after_kills_x+af_width and y >= bar_y and y <= bar_y+bar_height then
         settings_menu.auto_fire_enabled = not settings_menu.auto_fire_enabled
         print('DEBUG: Auto-Fire toggled to', tostring(settings_menu.auto_fire_enabled))
         return
     end
     if not settings_menu.active then
         -- Check if hamburger icon clicked (only left mouse button)
+        local ix, iy = w - settings_menu.icon_size - settings_menu.icon_margin, settings_menu.icon_margin
         if button == 1 then
             print('DEBUG: Left mouse button pressed')
             if x >= ix and x <= ix+settings_menu.icon_size and y >= iy and y <= iy+settings_menu.icon_size then
@@ -101,7 +108,7 @@ function settings_menu.draw()
     local bar_height = 38
     local margin = 16
     local heart_w, heart_h = 32, 28
-    local n_hearts = settings_menu.player_max_hp or 3
+    local n_hearts = tonumber(settings_menu.player_max_hp) or 3
     local bar_x = margin
     local bar_y = margin
     -- Draw hearts as sprites
@@ -133,6 +140,16 @@ function settings_menu.draw()
     love.graphics.printf("Auto-Fire", after_kills_x+0, bar_y+8, af_width-36, "right")
     love.graphics.setColor(settings_menu.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
     love.graphics.circle("fill", after_kills_x+af_width-20, bar_y+bar_height/2, 12)
+    love.graphics.setColor(1,1,1,1)
+    -- Aim Line toggle
+    local aim_width = 160
+    local aim_x = after_kills_x + af_width + 12
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", aim_x, bar_y, aim_width, bar_height, 10, 10)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.printf("Aim Line", aim_x, bar_y+8, aim_width-36, "right")
+    love.graphics.setColor(settings_menu.aim_line_enabled and {0.9,0.9,0,1} or {0.5,0.5,0.2,1})
+    love.graphics.circle("fill", aim_x+aim_width-20, bar_y+bar_height/2, 12)
     love.graphics.setColor(1,1,1,1)
     -- Draw popup menu if active
     if settings_menu.active then
@@ -175,6 +192,83 @@ function settings_menu.draw()
     love.graphics.setFont(instr_font)
     love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-220, h-48, 440, "center")
     love.graphics.setFont(old_font)
+end
+
+-- Draw the game over screen centered
+-- (game over UI moved to scripts/game_over.lua)
+
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local box_w, box_h = 400, 320
+    local box_x, box_y = (w-box_w)/2, (h-box_h)/2
+    love.graphics.setColor(0,0,0,0.92)
+    love.graphics.rectangle("fill", box_x, box_y, box_w, box_h, 18, 18)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setLineWidth(3)
+    love.graphics.rectangle("line", box_x, box_y, box_w, box_h, 18, 18)
+    love.graphics.setLineWidth(1)
+    love.graphics.setFont(love.graphics.newFont(32))
+    love.graphics.printf("GAME OVER", box_x, box_y+28, box_w, "center")
+    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.printf("Final Score", box_x, box_y+90, box_w, "center")
+    love.graphics.setFont(love.graphics.newFont(28))
+    love.graphics.printf(tostring(settings_menu.score), box_x, box_y+120, box_w, "center")
+    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.printf("Kills", box_x, box_y+170, box_w, "center")
+    love.graphics.setFont(love.graphics.newFont(28))
+    love.graphics.printf(tostring(settings_menu.kills), box_x, box_y+200, box_w, "center")
+    -- Restart button
+    local btn_w, btn_h = 180, 48
+    local btn_x, btn_y = w/2-btn_w/2, box_y+box_h-80
+    settings_menu._restart_btn = {x=btn_x, y=btn_y, w=btn_w, h=btn_h}
+    love.graphics.setColor(0.15,0.7,1,1)
+    love.graphics.rectangle("fill", btn_x, btn_y, btn_w, btn_h, 12, 12)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.setLineWidth(2)
+    love.graphics.rectangle("line", btn_x, btn_y, btn_w, btn_h, 12, 12)
+    love.graphics.setLineWidth(1)
+    love.graphics.setFont(love.graphics.newFont(24))
+    love.graphics.printf("RESTART", btn_x, btn_y+10, btn_w, "center")
+-- Helper to check if mouse is inside a box
+local function mouse_in_box(x, y, box)
+    return x >= box.x and x <= box.x+box.w and y >= box.y and y <= box.y+box.h
+end
+
+-- Patch mousepressed to handle game over restart
+function settings_menu.mousepressed(x, y, button)
+    -- Block all UI if game over
+    if require("scripts/game_over").active then return end
+    local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+    local margin = 16
+    local bar_height = 38
+    local heart_w = 32
+    local n_hearts = tonumber(settings_menu.player_max_hp) or 5
+    local bar_x = margin
+    local bar_y = margin
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24
+    local after_score_x = after_hearts_x + 100 + 12
+    local after_kills_x = after_score_x + 80 + 12
+    local af_width = 160
+    -- Auto-Fire toggle
+    if button == 1 and x >= after_kills_x and x <= after_kills_x+af_width and y >= bar_y and y <= bar_y+bar_height then
+        settings_menu.auto_fire_enabled = not settings_menu.auto_fire_enabled
+        return
+    end
+    -- Aim line toggle (next to auto-fire)
+    local aim_width = 160
+    local aim_x = after_kills_x + af_width + 12
+    if button == 1 and x >= aim_x and x <= aim_x+aim_width and y >= bar_y and y <= bar_y+bar_height then
+        settings_menu.aim_line_enabled = not settings_menu.aim_line_enabled
+        return
+    end
+    -- Hamburger icon
+    if not settings_menu.active then
+        local ix, iy = w - settings_menu.icon_size - settings_menu.icon_margin, settings_menu.icon_margin
+        if button == 1 then
+            if x >= ix and x <= ix+settings_menu.icon_size and y >= iy and y <= iy+settings_menu.icon_size then
+                settings_menu.active = true
+            end
+        end
+    end
 end
 
 return settings_menu

@@ -13,6 +13,7 @@ local gamepad = require "scripts/gamepad"
 local collision = require "scripts/collision"
 local popup = require "scripts/popup"
 local settings_menu = require "scripts/settings_menu"
+local game_over = require "scripts/game_over"
 
 local arena_margin = 32
 local enemy_spawn_timer = 0
@@ -30,7 +31,7 @@ end
 
 function love.update(dt)
     settings_menu.update(dt)
-    if settings_menu.active or settings_menu.game_over then return end -- Pause game logic if menu is open or game over
+    if settings_menu.active or game_over.active then return end -- Pause game logic if menu is open or game over
     beat.update(dt)
     player.update(dt)
     weapon.update(dt)
@@ -86,6 +87,10 @@ function love.update(dt)
 end
 
 function love.draw()
+    if game_over.active then
+        game_over.draw()
+        return
+    end
     -- Draw everything else first...
     -- (Beat checker text removed as requested)
     -- Draw everything that should move with the camera
@@ -119,7 +124,10 @@ end
 
 -- Ensure settings menu receives mouse and key events
 function love.mousepressed(x, y, button)
-    print('DEBUG: love.mousepressed called, forwarding to settings_menu')
+    print('DEBUG: love.mousepressed called')
+    if game_over.active then
+        if game_over.mousepressed(x, y, button) then return end
+    end
     settings_menu.mousepressed(x, y, button)
     if settings_menu.active then return end
     -- Track mouse down for firing

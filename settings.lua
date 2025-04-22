@@ -5,12 +5,12 @@ local settings = {
             kill_point = 10,         -- points for normal kill
             groove_kill_point = 50, -- points for groove kill
         },
-        auto_fire_angle = 0.03, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
+        auto_fire_angle = 0.2, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
         bpm = 32,
-        beat_subdivisions = 4,
-        camera_delay = 0.5,         -- seconds
+        beat_subdivisions = 2,
+        camera_delay = 1,         -- seconds
         -- Beat checker (rhythm aim) settings
         beat_checker_scale_initial = 0.5, -- scale at the start of pulse
         beat_checker_scale_final = 8,   -- scale at the end of pulse
@@ -44,18 +44,18 @@ local settings = {
         on_beat_damage = 5,
         range = 1000,                -- how far the projectile can travel (pixels)
         speed = 800,                -- speed of the projectile (pixels/sec)
-        fire_rate = 0.07,          -- seconds between shots
+        fire_rate = 0.05,          -- seconds between shots
         -- on_beat_color and on_beat_scale are now set globally in settings.main
         normal_color = {1,1,1,1},   -- RGBA for normal projectile
         normal_scale = 0.7,         -- scale for normal projectile
     },
     enemy = {
-        speed = 50,
+        speed = 70,
         hp = 30,
-        radius = 20,                -- radius of enemy (for drawing and collision)
-        spawn_rate = 2.0,           -- seconds between spawns
-        max_enemies = 6,            -- max enemies on screen
-        flash_duration = 0.15,      -- seconds
+        radius = 50,                -- radius of enemy (for drawing and collision)
+        spawn_rate = 1.5,           -- seconds between spawns
+        max_enemies = 30,            -- max enemies on screen
+        flash_duration = 0.5,      -- seconds
     },
     popup = {
         text = "Groove punch!",

@@ -80,7 +80,9 @@ function player.damage(amount)
     player.hp = math.max(0, player.hp - (amount or 1))
     settings_menu.player_hp = player.hp
     if player.hp <= 0 then
-        settings_menu.game_over = true
+        local game_over = require "scripts/game_over"
+        local settings_menu = require "scripts/settings_menu"
+        game_over.show(settings_menu.score, settings_menu.kills, player.hp)
     end
 end
 
@@ -89,11 +91,12 @@ function player.update(dt)
     gamepad.clamp_to_bounds(settings.main.window_width, settings.main.window_height)
 
     -- Always aim toward mouse cursor
+    local camera = require "scripts/camera"
     local mx, my = love.mouse.getPosition()
-    -- Convert screen to world coordinates (camera centered on player)
+    -- Convert screen to world coordinates (camera position)
     local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
-    local wx = gamepad.x + (mx - cx)
-    local wy = gamepad.y + (my - cy)
+    local wx = camera.x + (mx - cx)
+    local wy = camera.y + (my - cy)
     local dx, dy = wx - gamepad.x, wy - gamepad.y
     if dx ~= 0 or dy ~= 0 then
         gamepad.dir = math.atan2(dy, dx)
@@ -121,31 +124,27 @@ function player.update(dt)
 end
 
 function player.draw()
-    -- Draw dashed aim line from player to mouse
+    local settings_menu = require "scripts/settings_menu"
     local center_x, center_y = gamepad.x, gamepad.y
-    local mx, my = love.mouse.getPosition()
-    -- Convert mouse to world coordinates (camera centered on player)
-    local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
-    local wx = gamepad.x + (mx - cx)
-    local wy = gamepad.y + (my - cy)
-    love.graphics.setColor(1,1,1,0.3)
-    love.graphics.setLineWidth(1)
-    local dash = 5
-    local gap = 3
-    local dx, dy = wx - center_x, wy - center_y
-    local len = math.sqrt(dx*dx + dy*dy)
-    local steps = math.floor(len / (dash + gap))
-    for i=0,steps-1 do
-        local t1 = (i * (dash + gap)) / len
-        local t2 = ((i * (dash + gap)) + dash) / len
-        if t2 > 1 then t2 = 1 end
-        local x1 = center_x + dx * t1
-        local y1 = center_y + dy * t1
-        local x2 = center_x + dx * t2
-        local y2 = center_y + dy * t2
-        love.graphics.line(x1, y1, x2, y2)
+    if type(center_x) ~= "number" or type(center_y) ~= "number" then
+        return -- Don't draw if coordinates are invalid
     end
-    love.graphics.setColor(1,1,1,1)
+    -- Draw aim line if enabled
+    if settings_menu.aim_line_enabled then
+        if type(center_x) ~= "number" or type(center_y) ~= "number" then
+            return -- Don't draw if coordinates are invalid
+        end
+        local camera = require "scripts/camera"
+        local mx, my = love.mouse.getPosition()
+        -- Convert mouse to world coordinates (camera position)
+        local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
+        local wx = camera.x + (mx - cx)
+        local wy = camera.y + (my - cy)
+        love.graphics.setColor(1,1,0,0.8)
+        love.graphics.setLineWidth(2)
+        love.graphics.line(center_x, center_y, wx, wy)
+        love.graphics.setColor(1,1,1,1)
+    end
     -- === Beat Checker Visual Parameters (from settings) ===
     local main = settings.main
     local base_radius = gamepad.radius + (main.beat_checker_base_radius or 32)
