@@ -44,17 +44,11 @@ function love.update(dt)
         debug.log("Enemy spawned.")
         enemy_spawn_timer = 0
     end
-    -- Shooting logic
+    -- Shooting logic is now handled in love.mousepressed (left click)
     player.fire_timer = player.fire_timer or 0
     player.fire_timer = player.fire_timer - dt
-    if love.keyboard.isDown("space") and player.fire_timer <= 0 then
-        local dir = gamepad.dir or 0
-        local on_beat = player.on_beat_fire
-        weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
-        debug.log("Weapon fired.")
-        player.register_fire()
-        player.fire_timer = settings.projectile.fire_rate
-    end
+    -- (Space bar shooting removed)
+
 end
 
 function love.draw()
@@ -94,6 +88,17 @@ function love.mousepressed(x, y, button)
     print('DEBUG: love.mousepressed called, forwarding to settings_menu')
     settings_menu.mousepressed(x, y, button)
     if settings_menu.active then return end
+    -- Player shooting with left mouse button
+    if button == 1 then
+        if player.fire_timer == nil or player.fire_timer <= 0 then
+            local dir = gamepad.dir or 0
+            local on_beat = player.on_beat_fire
+            weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
+            debug.log("Weapon fired (mouse click).")
+            player.register_fire()
+            player.fire_timer = settings.projectile.fire_rate
+        end
+    end
     -- (rest of your mouse handling logic here)
 end
 

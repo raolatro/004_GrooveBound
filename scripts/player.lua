@@ -73,6 +73,18 @@ end
 function player.update(dt)
     gamepad.update(dt)
     gamepad.clamp_to_bounds(settings.main.window_width, settings.main.window_height)
+
+    -- Always aim toward mouse cursor
+    local mx, my = love.mouse.getPosition()
+    -- Convert screen to world coordinates (camera centered on player)
+    local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
+    local wx = gamepad.x + (mx - cx)
+    local wy = gamepad.y + (my - cy)
+    local dx, dy = wx - gamepad.x, wy - gamepad.y
+    if dx ~= 0 or dy ~= 0 then
+        gamepad.dir = math.atan2(dy, dx)
+    end
+
     -- Sprite animation state logic
     local moving = (math.abs(gamepad.aim_x) > 0.1 or math.abs(gamepad.aim_y) > 0.1)
     if moving then
