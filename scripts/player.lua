@@ -95,14 +95,106 @@ function player.update(dt)
 end
 
 function player.draw()
-    -- Determine sprite rotation based on direction
-    -- 0 = down, pi/2 = left, pi = up, -pi/2 = right
+    -- === Beat Checker Visual Parameters (from settings) ===
+    local center_x, center_y = gamepad.x, gamepad.y
+    local main = settings.main
+    local base_radius = gamepad.radius + (main.beat_checker_base_radius or 32)
+    local full_beat_outline_width = main.beat_checker_full_outline_width or 2
+    local full_beat_opacity = main.beat_checker_full_opacity or 1.0
+    local quarter_count = (main.beat_checker_quarter_count or 3)
+    local quarter_outline_width = main.beat_checker_quarter_outline_width or 0.5
+    local quarter_opacity = main.beat_checker_quarter_opacity or 0.3
+    local on_beat_buffer = main.beat_checker_on_beat_buffer or 0.10 -- seconds
+    local on_beat_anim_time = main.beat_checker_on_beat_anim_time or 0.5 -- seconds
+    -- Timing
+    local bpm = main.bpm or 120
+    local beat_subdiv = main.beat_subdivisions or 4
+    local full_beat_duration = 60/bpm
+    local quarter_duration = full_beat_duration/beat_subdiv
+    local now = love.timer.getTime()
+    local since_full_beat = (now - (player.last_beat_time or 0)) % full_beat_duration
+    -- === Full Beat Circle (always visible) ===
+    love.graphics.setColor(1,1,1,full_beat_opacity)
+    love.graphics.setLineWidth(full_beat_outline_width)
+    love.graphics.circle("line", center_x, center_y, base_radius)
+    -- === Quarter Beat Circles ===
+    for i=1,quarter_count do
+        local quarter_start = (i-1)*quarter_duration
+        local quarter_progress = (since_full_beat - quarter_start)/quarter_duration
+        if quarter_progress >= 0 and quarter_progress < 1 then
+            local scale = quarter_progress
+            local alpha = quarter_opacity
+            love.graphics.setColor(1,1,1,alpha)
+            love.graphics.setLineWidth(quarter_outline_width)
+            love.graphics.circle("line", center_x, center_y, base_radius*scale)
+        end
+    end
+    love.graphics.setLineWidth(1)
+    -- === On-Beat State & Input ===
+    -- Detect if a quarter circle is reaching the full beat (on-beat window)
+    local on_beat = false
+    for i=1,quarter_count do
+        local quarter_start = (i-1)*quarter_duration
+        local quarter_progress = (since_full_beat - quarter_start)/quarter_duration
+        if math.abs(quarter_progress-1) < (on_beat_buffer/quarter_duration) then
+            on_beat = true
+            break
+        end
+    end
+    player._on_beat_active = player._on_beat_active or false
+    player._on_beat_anim = player._on_beat_anim or 0
+    -- Handle spacebar press for on-beat hit
+    if on_beat and love.keyboard.isDown("space") and not player._on_beat_active then
+        player._on_beat_active = true
+        player._on_beat_anim = on_beat_anim_time
+        -- Set global on-beat state for projectile and popup
+        player._on_beat_triggered = true
+        player._on_beat_triggered_time = love.timer.getTime()
+        -- Update projectile and popup logic to use the same on-beat settings as beat checker
+        local on_beat_color = main.on_beat_color
+        local on_beat_scale = main.on_beat_scale
+        local on_beat_buffer_time = on_beat_buffer
+        -- Spawn projectile using new projectile system
+        local weapon = require "scripts/weapon"
+        weapon.spawn(gamepad.x, gamepad.y, gamepad.dir or 0, true) -- on_beat
+        -- All visuals and logic for on_beat come from settings.main
+        -- Spawn popup using new popup system
+        local popup = require "scripts/popup"
+        popup.spawn({
+            x = gamepad.x,
+            y = gamepad.y,
+            text = settings.popup.text,
+            color = on_beat_color,
+            font_scale = settings.popup.font_scale,
+            fade_duration = settings.popup.fade_duration,
+            y_offset = settings.popup.y_offset,
+            box = settings.popup.box,
+            box_color = settings.popup.box_color,
+            box_padding = settings.popup.box_padding,
+            outline = settings.popup.outline,
+            outline_color = settings.popup.outline_color,
+            outline_width = settings.popup.outline_width,
+            shadow = settings.popup.shadow,
+            shadow_color = settings.popup.shadow_color,
+            shadow_offset = settings.popup.shadow_offset,
+        })
+    end
+    -- Animate green fill if on-beat was hit
+    if player._on_beat_anim > 0 then
+        local t = 1 - (player._on_beat_anim/on_beat_anim_time)
+        local ease = 1 - (1-t)^2 -- ease out
+        love.graphics.setColor(main.on_beat_color[1], main.on_beat_color[2], main.on_beat_color[3], 1-ease)
+        love.graphics.circle("fill", center_x, center_y, base_radius * (main.on_beat_scale or 1.0))
+        player._on_beat_anim = math.max(0, player._on_beat_anim - love.timer.getDelta())
+        if player._on_beat_anim == 0 then player._on_beat_active = false end
+    end
+    -- Draw the player sprite (rotated)
     local dir = gamepad.dir or 0
-    -- Draw sprite at full opacity, no fade
-    player.sprite:draw(gamepad.x, gamepad.y, 1, dir - math.pi/2, {1,1,1,1})
+    player.sprite:draw(center_x, center_y, 1, dir - math.pi/2, {1,1,1,1})
     -- (Optional: draw hit circle for debugging)
     -- love.graphics.setColor(1,0,0,0.2)
-    -- love.graphics.circle("line", gamepad.x, gamepad.y, gamepad.radius)
+    -- love.graphics.circle("line", center_x, center_y, gamepad.radius)
 end
+
 
 return player

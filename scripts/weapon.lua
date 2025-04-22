@@ -8,6 +8,8 @@ weapon.projectiles = {}
 local projectile_radius = 5
 
 function weapon.spawn(x, y, dir, on_beat)
+    local main = settings.main
+    local on_beat_buffer = main.beat_checker_on_beat_buffer or 0.1
     -- You can expand here for spread/multishot
     table.insert(weapon.projectiles, {
         x = x,
@@ -18,7 +20,8 @@ function weapon.spawn(x, y, dir, on_beat)
         range = settings.projectile.range,
         traveled = 0,
         radius = projectile_radius,
-        on_beat = on_beat or false
+        on_beat = on_beat or false,
+        on_beat_buffer = on_beat_buffer
     })
 end
 
@@ -37,9 +40,10 @@ function weapon.update(dt)
 end
 
 function weapon.draw(player_x, player_y)
+    local main = settings.main
     for _, p in ipairs(weapon.projectiles) do
-        local scale = p.on_beat and settings.projectile.on_beat_scale or settings.projectile.normal_scale
-        local color = p.on_beat and settings.projectile.on_beat_color or settings.projectile.normal_color
+        local scale = p.on_beat and (main.on_beat_scale or settings.projectile.on_beat_scale) or settings.projectile.normal_scale
+        local color = p.on_beat and (main.on_beat_color or settings.projectile.on_beat_color) or settings.projectile.normal_color
         love.graphics.setColor(color)
         love.graphics.circle("fill", p.x, p.y, projectile_radius * scale)
     end
