@@ -28,6 +28,10 @@ function gamepad.update(dt)
         gamepad.dir = math.atan2(move_y, move_x)
         gamepad.aim_x = move_x
         gamepad.aim_y = move_y
+    else
+        -- No movement: set aim_x/aim_y to 0 so player.update detects idle state
+        gamepad.aim_x = 0
+        gamepad.aim_y = 0
     end
 end
 

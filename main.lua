@@ -12,6 +12,7 @@ local camera = require "scripts/camera"
 local gamepad = require "scripts/gamepad"
 local collision = require "scripts/collision"
 local popup = require "scripts/popup"
+local settings_menu = require "scripts/settings_menu"
 
 local arena_margin = 32
 local enemy_spawn_timer = 0
@@ -28,6 +29,8 @@ function love.load()
 end
 
 function love.update(dt)
+    settings_menu.update(dt)
+    if settings_menu.active then return end -- Pause game logic if menu is open
     beat.update(dt)
     player.update(dt)
     weapon.update(dt)
@@ -55,39 +58,47 @@ function love.update(dt)
 end
 
 function love.draw()
+    -- Draw everything else first...
+    -- (Beat checker text removed as requested)
+    -- Draw everything that should move with the camera
+    -- Draw everything that moves with the camera
     camera.attach()
-    -- Draw arena
     love.graphics.setColor(0.1,0.1,0.1,1)
-    love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-2*arena_margin, settings.main.window_height-2*arena_margin)
-    -- Draw projectiles and Groove! popup
-    weapon.draw(gamepad.x, gamepad.y)
-    -- Draw enemies and their HP
+    love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
+    love.graphics.setColor(1,1,1,1)
     enemy.draw()
-    -- Draw corpses (placeholder: gray X)
+    player.draw()
+    weapon.draw(gamepad.x, gamepad.y)
+    popup.draw()
+    -- Draw corpses (placeholder: gray X) INSIDE camera so they are fixed in world
     love.graphics.setColor(0.5,0.5,0.5,1)
     for _, c in ipairs(enemy.corpses) do
         love.graphics.line(c.x-8, c.y-8, c.x+8, c.y+8)
         love.graphics.line(c.x+8, c.y-8, c.x-8, c.y+8)
     end
-    -- Draw player (with direction arrow)
-    player.draw()
     camera.detach()
-    -- Draw beat checker box (top right)
-    local beat_num = (beat.current_beat_step or 0) + 1
-    local total_beats = settings.main.beat_subdivisions or 4
-    local text = tostring(beat_num) .. " / " .. tostring(total_beats)
-    local font = love.graphics.getFont()
-    local tw, th = font:getWidth(text), font:getHeight()
-    local pad = 12
-    local box_w, box_h = tw + pad*2, th + pad*2
-    local x = love.graphics.getWidth() - box_w - 16
-    local y = 16
-    love.graphics.setColor(0.2,0.2,0.2,0.85)
-    love.graphics.rectangle("fill", x, y, box_w, box_h, 12, 12)
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.printf(text, x, y+pad, box_w, "center")
+    -- Draw everything that should stay fixed on screen (UI, overlays)
+
+    -- Draw settings menu overlay LAST, outside of camera, so it is always in the foreground and doesn't affect camera stack
+    settings_menu.draw()
     -- Draw debug overlay
     debug.draw()
+    -- (Beat checker box and duplicate player.draw() removed to avoid camera stack errors and UI clutter)
+
     -- Draw popups (should be on top)
-    popup.draw()
+    -- (Removed duplicate popup.draw() to prevent duplicate popups)
+end
+
+-- Ensure settings menu receives mouse and key events
+function love.mousepressed(x, y, button)
+    print('DEBUG: love.mousepressed called, forwarding to settings_menu')
+    settings_menu.mousepressed(x, y, button)
+    if settings_menu.active then return end
+    -- (rest of your mouse handling logic here)
+end
+
+function love.keypressed(key)
+    print('DEBUG: love.keypressed called, forwarding to settings_menu')
+    if settings_menu.active then settings_menu.keypressed(key) return end
+    -- (rest of your key handling logic here)
 end

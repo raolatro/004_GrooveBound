@@ -14,7 +14,7 @@ registry.player = sprite.new({
     default_state = "idle",
     states = {
         walk = {frames=4, fps=8, row=1}, -- top row (1-based), 4 frames
-        idle = {frames=2, fps=2, row=2}, -- bottom row, first 2 frames
+        idle = {frames=4, fps=8, row=2}, -- bottom row, 4 frames
     },
 })
 
