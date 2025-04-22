@@ -15,7 +15,7 @@ GrooveBound is a rhythm-based top-down shooter built with LÖVE2D (Lua). You con
 - **Shoot:** Left Click or Auto-Fire (toggle in settings)
 - **Stay Alive:** Dodge enemies and survive as long as possible
 - **Sync with the Beat:** Hitting actions on the beat gives bonuses!
-- **Settings:** Click the hamburger icon (top right) to pause and adjust settings in real time.
+- **Settings:** Currently not working...
 
 ---
 
