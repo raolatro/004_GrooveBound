@@ -7,6 +7,24 @@ local settings_menu = {}
 settings_menu.score = 0
 settings_menu.kills = 0
 
+-- Font system: load all fonts up front for use throughout the UI
+-- Helper to reload fonts whenever a size or path changes
+function settings_menu.reload_fonts()
+    settings_menu._fonts = {
+        header = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.header),
+        body = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.body),
+        button = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.button)
+    }
+end
+settings_menu.reload_fonts()
+
+-- Font settings controls for the menu (for extensibility)
+settings_menu.fonts_settings = {
+    { key = "header", label = "Header Font Size", min = 10, max = 64, step = 1 },
+    { key = "body", label = "Body Font Size", min = 8, max = 32, step = 1 },
+    { key = "button", label = "Button Font Size", min = 8, max = 48, step = 1 }
+}
+
 settings_menu.active = false
 settings_menu.page = 1
 settings_menu.pages = {"main"}
@@ -88,7 +106,32 @@ function settings_menu.mousepressed(x, y, button)
             end
         end
     else
-        print('DEBUG: Menu already active, mouse interaction for +/- not implemented yet')
+        -- Implement mouse interaction for +/- font controls
+        if settings_menu.active then
+            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+            local font_section_y = h/2 + 80
+            for j, font_entry in ipairs(settings_menu.fonts_settings) do
+                local fy = font_section_y + 24 + (j-1)*38
+                -- Minus button
+                if button == 1 and x >= w/2+60 and x <= w/2+88 and y >= fy and y <= fy+28 then
+                    local key = font_entry.key
+                    local cur = settings.main.fonts[key]
+                    local new_val = math.max(font_entry.min, cur - font_entry.step)
+                    settings.main.fonts[key] = new_val
+                    settings_menu.reload_fonts()
+                    return
+                end
+                -- Plus button
+                if button == 1 and x >= w/2+100 and x <= w/2+128 and y >= fy and y <= fy+28 then
+                    local key = font_entry.key
+                    local cur = settings.main.fonts[key]
+                    local new_val = math.min(font_entry.max, cur + font_entry.step)
+                    settings.main.fonts[key] = new_val
+                    settings_menu.reload_fonts()
+                    return
+                end
+            end
+        end
     end
 end
 
@@ -123,7 +166,7 @@ function settings_menu.draw()
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", after_hearts_x, bar_y, 100, bar_height, 10, 10)
     love.graphics.setColor(1,1,1,1)
-    love.graphics.setFont(love.graphics.newFont(18))
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf("Score: "..tostring(settings_menu.score), after_hearts_x, bar_y+8, 100, "center")
     local after_score_x = after_hearts_x + 100 + 12
     -- Kills
@@ -181,6 +224,27 @@ function settings_menu.draw()
             love.graphics.printf("+", w/2+100, y+4, 28, "center")
         end
         love.graphics.setColor(1,1,1,1)
+
+        -- Font Settings Section
+        local font_section_y = h/2 + 80
+        love.graphics.setFont(settings_menu._fonts.body)
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.printf("FONTS", w/2-180, font_section_y, 360, "center")
+        for j, font_entry in ipairs(settings_menu.fonts_settings) do
+            local fy = font_section_y + 24 + (j-1)*38
+            local fsize = settings.main.fonts[font_entry.key]
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.printf(font_entry.label .. ": ", w/2-150, fy, 140, "right")
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.printf(tostring(fsize), w/2-10, fy, 60, "left")
+            -- Draw +/- buttons for font size
+            love.graphics.setColor(0.7,0.7,0.7,1)
+            love.graphics.rectangle("fill", w/2+60, fy, 28, 28, 6, 6)
+            love.graphics.rectangle("fill", w/2+100, fy, 28, 28, 6, 6)
+            love.graphics.setColor(0,0,0,1)
+            love.graphics.printf("-", w/2+60, fy+4, 28, "center")
+            love.graphics.printf("+", w/2+100, fy+4, 28, "center")
+        end
     end
     -- Draw bottom-center instruction (always visible)
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
@@ -188,7 +252,7 @@ function settings_menu.draw()
     love.graphics.rectangle("fill", w/2-230, h-54, 460, 36, 10, 10)
     love.graphics.setColor(1,1,1,1)
     local old_font = love.graphics.getFont()
-    local instr_font = love.graphics.newFont(18)
+    local instr_font = settings_menu._fonts.body
     love.graphics.setFont(instr_font)
     love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-220, h-48, 440, "center")
     love.graphics.setFont(old_font)
@@ -206,15 +270,20 @@ end
     love.graphics.setLineWidth(3)
     love.graphics.rectangle("line", box_x, box_y, box_w, box_h, 18, 18)
     love.graphics.setLineWidth(1)
-    love.graphics.setFont(love.graphics.newFont(32))
+    -- GAME OVER Title
+    love.graphics.setFont(settings_menu._fonts.header)
     love.graphics.printf("GAME OVER", box_x, box_y+28, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(22))
+    -- Final Score label
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf("Final Score", box_x, box_y+90, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(28))
+    -- Final Score value
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf(tostring(settings_menu.score), box_x, box_y+120, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(22))
+    -- Kills label
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf("Kills", box_x, box_y+170, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(28))
+    -- Kills value
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf(tostring(settings_menu.kills), box_x, box_y+200, box_w, "center")
     -- Restart button
     local btn_w, btn_h = 180, 48
@@ -226,7 +295,8 @@ end
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", btn_x, btn_y, btn_w, btn_h, 12, 12)
     love.graphics.setLineWidth(1)
-    love.graphics.setFont(love.graphics.newFont(24))
+    -- Set font for RESTART button
+    love.graphics.setFont(settings_menu._fonts.body)
     love.graphics.printf("RESTART", btn_x, btn_y+10, btn_w, "center")
 -- Helper to check if mouse is inside a box
 local function mouse_in_box(x, y, box)

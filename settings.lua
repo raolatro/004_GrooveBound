@@ -32,10 +32,19 @@ local settings = {
         on_beat_scale_final = 1.0,        -- scale at the end of on-beat animation
         on_beat_ease = 0.18,              -- how quickly it animates
         beat_flash = 1,                -- seconds to flash outline on beat
+
+        -- Centralized font settings for all UI
+        fonts = {
+            path = "assets/fonts/m6x11plus.ttf",
+            header = 28,
+            body = 18,
+            button = 24
+        }
+
     },
 
     player = {
-        speed = 15,
+        speed = 25,
         hp = 5,
     },
     projectile = {

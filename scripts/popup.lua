@@ -50,7 +50,8 @@ function popup.draw()
         -- Set font for popup
         local popup_font = popup._fonts[p.font_size]
         if not popup_font then
-            popup_font = love.graphics.newFont(p.font_size or 28)
+            local settings = require "settings"
+popup_font = love.graphics.newFont(settings.main.fonts.path, p.font_size or settings.main.fonts.body)
             popup._fonts[p.font_size] = popup_font
         end
         local prev_font = love.graphics.getFont()

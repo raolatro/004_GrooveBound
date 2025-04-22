@@ -6,6 +6,16 @@ local weapon = require "scripts/weapon"
 local gamepad = require "scripts/gamepad"
 local game_over = {}
 
+-- Font system for game over screen
+function game_over.reload_fonts()
+    game_over._fonts = {
+        header = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.header),
+        body = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.body),
+        button = love.graphics.newFont(settings.main.fonts.path, settings.main.fonts.button)
+    }
+end
+game_over.reload_fonts()
+
 game_over.active = false
 
 game_over.score = 0
@@ -34,15 +44,15 @@ function game_over.draw()
     love.graphics.setLineWidth(3)
     love.graphics.rectangle("line", box_x, box_y, box_w, box_h, 18, 18)
     love.graphics.setLineWidth(1)
-    love.graphics.setFont(love.graphics.newFont(32))
+    love.graphics.setFont(game_over._fonts.header)
     love.graphics.printf("GAME OVER", box_x, box_y+28, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.setFont(game_over._fonts.body)
     love.graphics.printf("Final Score", box_x, box_y+90, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(28))
+    love.graphics.setFont(game_over._fonts.header)
     love.graphics.printf(tostring(game_over.score), box_x, box_y+120, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(22))
+    love.graphics.setFont(game_over._fonts.body)
     love.graphics.printf("Kills", box_x, box_y+170, box_w, "center")
-    love.graphics.setFont(love.graphics.newFont(28))
+    love.graphics.setFont(game_over._fonts.header)
     love.graphics.printf(tostring(game_over.kills), box_x, box_y+200, box_w, "center")
     -- Restart button
     local btn_w, btn_h = 180, 48
@@ -54,7 +64,7 @@ function game_over.draw()
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", btn_x, btn_y, btn_w, btn_h, 12, 12)
     love.graphics.setLineWidth(1)
-    love.graphics.setFont(love.graphics.newFont(24))
+    love.graphics.setFont(game_over._fonts.button)
     love.graphics.printf("RESTART", btn_x, btn_y+10, btn_w, "center")
 end
 
