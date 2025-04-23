@@ -1,11 +1,13 @@
 -- scripts/enemy.lua: Handles enemy logic
 local paths = require "paths"
 local settings = require "settings"
+local sfx = require "scripts/sfx"
 local collision = require "scripts/collision"
 local debug = require "scripts/debug"
 
 local settings_menu = require "scripts/settings_menu"
 local scoring = require "scripts/scoring"
+local loot = require "scripts/loot"
 local enemy = {}
 enemy.enemies = {}
 enemy.corpses = {}
@@ -78,6 +80,8 @@ function enemy.update(dt, player_x, player_y, projectiles)
                 debug.log("Enemy hit!" .. (killed_by_groove and " Killed by groove!" or ""))
                 if e.hp <= 0 then
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
+                    -- Spawn loot drop near corpse
+                    loot.spawn(e.x, e.y)
                     table.remove(enemy.enemies, i)
                     debug.log("Enemy dead!")
                     -- Score system

@@ -1,6 +1,7 @@
 -- scripts/weapon.lua: Handles weapon/projectile logic
 local paths = require "paths"
 local settings = require "settings"
+local sfx = require "scripts/sfx"
 local collision = require "scripts/collision"
 local weapon = {}
 weapon.projectiles = {}
@@ -8,6 +9,7 @@ weapon.projectiles = {}
 local projectile_radius = 5
 
 function weapon.spawn(x, y, dir, on_beat)
+    sfx.play('projectile')
     local main = settings.main
     local on_beat_buffer = main.beat_checker_on_beat_buffer or 0.1
     -- You can expand here for spread/multishot

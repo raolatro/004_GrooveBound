@@ -39,24 +39,26 @@ function player.register_fire()
         player.outline_target_scale = settings.main.beat_checker_scale_max or 1.4
         -- Spawn popup using new popup system
         local popup = require "scripts/popup"
-        popup.spawn({
-            x = gamepad.x,
-            y = gamepad.y,
-            text = settings.popup.text,
-            color = settings.popup.color,
-            font_scale = settings.popup.font_scale,
-            fade_duration = settings.popup.fade_duration,
-            y_offset = settings.popup.y_offset,
-            box = settings.popup.box,
-            box_color = settings.popup.box_color,
-            box_padding = settings.popup.box_padding,
-            outline = settings.popup.outline,
-            outline_color = settings.popup.outline_color,
-            outline_width = settings.popup.outline_width,
-            shadow = settings.popup.shadow,
-            shadow_color = settings.popup.shadow_color,
-            shadow_offset = settings.popup.shadow_offset,
-        })
+        if settings.popup.enable_groove_popup then
+            popup.spawn({
+                x = gamepad.x,
+                y = gamepad.y,
+                text = settings.popup.text,
+                color = settings.popup.color,
+                font_scale = settings.popup.font_scale,
+                fade_duration = settings.popup.fade_duration,
+                y_offset = settings.popup.y_offset,
+                box = settings.popup.box,
+                box_color = settings.popup.box_color,
+                box_padding = settings.popup.box_padding,
+                outline = settings.popup.outline,
+                outline_color = settings.popup.outline_color,
+                outline_width = settings.popup.outline_width,
+                shadow = settings.popup.shadow,
+                shadow_color = settings.popup.shadow_color,
+                shadow_offset = settings.popup.shadow_offset,
+            })
+        end
     else
         player.on_beat_fire = false
         player.beat_flash = 0.12
@@ -162,6 +164,18 @@ function player.draw()
     local quarter_duration = full_beat_duration/beat_subdiv
     local now = love.timer.getTime()
     local since_full_beat = (now - (player.last_beat_time or 0)) % full_beat_duration
+    -- === Attraction radii (loot/weapon) ===
+    local loot_settings = require("settings").loot
+    local weapon_settings = require("settings").weapon
+    local outline_radius = player.outline_radius or base_radius
+    local loot_attr_radius = outline_radius * (loot_settings.attraction_radius_mult or 2)
+    local weapon_attr_radius = outline_radius * (weapon_settings.attraction_radius_mult or 2)
+    -- Faded blue for loot attraction
+    love.graphics.setColor(0,0.7,1,0.13)
+    love.graphics.circle("line", center_x, center_y, loot_attr_radius, 64)
+    -- Faded orange for weapon attraction
+    love.graphics.setColor(1,0.7,0,0.10)
+    love.graphics.circle("line", center_x, center_y, weapon_attr_radius, 64)
     -- === Full Beat Circle (always visible) ===
     love.graphics.setColor(1,1,1,full_beat_opacity)
     love.graphics.setLineWidth(full_beat_outline_width)

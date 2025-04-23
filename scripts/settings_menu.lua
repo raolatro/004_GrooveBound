@@ -3,9 +3,11 @@
 -- Start with only the main settings group (bpm, beat_subdivisions, etc)
 
 local settings = require "settings"
+local inventory = require "scripts/inventory"
 local settings_menu = {}
 settings_menu.score = 0
 settings_menu.kills = 0
+settings_menu.money = 0
 
 -- Font system: load all fonts up front for use throughout the UI
 -- Helper to reload fonts whenever a size or path changes
@@ -35,6 +37,7 @@ settings_menu.auto_fire_enabled = false
 settings_menu.aim_line_enabled = true -- Auto-Fire toggle
 settings_menu.score = 0 -- Total score
 settings_menu.kills = 0 -- Total kills
+settings_menu.money = 0 -- Total money
 settings_menu.player_hp = nil -- Player current HP (set at game start)
 settings_menu.player_max_hp = nil -- Player max HP (set at game start)
 
@@ -46,19 +49,50 @@ settings_menu.hp_empty_quad = love.graphics.newQuad(64,0,64,56,settings_menu.hp_
 
 -- List of settings to show on the first page (main)
 settings_menu.main_settings = {
-    { key = "bpm", label = "BPM", min = 10, max = 300, step = 1 },
+    { key = "bpm", label = "Beats Per Minute", min = 16, max = 240, step = 1 },
     { key = "beat_subdivisions", label = "Beat Subdivisions", min = 1, max = 16, step = 1 },
     { key = "beat_checker_base_radius", label = "Checker Radius", min = 8, max = 256, step = 1 },
     { key = "on_beat_scale", label = "On-Beat Scale", min = 0.5, max = 3, step = 0.05 },
     { key = "beat_checker_on_beat_buffer", label = "On-Beat Buffer", min = 0.01, max = 0.5, step = 0.01 },
+    -- Loot attraction controls
+    { key = "loot_attraction_enabled", label = "Loot Attraction", type = "bool" },
+    { key = "loot_attraction_speed", label = "Loot Attraction Speed", min = 10, max = 500, step = 5 },
+    { key = "loot_attraction_radius_mult", label = "Loot Attraction Radius x", min = 1, max = 5, step = 0.1 },
+    -- Weapon attraction controls
+    { key = "weapon_attraction_enabled", label = "Weapon Attraction", type = "bool" },
+    { key = "weapon_attraction_speed", label = "Weapon Attraction Speed", min = 10, max = 500, step = 5 },
+    { key = "weapon_attraction_radius_mult", label = "Weapon Attraction Radius x", min = 1, max = 5, step = 0.1 },
 }
 
 function settings_menu.toggle()
     settings_menu.active = not settings_menu.active
+    if settings_menu.active then
+        settings_menu.init_attraction_settings()
+    end
 end
 
 function settings_menu.update(dt)
-    -- Pause game logic if menu is active (handled in main.lua)
+    -- Sync settings_menu values to settings.loot/weapon
+    local settings = require "settings"
+    -- Loot
+    if settings_menu.loot_attraction_enabled ~= nil then settings.loot.attraction_enabled = settings_menu.loot_attraction_enabled end
+    if settings_menu.loot_attraction_speed ~= nil then settings.loot.attraction_speed = settings_menu.loot_attraction_speed end
+    if settings_menu.loot_attraction_radius_mult ~= nil then settings.loot.attraction_radius_mult = settings_menu.loot_attraction_radius_mult end
+    -- Weapon
+    if settings_menu.weapon_attraction_enabled ~= nil then settings.weapon.attraction_enabled = settings_menu.weapon_attraction_enabled end
+    if settings_menu.weapon_attraction_speed ~= nil then settings.weapon.attraction_speed = settings_menu.weapon_attraction_speed end
+    if settings_menu.weapon_attraction_radius_mult ~= nil then settings.weapon.attraction_radius_mult = settings_menu.weapon_attraction_radius_mult end
+end
+
+-- On load, copy settings into settings_menu
+function settings_menu.init_attraction_settings()
+    local settings = require "settings"
+    settings_menu.loot_attraction_enabled = settings.loot.attraction_enabled
+    settings_menu.loot_attraction_speed = settings.loot.attraction_speed
+    settings_menu.loot_attraction_radius_mult = settings.loot.attraction_radius_mult
+    settings_menu.weapon_attraction_enabled = settings.weapon.attraction_enabled
+    settings_menu.weapon_attraction_speed = settings.weapon.attraction_speed
+    settings_menu.weapon_attraction_radius_mult = settings.weapon.attraction_radius_mult
 end
 
 function settings_menu.keypressed(key)
@@ -85,8 +119,9 @@ function settings_menu.mousepressed(x, y, button)
     local n_hearts = tonumber(settings_menu.player_max_hp) or 5
     local bar_x = margin
     local bar_y = margin
-    local after_hearts_x = bar_x + n_hearts*heart_w + 24
-    local after_score_x = after_hearts_x + 100 + 12
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24 + (28*3 + 8*2)
+    local after_money_x = after_hearts_x + 100 + 12
+    local after_score_x = after_money_x + 100 + 12
     local after_kills_x = after_score_x + 80 + 12
     local af_width = 160
     -- Check Auto-Fire toggle button (always clickable)
@@ -161,14 +196,39 @@ function settings_menu.draw()
         love.graphics.setColor(1,1,1,1)
         love.graphics.draw(settings_menu.hp_img, quad, x, bar_y, 0, heart_w/64, heart_h/56)
     end
-    local after_hearts_x = bar_x + n_hearts*heart_w + 24
-    -- Score
+    -- Weapons slots HUD
+    do
+        local slots = {"forward","cross","drone"}
+        local slot_size = 28
+        local slot_spacing = 8
+        local slot_start_x = bar_x + n_hearts*heart_w + 24
+        for idx, cat in ipairs(slots) do
+            local x0 = slot_start_x + (idx-1)*(slot_size + slot_spacing)
+            local y0 = bar_y + (bar_height - slot_size)/2
+            love.graphics.setColor(1,1,1,1)
+            love.graphics.rectangle("line", x0, y0, slot_size, slot_size, 6,6)
+            local s = inventory.slots[cat]
+            if s then
+                love.graphics.setColor(s.color)
+                love.graphics.circle("fill", x0 + slot_size/2, y0 + slot_size/2, slot_size/2 - 4)
+            end
+        end
+    end
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24 + (28*3 + 8*2)
+    -- Money HUD color matches popup text
+    local money_color = settings.item_data.Rarity.Common.color
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", after_hearts_x, bar_y, 100, bar_height, 10, 10)
+    love.graphics.setColor(money_color)
+    love.graphics.printf("Money: "..tostring(settings_menu.money), after_hearts_x, bar_y+8, 100, "center")
     love.graphics.setColor(1,1,1,1)
-    love.graphics.setFont(settings_menu._fonts.body)
-    love.graphics.printf("Score: "..tostring(settings_menu.score), after_hearts_x, bar_y+8, 100, "center")
-    local after_score_x = after_hearts_x + 100 + 12
+    local after_money_x = after_hearts_x + 100 + 12
+    -- Score
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", after_money_x, bar_y, 100, bar_height, 10, 10)
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.printf("Score: "..tostring(settings_menu.score), after_money_x, bar_y+8, 100, "center")
+    local after_score_x = after_money_x + 100 + 12
     -- Kills
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", after_score_x, bar_y, 80, bar_height, 10, 10)
@@ -314,8 +374,9 @@ function settings_menu.mousepressed(x, y, button)
     local n_hearts = tonumber(settings_menu.player_max_hp) or 5
     local bar_x = margin
     local bar_y = margin
-    local after_hearts_x = bar_x + n_hearts*heart_w + 24
-    local after_score_x = after_hearts_x + 100 + 12
+    local after_hearts_x = bar_x + n_hearts*heart_w + 24 + (28*3 + 8*2)
+    local after_money_x = after_hearts_x + 100 + 12
+    local after_score_x = after_money_x + 100 + 12
     local after_kills_x = after_score_x + 80 + 12
     local af_width = 160
     -- Auto-Fire toggle
@@ -341,4 +402,5 @@ function settings_menu.mousepressed(x, y, button)
     end
 end
 
+settings_menu.init_attraction_settings()
 return settings_menu

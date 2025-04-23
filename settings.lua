@@ -1,11 +1,18 @@
 -- settings.lua: All designer-tunable variables
 local settings = {
     main = {
+        sfx = {
+            volume = 0.8, -- global SFX volume (0-1)
+            loot_enabled = true,
+            weapon_enabled = true,
+            projectile_enabled = true,
+            dead_enabled = true,
+        },
         scoring = {
             kill_point = 10,         -- points for normal kill
             groove_kill_point = 50, -- points for groove kill
         },
-        auto_fire_angle = 0.2, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
+        auto_fire_angle = 0.3, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
         bpm = 32,
@@ -53,20 +60,21 @@ local settings = {
         on_beat_damage = 5,
         range = 1000,                -- how far the projectile can travel (pixels)
         speed = 800,                -- speed of the projectile (pixels/sec)
-        fire_rate = 0.05,          -- seconds between shots
+        fire_rate = 0.15,          -- seconds between shots
         -- on_beat_color and on_beat_scale are now set globally in settings.main
         normal_color = {1,1,1,1},   -- RGBA for normal projectile
         normal_scale = 0.7,         -- scale for normal projectile
     },
     enemy = {
         speed = 70,
-        hp = 30,
-        radius = 50,                -- radius of enemy (for drawing and collision)
-        spawn_rate = 1.5,           -- seconds between spawns
-        max_enemies = 30,            -- max enemies on screen
+        hp = 10,
+        radius = 30,                -- radius of enemy (for drawing and collision)
+        spawn_rate = 2.5,           -- seconds between spawns
+        max_enemies = 10,            -- max enemies on screen
         flash_duration = 0.5,      -- seconds
     },
     popup = {
+        enable_groove_popup = false,  -- toggle player groove popup
         text = "Groove punch!",
         color = {0,1,0,1}, -- default color
         font_size = 20,         -- font size in px for popup text
@@ -92,6 +100,18 @@ local settings = {
         y_offset = -7,          -- pixels above enemy center
         font = nil,              -- can set a custom font path if needed
     },
+    -- Load item drop settings
+    item_data = require "data/items",
+    loot = {
+        attraction_enabled = true, -- coins chase player
+        attraction_speed = 300,   -- px/sec
+        attraction_radius_mult = 15.0, -- chase starts at outline_radius * this
+    },
+    weapon = {
+        attraction_enabled = true,
+        attraction_speed = 300,
+        attraction_radius_mult = 15.0,
+    }
 }
 
 return settings

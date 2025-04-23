@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrooveBound</title>
+  <meta name="description" content="GrooveBound: A top-down rhythm action shooter built with Love2D. Maintain your groove and aim true to rack up high scores!">
+  <meta name="author" content="Raoni Lima">
+  <link rel="icon" type="image/png" href="assets/img/icon.png">
+  <style>
+    body { background: #111; color: #eee; font-family: 'Arial', sans-serif; margin: 0; padding: 0; }
+    .container { width: 90%; max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; margin: 40px 0; }
+    .header img { max-width: 180px; height: auto; image-rendering: pixelated; }
+    h1 { font-size: 2.5rem; margin: 0.5em 0; }
+    p { line-height: 1.6; }
+    .section { margin: 2em 0; }
+    .section h2 { font-size: 1.8rem; border-bottom: 2px solid #444; padding-bottom: 0.3em; margin-bottom: 0.5em; }
+    .controls ul,
+    .features ul { text-align: left; padding-left: 1.2em; }
+    .screenshots { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    .screenshots img { image-rendering: pixelated; max-width: 300px; height: auto; border: none; }
+    .buttons a { display: inline-block; margin: 0.5em; padding: 0.6em 1.2em; background: #28a745; color: #fff; text-decoration: none; border-radius: 4px; }
+    .buttons a:hover { background: #6e2188; }
+    .footer { text-align: center; margin: 3em 0; font-size: 0.9rem; color: #777; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="assets/img/icon.png" alt="GrooveBound Icon">
+      <h1>GrooveBound</h1>
+      <p>A top-down rhythm action shooter built with Love2D.</p>
+    </div>
+    <div class="section summary">
+      <h2>About</h2>
+      <p>In GrooveBound, enemies approach to the beat of the music. Maintain your groove, aim true, and unleash precise shots on the rhythm to rack up points and chain combos!</p>
+    </div>
+    <div class="section controls">
+      <h2>Controls</h2>
+      <ul>
+        <li><strong>Move:</strong> WASD</li>
+        <li><strong>Aim:</strong> Mouse</li>
+        <li><strong>Shoot:</strong> Left Click or Auto-Fire</li>
+        <li><strong>Toggle Settings:</strong> Esc or click the ☰ icon</li>
+      </ul>
+    </div>
+    <div class="section features">
+      <h2>Features</h2>
+      <ul>
+        <li>Rhythm-based shooting mechanics</li>
+        <li>Customizable BPM and beat subdivisions</li>
+        <li>Adjustable UI fonts and toggles in settings menu</li>
+        <li>Dynamic on-beat visuals and effects</li>
+        <li>High score tracking with combo multipliers</li>
+      </ul>
+    </div>
+    <div class="section screenshots">
+      <h2>Screenshots</h2>
+      <img src="assets/img/gameover.png" alt="Game Over Screen">
+      <img src="assets/img/man1-sprite.png" alt="Gameplay Screenshot">
+    </div>
+    <div class="section install">
+      <h2>How to Play</h2>
+      <ol>
+        <li>Download and install <a href="https://love2d.org" target="_blank">Love2D</a>.</li>
+        <li>Clone or download this repository.</li>
+        <li>Open a terminal in the project folder and run <code>love .</code>.</li>
+      </ol>
+    </div>
+    <div class="section buttons">
+      <h2>Get Involved</h2>
+      <a href="https://github.com/raolatro/004_GrooveBound" target="_blank">View on GitHub</a>
+    </div>
+    <div class="footer">
+      <p>Version v1.0.0 | Made with ❤ by <a href="https://raoni.studio" target="_blank">Raoni Lima</a></p>
+      <p><em>This project is for educational and non-commercial use.</em></p>
+    </div>
+  </div>
+</body>
+</html>

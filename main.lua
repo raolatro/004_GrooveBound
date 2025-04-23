@@ -12,8 +12,11 @@ local camera = require "scripts/camera"
 local gamepad = require "scripts/gamepad"
 local collision = require "scripts/collision"
 local popup = require "scripts/popup"
+local sfx = require "scripts/sfx"
 local settings_menu = require "scripts/settings_menu"
 local game_over = require "scripts/game_over"
+local loot = require "scripts/loot"
+local inventory = require "scripts/inventory"
 
 local arena_margin = 32
 local enemy_spawn_timer = 0
@@ -23,10 +26,13 @@ function love.load()
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
     debug.log("Game loaded.")
+    debug.log("Milestone: Attraction and snap/ease-in features enabled.")
     enemy.spawn_far(gamepad.x, gamepad.y)
     debug.log("Enemy spawned.")
     -- Hook beat event to player visual cue
     beat.on_beat(player.on_beat)
+    -- Give player starting forward gun
+    inventory.add("forwardGun")
 end
 
 function love.update(dt)
@@ -38,6 +44,35 @@ function love.update(dt)
     enemy.update(dt, gamepad.x, gamepad.y, weapon.projectiles)
     camera.update(dt, gamepad.x, gamepad.y)
     popup.update(dt)
+    -- Use beat checker outline radius for attraction & pickup
+    local outline_radius = (player.outline_radius or gamepad.radius)
+    loot.update(dt, gamepad.x, gamepad.y, outline_radius)
+    -- Handle loot pickup collisions
+    do
+        local px, py = gamepad.x, gamepad.y
+        for i = #loot.drops, 1, -1 do
+            local d = loot.drops[i]
+            local dx, dy = d.x - px, d.y - py
+            local pickup_radius = outline_radius
+            if dx*dx + dy*dy <= pickup_radius*pickup_radius then
+                if d.id == "money" then
+                    debug.log('Coin picked up!')
+                    sfx.play('coin')
+                    local md = settings.item_data
+                    local amt = md.Items.money.baseValue * md.Rarity[d.rarity].multiplier
+                    settings_menu.money = (settings_menu.money or 0) + amt
+                    popup.spawn({ x = px, y = py - 20, text = "+"..amt.."₵", color = md.Rarity[d.rarity].color })
+                else
+                    debug.log('Weapon picked up!')
+                    inventory.add(d.id)
+                    sfx.play('weapon')
+                    local md = settings.item_data
+                    popup.spawn({ x = px, y = py - 20, text = "New "..d.id, color = md.Items[d.id].color })
+                end
+                table.remove(loot.drops, i)
+            end
+        end
+    end
     -- Enemy spawn logic
     enemy_spawn_timer = enemy_spawn_timer + dt
     if #enemy.enemies < settings.enemy.max_enemies and enemy_spawn_timer >= settings.enemy.spawn_rate then
@@ -98,17 +133,19 @@ function love.draw()
     camera.attach()
     love.graphics.setColor(0.1,0.1,0.1,1)
     love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
-    love.graphics.setColor(1,1,1,1)
-    enemy.draw()
-    player.draw()
-    weapon.draw(gamepad.x, gamepad.y)
-    popup.draw()
-    -- Draw corpses (placeholder: gray X) INSIDE camera so they are fixed in world
+    -- Draw corpses under entities
     love.graphics.setColor(0.5,0.5,0.5,1)
     for _, c in ipairs(enemy.corpses) do
         love.graphics.line(c.x-8, c.y-8, c.x+8, c.y+8)
         love.graphics.line(c.x+8, c.y-8, c.x-8, c.y+8)
     end
+    -- Draw loot drops
+    loot.draw()
+    love.graphics.setColor(1,1,1,1)
+    enemy.draw()
+    player.draw()
+    weapon.draw(gamepad.x, gamepad.y)
+    popup.draw()
     camera.detach()
     -- Draw everything that should stay fixed on screen (UI, overlays)
 
@@ -116,6 +153,8 @@ function love.draw()
     settings_menu.draw()
     -- Draw debug overlay
     debug.draw()
+    -- Draw loot/weapon attraction debug overlay
+    loot.draw_debug(gamepad.x, gamepad.y, (player.outline_radius or gamepad.radius))
     -- (Beat checker box and duplicate player.draw() removed to avoid camera stack errors and UI clutter)
 
     -- Draw popups (should be on top)
