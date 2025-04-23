@@ -104,29 +104,28 @@ local settings = {
     item_data = require "data/items",
     loot = {
         attraction_enabled = true, -- coins chase player
-        attraction_speed = 900,   -- px/sec
+        attraction_speed = 1200,   -- px/sec
         attraction_radius_mult = 15.0, -- chase starts at outline_radius * this
         pickup_radius_mult = 4, -- pickup area = outline_radius * this
     },
     weapon = {
         attraction_enabled = true,
-        attraction_speed = 900,
+        attraction_speed = 1200,
         attraction_radius_mult = 15.0,
     }
 }
 
 settings.waves = {
     { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
-    { hp = 12, speed = 75, spawn_rate = 2.2, max_enemies = 9 }, -- Wave 2
-    { hp = 15, speed = 80, spawn_rate = 2.0, max_enemies = 10 }, -- Wave 3
-    { hp = 18, speed = 85, spawn_rate = 1.8, max_enemies = 11 }, -- Wave 4
-    { hp = 22, speed = 90, spawn_rate = 1.6, max_enemies = 12 }, -- Wave 5
+    { hp = 10, speed = 80, spawn_rate = 2.2, max_enemies = 10 }, -- Wave 2
+    { hp = 10, speed = 90, spawn_rate = 2.0, max_enemies = 13 }, -- Wave 3
+    { hp = 10, speed = 100, spawn_rate = 1.8, max_enemies = 16 } -- Wave 4
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 100, 150, 200, 300 }, -- Boss HP per boss number
+    hp = { 20, 50, 100, 150 }, -- Boss HP per boss number
     speed = { 100, 120, 140, 160 },
-    radius = { 60, 70, 80, 90 },
+    radius = { 40, 60, 80, 100 },
     color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1} },
     sfx = { 'boss1', 'boss2', 'boss3', 'boss4' },
 }
