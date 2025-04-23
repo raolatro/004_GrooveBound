@@ -88,6 +88,17 @@ function game_over.mousepressed(x, y, button)
             enemy.corpses = {}
             enemy.explosions = {}
             weapon.projectiles = {}
+            -- Reset loot drops
+            local loot = require "scripts/loot"
+            loot.drops = {}
+            -- Reset escalation system
+            if package.loaded["main"] then
+                local main = package.loaded["main"]
+                _G.wave_timer = settings.wave_duration or 10
+                _G.boss_timer = settings.boss_duration or 30
+                _G.current_wave = 1
+                _G.current_boss = 0
+            end
             gamepad.init(settings.main.window_width/2, settings.main.window_height/2)
             enemy.spawn_far(gamepad.x, gamepad.y)
             return true
