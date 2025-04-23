@@ -64,8 +64,9 @@ function inventory.add(item)
                 weapon_color = data.Items[category .. "Gun"].color
             end
             
-            -- Use the weapon style for level up notification
+            -- Use ONLY the weapon style for level up notification (no extra popups)
             popup.create_notification(display_name .. " LEVEL " .. new_level, popup.STYLES.WEAPON, weapon_color)
+            -- No other popups for level up
             
             -- Play level up sound if available
             if sfx and sfx.play then

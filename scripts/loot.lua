@@ -122,17 +122,15 @@ function loot.update(dt, player_x, player_y, outline_radius)
                 local display_name = weapon_settings and weapon_settings.display_name or category:upper()
                 local color = (data_item and data_item.color) or {1, 1, 1, 1}
                 
-                -- Show appropriate popup based on weapon status
+                -- Show ONLY the color-coded weapon notification for new weapon, level up, or maxed out
                 if maxed_out then
-                    -- Show maxed out notification
                     popup.create_notification(display_name .. " MAXED OUT!", popup.STYLES.WEAPON, {0.8, 0.8, 0.8, 1})
                 elseif in_inventory then
-                    -- Show level up notification
                     popup.create_notification(display_name .. " LEVEL " .. tostring(inv_level), popup.STYLES.WEAPON, color)
                 else
-                    -- Show new weapon notification
                     popup.create_notification("Got a new " .. display_name .. "!!", popup.STYLES.WEAPON, color)
                 end
+                -- No duplicate or extra popups
             end
             
             -- Remove the loot regardless of outcome

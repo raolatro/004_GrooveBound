@@ -107,7 +107,7 @@ function love.update(dt)
             wave_timer = settings.wave_duration or 15
             debug.log("Wave "..current_wave.." started!")
             
-            -- Create big wave announcement popup using the main style
+            -- Create big wave announcement popup using the same style as boss notifications
             popup.create_notification("WAVE " .. current_wave, popup.STYLES.MAIN, {0.1, 0.8, 0.1, 1}) -- Green
             
             -- Play sound effect if available
@@ -196,35 +196,27 @@ function love.update(dt)
                     popup.spawn({ x = px, y = py - 20, text = "+"..amt.."₵", color = md.Rarity[d.rarity].color })
                 else
                     debug.log('Weapon picked up: '..d.id..' | Rarity: '..d.rarity)
-                    inventory.add(d.id)
+                    
+                    -- Add to inventory but get the result to know what happened
+                    local success, action, category, level = inventory.add(d.id)
                     sfx.play('weapon')
+                    
+                    -- Get weapon info
                     local md = settings.item_data
-                    -- Check if weapon is in inventory or not to show appropriate popup
-                    local in_inventory = false
-                    local category = d.id:gsub("Gun$", "") -- Strip 'Gun' suffix if present
-                    local inv_level = 1
-                    
-                    -- Check if the weapon already exists in inventory
-                    for _, slot in ipairs(inventory.slots) do
-                        if slot and slot.category == category then
-                            in_inventory = true
-                            inv_level = slot.level or 1
-                            break
-                        end
-                    end
-                    
-                    -- Get display name for the weapon
                     local weapon_settings = settings.weapons[category]
                     local display_name = weapon_settings and weapon_settings.display_name or category:upper()
-                    local color = md.Items[d.id].color
                     
-                    if in_inventory then
-                        -- Show level up popup
-                        popup.create_notification(display_name .. " LEVEL " .. tostring(inv_level), popup.STYLES.WEAPON, color)
-                    else
-                        -- Show new weapon popup
+                    -- Get weapon color for color-coding the notification
+                    local color = md.Items[d.id] and md.Items[d.id].color or {1, 1, 1, 1}
+                    
+                    -- Display notification ONLY if it's a new weapon ('added')
+                    -- Level Up and Max Level popups are handled inside inventory.add()
+                    if action == "added" then
+                        -- New weapon notification
                         popup.create_notification("Got a new " .. display_name .. "!!", popup.STYLES.WEAPON, color)
                     end
+                    -- Note: 'level_up' and 'max_level' popups handled internally by inventory.add
+                    -- If action is "full", inventory is full, no popup needed here.
                 end
                 table.remove(loot.drops, i)
             end
