@@ -62,6 +62,7 @@ function enemy.update(dt, player_x, player_y, projectiles)
             player.damage(1)
             -- Mark explosion (store with timestamp)
             table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
+            sfx.play('dead') -- Play death SFX
             table.remove(enemy.enemies, i)
             debug.log("Enemy sacrificed: player damaged!")
             -- No corpse left
@@ -82,6 +83,7 @@ function enemy.update(dt, player_x, player_y, projectiles)
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
                     -- Spawn loot drop near corpse
                     loot.spawn(e.x, e.y)
+                    sfx.play('dead') -- Play death SFX
                     table.remove(enemy.enemies, i)
                     debug.log("Enemy dead!")
                     -- Score system

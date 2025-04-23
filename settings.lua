@@ -104,12 +104,13 @@ local settings = {
     item_data = require "data/items",
     loot = {
         attraction_enabled = true, -- coins chase player
-        attraction_speed = 300,   -- px/sec
+        attraction_speed = 600,   -- px/sec
         attraction_radius_mult = 15.0, -- chase starts at outline_radius * this
+        pickup_radius_mult = 2, -- pickup area = outline_radius * this
     },
     weapon = {
         attraction_enabled = true,
-        attraction_speed = 300,
+        attraction_speed = 600,
         attraction_radius_mult = 15.0,
     }
 }

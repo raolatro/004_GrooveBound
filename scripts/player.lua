@@ -164,18 +164,7 @@ function player.draw()
     local quarter_duration = full_beat_duration/beat_subdiv
     local now = love.timer.getTime()
     local since_full_beat = (now - (player.last_beat_time or 0)) % full_beat_duration
-    -- === Attraction radii (loot/weapon) ===
-    local loot_settings = require("settings").loot
-    local weapon_settings = require("settings").weapon
-    local outline_radius = player.outline_radius or base_radius
-    local loot_attr_radius = outline_radius * (loot_settings.attraction_radius_mult or 2)
-    local weapon_attr_radius = outline_radius * (weapon_settings.attraction_radius_mult or 2)
-    -- Faded blue for loot attraction
-    love.graphics.setColor(0,0.7,1,0.13)
-    love.graphics.circle("line", center_x, center_y, loot_attr_radius, 64)
-    -- Faded orange for weapon attraction
-    love.graphics.setColor(1,0.7,0,0.10)
-    love.graphics.circle("line", center_x, center_y, weapon_attr_radius, 64)
+
     -- === Full Beat Circle (always visible) ===
     love.graphics.setColor(1,1,1,full_beat_opacity)
     love.graphics.setLineWidth(full_beat_outline_width)

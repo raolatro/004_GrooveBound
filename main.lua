@@ -35,9 +35,11 @@ function love.load()
     inventory.add("forwardGun")
 end
 
+game_paused = game_paused or false
+
 function love.update(dt)
     settings_menu.update(dt)
-    if settings_menu.active or game_over.active then return end -- Pause game logic if menu is open or game over
+    if settings_menu.active or game_over.active or game_paused then return end -- Pause game logic if menu is open, game over, or paused
     beat.update(dt)
     player.update(dt)
     weapon.update(dt)
@@ -159,6 +161,15 @@ function love.draw()
 
     -- Draw popups (should be on top)
     -- (Removed duplicate popup.draw() to prevent duplicate popups)
+
+    -- Draw 'Game paused' left of hamburger menu if paused
+    if game_paused then
+        local menu_x, menu_y = 24, 24
+        local font = love.graphics.getFont()
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.print("Game paused", menu_x + 50, menu_y)
+        love.graphics.setColor(1,1,1,1)
+    end
 end
 
 -- Ensure settings menu receives mouse and key events
@@ -183,6 +194,16 @@ function love.mousereleased(x, y, button)
 end
 
 function love.keypressed(key)
+    if key == "escape" then
+        if settings_menu.active then
+            settings_menu.active = false
+        else
+            game_paused = not game_paused
+        end
+    end
+    if key == "space" or key == "z" then
+        player.try_fire()
+    end
     print('DEBUG: love.keypressed called, forwarding to settings_menu')
     if settings_menu.active then settings_menu.keypressed(key) return end
     -- (rest of your key handling logic here)

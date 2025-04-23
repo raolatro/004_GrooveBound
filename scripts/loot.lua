@@ -16,12 +16,14 @@ function loot.update(dt, player_x, player_y, outline_radius)
         local attr_enabled = is_money and loot_settings.attraction_enabled or weapon_settings.attraction_enabled
         local attr_speed = is_money and loot_settings.attraction_speed or weapon_settings.attraction_speed
         local attr_mult = is_money and loot_settings.attraction_radius_mult or weapon_settings.attraction_radius_mult
-        -- Both attraction and pickup radii are based strictly on the player's outline_radius (on-beat checker circle)
+        -- Attraction radius is based on outline_radius * attraction_radius_mult
         local attr_radius = outline_radius * (attr_mult or 2)
-        local pickup_radius = outline_radius
+        -- Pickup radius is now outline_radius * loot.pickup_radius_mult (controllable in settings)
+        local pickup_mult = is_money and (loot_settings.pickup_radius_mult or 1.3) or 1.0
+        local pickup_radius = outline_radius * pickup_mult
         -- Attraction: if within attraction radius but outside pickup radius
         d._attracting = d._attracting or false
-        if attr_enabled and dist < attr_radius and dist > pickup_radius then
+        if attr_enabled and dist < attr_radius and dist > 1 then
             if not d._attracting then
                 debug.log((is_money and 'Coin' or 'Weapon')..' attraction started!')
                 d._attracting = true
