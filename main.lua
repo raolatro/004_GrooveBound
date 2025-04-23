@@ -29,6 +29,7 @@ current_boss = 0
 
 
 function love.load()
+    hud.reset() -- Ensure HUD and fonts are always initialized
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
     debug.log("Game loaded.")
@@ -55,16 +56,42 @@ function love.update(dt)
     wave_timer = wave_timer - dt
     boss_timer = boss_timer - dt
     if wave_timer <= 0 then
-        current_wave = math.min(current_wave + 1, #settings.waves)
-        local wave = settings.waves[current_wave]
-        if wave then
-            settings.enemy.hp = wave.hp
-            settings.enemy.speed = wave.speed
-            settings.enemy.spawn_rate = wave.spawn_rate
-            settings.enemy.max_enemies = wave.max_enemies
+        if current_wave < #settings.waves then
+            current_wave = current_wave + 1
+            local wave = settings.waves[current_wave]
+            if wave then
+                settings.enemy.hp = wave.hp
+                settings.enemy.speed = wave.speed
+                settings.enemy.spawn_rate = wave.spawn_rate
+                settings.enemy.max_enemies = wave.max_enemies
+            end
+            wave_timer = settings.wave_duration or 15
+            debug.log("Wave "..current_wave.." started!")
+        else
+            -- Last wave reached, pause wave timer
+            wave_timer = 0
         end
-        wave_timer = settings.wave_duration or 15
-        debug.log("Wave "..current_wave.." started!")
+    end
+    -- Boss escalation logic
+    if boss_timer <= 0 then
+        if current_boss < #settings.boss.hp then
+            current_boss = current_boss + 1
+            -- Spawn miniboss
+            local boss_hp = settings.boss.hp[math.min(current_boss,#settings.boss.hp)]
+            local boss_speed = settings.boss.speed[math.min(current_boss,#settings.boss.speed)]
+            local boss_radius = settings.boss.radius[math.min(current_boss,#settings.boss.radius)]
+            local boss_color = settings.boss.color[math.min(current_boss,#settings.boss.color)]
+            local boss_sfx = settings.boss.sfx[math.min(current_boss,#settings.boss.sfx)]
+            if enemy.spawn_boss then
+                enemy.spawn_boss(gamepad.x, gamepad.y, boss_hp, boss_speed, boss_radius, boss_color, boss_sfx)
+            end
+            boss_timer = settings.boss_duration or 60
+            debug.log("Mini Boss "..current_boss.." spawned!")
+        else
+            -- Absolute final boss reached
+            debug.log("ABSOLUTE FINAL BOSS REACHED!!!!!!!")
+            boss_timer = 0
+        end
     end
     if boss_timer <= 0 then
         current_boss = current_boss + 1

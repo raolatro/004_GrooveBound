@@ -48,10 +48,15 @@ function popup.draw()
         love.graphics.push()
         love.graphics.translate(p.x, p.y + (p.y_offset or 0))
         -- Set font for popup
+        local hud = require "scripts/hud"
         local popup_font = popup._fonts[p.font_size]
         if not popup_font then
-            local settings = require "settings"
-popup_font = love.graphics.newFont(settings.main.fonts.path, p.font_size or settings.main.fonts.body)
+            -- Use the main HUD font if the size matches, else create/cached
+            if p.font_size == hud.font_size then
+                popup_font = hud.font
+            else
+                popup_font = love.graphics.newFont(hud.font_path, p.font_size)
+            end
             popup._fonts[p.font_size] = popup_font
         end
         local prev_font = love.graphics.getFont()

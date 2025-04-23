@@ -25,7 +25,7 @@ function loot.update(dt, player_x, player_y, outline_radius)
         d._attracting = d._attracting or false
         if attr_enabled and dist < attr_radius and dist > 1 then
             if not d._attracting then
-                debug.log((is_money and 'Coin' or 'Weapon')..' attraction started!')
+                -- debug.log((is_money and 'Coin' or 'Weapon')..' attraction started!')
                 d._attracting = true
             end
             -- Ease-in (starts slow, finishes fast): use quadratic ease-in for lerp factor

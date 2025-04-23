@@ -44,14 +44,16 @@ function game_over.draw()
     love.graphics.setLineWidth(3)
     love.graphics.rectangle("line", box_x, box_y, box_w, box_h, 18, 18)
     love.graphics.setLineWidth(1)
-    love.graphics.setFont(game_over._fonts.header)
-    love.graphics.printf("GAME OVER", box_x, box_y+28, box_w, "center")
-    love.graphics.setFont(game_over._fonts.body)
+    love.graphics.setColor(1,0.2,0.2,1)
+    love.graphics.setFont(hud.font)
+    love.graphics.printf("GAME OVER", 0, h/2-80, w, "center")
+    love.graphics.setFont(hud.font)
     love.graphics.printf("Final Score", box_x, box_y+90, box_w, "center")
-    love.graphics.setFont(game_over._fonts.header)
+    love.graphics.setFont(hud.font)
     love.graphics.printf(tostring(game_over.score), box_x, box_y+120, box_w, "center")
-    love.graphics.setFont(game_over._fonts.body)
+    love.graphics.setFont(hud.font)
     love.graphics.printf("Kills", box_x, box_y+170, box_w, "center")
+    love.graphics.setFont(hud.font)
     love.graphics.setFont(game_over._fonts.header)
     love.graphics.printf(tostring(game_over.kills), box_x, box_y+200, box_w, "center")
     -- Restart button
@@ -81,6 +83,7 @@ function game_over.mousepressed(x, y, button)
             hud.score = 0
             hud.kills = 0
             hud.money = 0 -- Reset money on restart
+            hud.reset() -- Fully reset HUD state and fonts
             hud.player_hp = tonumber(settings.player.hp) or 5
             hud.player_max_hp = tonumber(settings.player.hp) or 5
             hud.game_over = false

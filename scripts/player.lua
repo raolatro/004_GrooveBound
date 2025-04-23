@@ -42,18 +42,47 @@ function player.register_fire()
         local weapon = require "scripts/weapon"
         -- Fire all active weapons in inventory
         for _, w in ipairs(inventory.get_active()) do
+            local weapon_settings = settings.weapons[w.category] and settings.weapons[w.category][w.level or 1] or {}
             if w.category == "forward" then
+                -- Use weapon settings for forward gun
                 local dir = gamepad.dir or 0
-                weapon.spawn(gamepad.x, gamepad.y, dir, true)
+                weapon.spawn(gamepad.x, gamepad.y, dir, true, weapon_settings)
             elseif w.category == "cross" then
-                local dirs = {0, math.pi/2, math.pi, 3*math.pi/2}
+                -- Use weapon settings for cross gun
+                local dirs = {}
+                local n = weapon_settings.directions or 4
+                for i=1,n do
+                    table.insert(dirs, (2*math.pi/n)*(i-1))
+                end
                 for _, dir in ipairs(dirs) do
-                    weapon.spawn(gamepad.x, gamepad.y, dir, true)
+                    weapon.spawn(gamepad.x, gamepad.y, dir, true, weapon_settings)
                 end
             elseif w.category == "drones" then
-                -- TODO: Implement drone weapon firing logic
+                -- Drone logic: spawn projectiles in a circle around the player
+                -- Use orbit_radius and drone_radius from settings
+                local num_drones = weapon_settings.count or 2
+                local orbit_radius = weapon_settings.orbit_radius or (48 + 8 * (w.level or 1))
+                local drone_radius = weapon_settings.drone_radius or 10
+                local t = love.timer.getTime()
+                for i = 1, num_drones do
+                    local angle = (2 * math.pi / num_drones) * (i-1) + t * 0.7 -- rotate with time
+                    local px = gamepad.x + math.cos(angle) * orbit_radius
+                    local py = gamepad.y + math.sin(angle) * orbit_radius
+                    local dir = angle
+                    weapon.spawn(px, py, dir, true, weapon_settings)
+                    -- Draw drone as solid cyan dot
+                    love.graphics.setColor(0,1,1,1)
+                    love.graphics.circle("fill", px, py, drone_radius)
+                end
             elseif w.category == "area" then
-                -- TODO: Implement area/shotgun weapon firing logic
+                -- Area/shotgun logic: fire multiple pellets in a spread
+                local pellets = weapon_settings.pellets or 5
+                local spread = weapon_settings.spread or 30
+                local dir = gamepad.dir or 0
+                for i = 1, pellets do
+                    local angle = dir + math.rad(-spread/2 + spread*(i-1)/(pellets-1))
+                    weapon.spawn(gamepad.x, gamepad.y, angle, true, weapon_settings)
+                end
             end
         end
         -- Spawn popup using new popup system
@@ -204,6 +233,71 @@ function player.draw()
         end
     end
     love.graphics.setLineWidth(1)
+    -- === Drone Visuals ===
+    local inventory = require "scripts/inventory"
+    local enemy = require "scripts/enemy"
+    for _, w in ipairs(inventory.get_active()) do
+        if w.category == "drones" then
+            -- Always use up-to-date settings for orbit and size
+            local drone_level = w.level or 1
+            local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}
+            local num_drones = drone_settings.count or 2
+            local orbit_radius = drone_settings.orbit_radius or (48 + 8 * drone_level)
+            local drone_radius = drone_settings.drone_radius or 10
+            -- Get drone range from settings if available
+            local drone_level = w.level or 1
+            local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}
+            local drone_range = drone_settings.range or ((w.hit_area_mult or 3) * drone_radius)
+            local hit_area_radius = drone_range
+            local t = love.timer.getTime()
+            for i = 1, num_drones do
+                local angle = (2 * math.pi / num_drones) * (i-1) + t * 0.7
+                local px = center_x + math.cos(angle) * orbit_radius
+                local py = center_y + math.sin(angle) * orbit_radius
+                -- Find nearest enemy within hit area
+                local nearest_enemy = nil
+                local min_dist = hit_area_radius
+                for _, e in ipairs(enemy.enemies) do
+                    local ex, ey = e.x, e.y
+                    local dist = math.sqrt((ex - px)^2 + (ey - py)^2)
+                    if dist < min_dist then
+                        min_dist = dist
+                        nearest_enemy = e
+                    end
+                end
+                -- Calculate arrow direction: points to nearest enemy or mouse if none
+                local arrow_angle
+                if nearest_enemy then
+                    arrow_angle = math.atan2(nearest_enemy.y - py, nearest_enemy.x - px)
+                else
+                    local mx, my = love.mouse.getPosition()
+                    arrow_angle = math.atan2(my - py, mx - px)
+                end
+                -- Draw drone body
+                love.graphics.setColor(w.color or {0,1,1,1})
+                love.graphics.circle("fill", px, py, drone_radius)
+                -- Draw hit area: thin outline and 10% opacity fill
+                love.graphics.setColor((w.color and {w.color[1],w.color[2],w.color[3],0.10}) or {0,1,1,0.10})
+                love.graphics.circle("fill", px, py, hit_area_radius)
+                love.graphics.setColor((w.color and {w.color[1],w.color[2],w.color[3],0.7}) or {0,1,1,0.7})
+                love.graphics.setLineWidth(2)
+                love.graphics.circle("line", px, py, hit_area_radius)
+                love.graphics.setLineWidth(1)
+                -- Draw arrow (triangle) inside drone
+                local arrow_len = drone_radius * 0.9
+                local arrow_w = drone_radius * 0.7
+                local tip_x = px + math.cos(arrow_angle) * arrow_len
+                local tip_y = py + math.sin(arrow_angle) * arrow_len
+                local left_x = px + math.cos(arrow_angle + math.pi*0.75) * (arrow_w/2)
+                local left_y = py + math.sin(arrow_angle + math.pi*0.75) * (arrow_w/2)
+                local right_x = px + math.cos(arrow_angle - math.pi*0.75) * (arrow_w/2)
+                local right_y = py + math.sin(arrow_angle - math.pi*0.75) * (arrow_w/2)
+                love.graphics.setColor(0,0,0,0.8)
+                love.graphics.polygon("fill", tip_x, tip_y, left_x, left_y, right_x, right_y)
+                love.graphics.setColor(1,1,1,1)
+            end
+        end
+    end
     -- === On-Beat State & Input ===
     -- Detect if a quarter circle is reaching the full beat (on-beat window)
     local on_beat = false

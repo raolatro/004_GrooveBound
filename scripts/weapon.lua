@@ -6,22 +6,26 @@ local collision = require "scripts/collision"
 local weapon = {}
 weapon.projectiles = {}
 
-local projectile_radius = 5
+local projectile_radius = 10
 
-function weapon.spawn(x, y, dir, on_beat)
+-- weapon.spawn now takes weapon_settings for custom stats
+function weapon.spawn(x, y, dir, on_beat, weapon_settings)
     sfx.play('projectile')
     local main = settings.main
     local on_beat_buffer = main.beat_checker_on_beat_buffer or 0.1
-    -- You can expand here for spread/multishot
+    weapon_settings = weapon_settings or {}
+    -- Use orange for area projectiles, fallback to other color if not set
+    local proj_color = weapon_settings.color
     table.insert(weapon.projectiles, {
         x = x,
         y = y,
         dir = dir,
-        speed = settings.projectile.speed,
-        damage = settings.projectile.damage,
-        range = settings.projectile.range,
+        speed = weapon_settings.speed or settings.projectile.speed,
+        damage = weapon_settings.damage or settings.projectile.damage,
+        range = weapon_settings.range or settings.projectile.range,
         traveled = 0,
-        radius = projectile_radius,
+        radius = weapon_settings.radius or projectile_radius,
+        color = proj_color, -- Area gun passes orange here
         on_beat = on_beat or false,
         on_beat_buffer = on_beat_buffer
     })
@@ -45,9 +49,10 @@ function weapon.draw(player_x, player_y)
     local main = settings.main
     for _, p in ipairs(weapon.projectiles) do
         local scale = p.on_beat and (main.on_beat_scale or settings.projectile.on_beat_scale) or settings.projectile.normal_scale
-        local color = p.on_beat and (main.on_beat_color or settings.projectile.on_beat_color) or settings.projectile.normal_color
+        -- Use custom color for area projectiles, else fallback
+        local color = p.color or (p.on_beat and (main.on_beat_color or settings.projectile.on_beat_color) or settings.projectile.normal_color)
         love.graphics.setColor(color)
-        love.graphics.circle("fill", p.x, p.y, projectile_radius * scale)
+        love.graphics.circle("fill", p.x, p.y, (p.radius or projectile_radius) * scale)
     end
 end
 

@@ -3,7 +3,7 @@
 local Rarity = {
     Common    = { multiplier = 1, color = {1,1,0,1}, weight = 80 },
     Rare      = { multiplier = 2, color = {0,0,1,1}, weight = 40 },
-    Legendary = { multiplier = 5, color = {1,0,1,1}, weight = 5 },
+    Legendary = { multiplier = 5, color = {1,0,1,1}, weight = 100 },
 }
 
 local Items = {
@@ -32,14 +32,26 @@ local Items = {
         level    = 1,
         color    = {0,1,1,1},
     },
+    area = {
+        type     = "weapon",
+        category = "area",
+        damage   = 5,
+        level    = 1,
+        color    = {1,0.5,0,1}, -- Orange for area weapon
+        hit_area_mult = 3,
+        hit_area_radius = 10,
+        hit_area_color = {1,0.5,0,0.1}, -- Orange 10% opacity
+        hit_area_max_angle = 45,
+    },
 }
 
 -- drop entries: id, rarity, and custom weight
 local DropTable = {
     { id = "money",     rarity = "Common",    weight = Rarity.Common.weight },
-    { id = "forwardGun", rarity = "Common",    weight = 10 },
-    { id = "crossGun",   rarity = "Rare",      weight = 7 },
-    { id = "drone",      rarity = "Legendary", weight = 3 },
+    { id = "forwardGun", rarity = "Common",    weight = 2 },
+    { id = "crossGun",   rarity = "Rare",      weight = 10 },
+    { id = "drone",      rarity = "Legendary", weight = 10 },
+    { id = "area",      rarity = "Legendary", weight = 10 },
 }
 
 return {

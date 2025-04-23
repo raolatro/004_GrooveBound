@@ -136,24 +136,24 @@ settings.boss_duration = 30
 settings.weapons = {
     forward = {
         -- Main gun, fires forward
-        { damage = 5, fire_rate = 1.0, pierce = false },
-        { damage = 7, fire_rate = 1.2, pierce = true },
+        { damage = 5, fire_rate = 1.0, pierce = false, radius = 10 },
+        { damage = 7, fire_rate = 1.2, pierce = true, radius = 10 },
     },
     cross = {
         -- Fires in 4 or more directions
-        { damage = 3, fire_rate = 0.8, directions = 4 },
-        { damage = 4, fire_rate = 1.0, directions = 8 },
+        { damage = 3, fire_rate = 0.5, pierce = false, radius = 10, directions = 4 },
+        { damage = 4, fire_rate = 0.4, pierce = true, radius = 10, directions = 8 },
     },
     drones = {
         -- Orbiting drones, auto-fire at enemies
-        { count = 1, damage = 2, fire_rate = 1.0, range = 250 },
-        { count = 2, damage = 2, fire_rate = 1.2, range = 300 },
-        { count = 4, damage = 3, fire_rate = 1.5, range = 350 },
+        { count = 2, damage = 2, fire_rate = 0.5, range = 50, orbit_radius = 300, drone_radius = 10 }, -- Level 1
+        { count = 2, damage = 2, fire_rate = 1.2, range = 80, orbit_radius = 150, drone_radius = 11 }, -- Level 2
+        { count = 4, damage = 3, fire_rate = 1.5, range = 100, orbit_radius = 200, drone_radius = 12 }, -- Level 3
     },
     area = {
         -- Shotgun-like, fires multiple projectiles in a spread
-        { pellets = 5, damage = 2, spread = 30, fire_rate = 0.7 },
-        { pellets = 7, damage = 2, spread = 40, fire_rate = 1.0 },
+        { pellets = 3, damage = 2, spread = 15, fire_rate = 2, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 7, damage = 2, spread = 40, fire_rate = 1.6, color = {1,0.5,0,1} }, -- Orange
     },
 }
 

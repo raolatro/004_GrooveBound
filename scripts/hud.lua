@@ -3,26 +3,42 @@
 
 local settings = require "settings"
 local inventory = require "scripts/inventory"
+local paths = require "paths"
 local hud = {}
 
-hud.score = 0
-hud.kills = 0
-hud.money = 0
-hud.auto_fire_enabled = false
-hud.aim_line_enabled = true
-hud.player_hp = nil
-hud.player_max_hp = nil
+-- Load and cache the main external font for all UI (HUD, popups, instructions)
+hud.font_path = settings.main.fonts.path or "assets/font.ttf"
+hud.font_size = settings.main.fonts.body or 24
+hud.font = love.graphics.newFont(hud.font_path, hud.font_size)
+hud.font_instruction_size = math.floor(hud.font_size * 0.8)
+hud.font_instruction = love.graphics.newFont(hud.font_path, hud.font_instruction_size)
 
--- Heart sprite
-local paths = require "paths"
-hud.hp_img = hud.hp_img or love.graphics.newImage(paths.assets.hp)
-hud.hp_full_quad = love.graphics.newQuad(0,0,64,56,hud.hp_img:getDimensions())
-hud.hp_empty_quad = love.graphics.newQuad(64,0,64,56,hud.hp_img:getDimensions())
+-- Resets all HUD values and state (call on restart)
+function hud.reset()
+    hud.score = 0
+    hud.kills = 0
+    hud.money = 0
+    hud.auto_fire_enabled = false
+    hud.aim_line_enabled = true
+    hud.player_hp = nil
+    hud.player_max_hp = nil
+    -- Reset any font objects if needed
+    hud.hp_img = love.graphics.newImage(paths.assets.hp)
+    hud.hp_full_quad = love.graphics.newQuad(0,0,64,56,hud.hp_img:getDimensions())
+    hud.hp_empty_quad = love.graphics.newQuad(64,0,64,56,hud.hp_img:getDimensions())
+    -- Re-cache fonts on reset if needed
+    hud.font = love.graphics.newFont(hud.font_path, hud.font_size)
+    hud.font_instruction = love.graphics.newFont(hud.font_path, hud.font_instruction_size)
+end
+
+-- Initialize HUD state
+hud.reset()
 
 function hud.draw()
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()
     local margin = 16
     local bar_height = 38
+    local bar_width = 1200 -- Increased bar width
     local heart_w, heart_h = 32, 28
     local n_hearts = tonumber(hud.player_max_hp) or 3
     local bar_x = margin
@@ -59,13 +75,14 @@ function hud.draw()
         end
     end
     local after_hearts_x = bar_x + n_hearts*heart_w + 24 + (28*4 + 8*3)
+    -- Use external font for all HUD text
+    love.graphics.setFont(hud.font)
     -- Money HUD color matches popup text
     local money_color = settings.item_data and settings.item_data.Rarity and settings.item_data.Rarity.Common and settings.item_data.Rarity.Common.color or {1,1,0,1}
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", after_hearts_x, bar_y, 100, bar_height, 10, 10)
     love.graphics.setColor(money_color)
     love.graphics.printf("Money: "..tostring(hud.money), after_hearts_x, bar_y+8, 100, "center")
-    love.graphics.setColor(1,1,1,1)
     local after_money_x = after_hearts_x + 100 + 12
     -- Score
     love.graphics.setColor(0.12,0.12,0.12,0.92)
@@ -99,12 +116,15 @@ function hud.draw()
     love.graphics.circle("fill", aim_x+aim_width-20, bar_y+bar_height/2, 12)
     love.graphics.setColor(1,1,1,1)
     -- Draw bottom-center instruction (always visible)
+    local instruction_bar_width = 700
+    local instruction_font = hud.font_instruction
     love.graphics.setColor(0,0,0,0.7)
-    love.graphics.rectangle("fill", w/2-230, h-54, 460, 36, 10, 10)
+    love.graphics.rectangle("fill", w/2-instruction_bar_width/2, h-54, instruction_bar_width, 36, 10, 10)
     love.graphics.setColor(1,1,1,1)
-    local old_font = love.graphics.getFont()
-    love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-220, h-48, 440, "center")
-    love.graphics.setFont(old_font)
+    local prev_font = love.graphics.getFont()
+    love.graphics.setFont(instruction_font)
+    love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-instruction_bar_width/2+10, h-48, instruction_bar_width-20, "center")
+    love.graphics.setFont(prev_font)
 end
 
 function hud.update(dt)
