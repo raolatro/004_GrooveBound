@@ -139,9 +139,20 @@ function enemy.draw()
         end
     end
     for _, e in ipairs(enemy.enemies) do
-        -- Draw enemy body (simple circle for now)
-        love.graphics.setColor(1,0.2,0.2,1)
-        love.graphics.circle("fill", e.x, e.y, settings.enemy.radius or 20)
+        if e.is_boss then
+            -- Draw miniboss with custom color and radius
+            love.graphics.setColor(e.boss_color or {1,1,0,1})
+            love.graphics.circle("fill", e.x, e.y, e.boss_radius or 40)
+            -- Yellow outline for miniboss
+            love.graphics.setColor(1,1,0,1)
+            love.graphics.setLineWidth(4)
+            love.graphics.circle("line", e.x, e.y, (e.boss_radius or 40) + 2)
+            love.graphics.setLineWidth(1)
+        else
+            -- Draw normal enemy
+            love.graphics.setColor(1,0.2,0.2,1)
+            love.graphics.circle("fill", e.x, e.y, settings.enemy.radius or 20)
+        end
         -- Draw HP above enemy
         if e.hp and e.hp > 0 then
             local prev_font = love.graphics.getFont()
@@ -154,6 +165,26 @@ function enemy.draw()
             love.graphics.setColor(1,1,1,1)
         end
     end
+end
+
+-- Spawn a miniboss with custom stats
+function enemy.spawn_boss(player_x, player_y, hp, speed, radius, color, sfx)
+    -- Spawn at a random position at least 300px from player
+    local min_dist = 300
+    local tries = 0
+    local x, y
+    repeat
+        x = math.random(settings.main.window_width)
+        y = math.random(settings.main.window_height)
+        tries = tries + 1
+    until ((x-player_x)^2 + (y-player_y)^2) > min_dist^2 or tries > 10
+    table.insert(enemy.enemies, {
+        x = x, y = y, hp = hp, speed = speed, radius = radius, is_boss = true,
+        boss_color = color, boss_radius = radius, boss_sfx = sfx, flash = 0
+    })
+    local sfxmod = require "scripts/sfx"
+    if sfx then sfxmod.play(sfx) end
+    debug.log("Mini Boss spawned!")
 end
 
 return enemy

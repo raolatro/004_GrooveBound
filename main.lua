@@ -20,6 +20,12 @@ local inventory = require "scripts/inventory"
 
 local arena_margin = 32
 local enemy_spawn_timer = 0
+-- Wave and boss escalation variables
+wave_timer = settings.wave_duration or 15
+boss_timer = settings.boss_duration or 60
+current_wave = 1
+current_boss = 0
+
 
 
 function love.load()
@@ -33,6 +39,11 @@ function love.load()
     beat.on_beat(player.on_beat)
     -- Give player starting forward gun
     inventory.add("forwardGun")
+    -- Reset escalation
+    wave_timer = settings.wave_duration or 15
+    boss_timer = settings.boss_duration or 60
+    current_wave = 1
+    current_boss = 0
 end
 
 game_paused = game_paused or false
@@ -40,6 +51,35 @@ game_paused = game_paused or false
 function love.update(dt)
     settings_menu.update(dt)
     if settings_menu.active or game_over.active or game_paused then return end -- Pause game logic if menu is open, game over, or paused
+    -- Wave escalation logic
+    wave_timer = wave_timer - dt
+    boss_timer = boss_timer - dt
+    if wave_timer <= 0 then
+        current_wave = math.min(current_wave + 1, #settings.waves)
+        local wave = settings.waves[current_wave]
+        if wave then
+            settings.enemy.hp = wave.hp
+            settings.enemy.speed = wave.speed
+            settings.enemy.spawn_rate = wave.spawn_rate
+            settings.enemy.max_enemies = wave.max_enemies
+        end
+        wave_timer = settings.wave_duration or 15
+        debug.log("Wave "..current_wave.." started!")
+    end
+    if boss_timer <= 0 then
+        current_boss = current_boss + 1
+        -- Spawn miniboss
+        local boss_hp = settings.boss.hp[math.min(current_boss,#settings.boss.hp)]
+        local boss_speed = settings.boss.speed[math.min(current_boss,#settings.boss.speed)]
+        local boss_radius = settings.boss.radius[math.min(current_boss,#settings.boss.radius)]
+        local boss_color = settings.boss.color[math.min(current_boss,#settings.boss.color)]
+        local boss_sfx = settings.boss.sfx[math.min(current_boss,#settings.boss.sfx)]
+        if enemy.spawn_boss then
+            enemy.spawn_boss(gamepad.x, gamepad.y, boss_hp, boss_speed, boss_radius, boss_color, boss_sfx)
+        end
+        boss_timer = settings.boss_duration or 60
+        debug.log("Mini Boss "..current_boss.." spawned!")
+    end
     beat.update(dt)
     player.update(dt)
     weapon.update(dt)
@@ -162,6 +202,14 @@ function love.draw()
     -- Draw popups (should be on top)
     -- (Removed duplicate popup.draw() to prevent duplicate popups)
 
+    -- Draw wave and boss info at top bar
+    love.graphics.setColor(1,1,1,1)
+    local wave_text = string.format("Wave: %d", current_wave)
+    local boss_text = string.format("Mini Boss: %d", current_boss)
+    love.graphics.print(wave_text, 320, 16)
+    love.graphics.print(boss_text, 480, 16)
+    love.graphics.setColor(1,1,1,1)
+
     -- Draw 'Game paused' left of hamburger menu if paused
     if game_paused then
         local menu_x, menu_y = 24, 24
@@ -202,7 +250,7 @@ function love.keypressed(key)
         end
     end
     if key == "space" or key == "z" then
-        player.try_fire()
+        player.register_fire() -- Use register_fire, not try_fire
     end
     print('DEBUG: love.keypressed called, forwarding to settings_menu')
     if settings_menu.active then settings_menu.keypressed(key) return end
