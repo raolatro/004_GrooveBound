@@ -40,7 +40,6 @@ function pause_menu.toggle()
     else
         pause_menu.activate()
     end
-    pause_menu.active = not pause_menu.active
 end
 
 -- Toggle auto-fire state
