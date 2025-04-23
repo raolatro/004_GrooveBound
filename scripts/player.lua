@@ -305,7 +305,7 @@ function player.draw()
                         -- Fire projectile at enemy using drone settings
                         local drone_projectile_settings = {
                             damage = drone_damage,
-                            color = w.color,  -- Use drone color for projectiles
+                            color = drone_settings.color or {0,0.7,1,1},  -- Use drone color for projectiles
                             speed = drone_settings.projectile_speed or 400,
                             radius = drone_settings.projectile_radius or 6,
                             range = drone_range * 0.8  -- Slightly shorter than detection range
@@ -377,8 +377,21 @@ function player.draw()
                     player.drone_sprite.anim_timer = 0
                 end
                 
-                -- Draw drone sprite instead of circle
-                love.graphics.setColor(w.color or {1,1,1,1})
+                -- Pulsating blue glow under the drone (30% opacity, blurred edges)
+                local glow_color = drone_settings.color or {0, 0.7, 1, 0.7}
+                local t = love.timer.getTime()
+                local pulse = 0.7 + 0.3 * math.sin(t * 2)
+                local base_alpha = ((glow_color[4] or 0.7) * pulse) * 0.3
+                local base_radius = drone_radius * (1.5 + 0.2 * pulse)
+                -- Draw blurred glow: multiple circles, larger and more transparent
+                for i=5,1,-1 do
+                    local blur_alpha = base_alpha * (i/6)
+                    local blur_radius = base_radius * (1 + i*0.18)
+                    love.graphics.setColor(glow_color[1], glow_color[2], glow_color[3], blur_alpha)
+                    love.graphics.circle("fill", px, py, blur_radius)
+                end
+                -- Draw drone sprite with no tint
+                love.graphics.setColor(1,1,1,1)
                 love.graphics.draw(
                     player.drone_sprite.image,
                     player.drone_sprite.quads[player.drone_sprite.current_frame],
