@@ -27,10 +27,14 @@ function game_over.show(score, kills, player_hp)
     game_over.score = score or 0
     game_over.kills = kills or 0
     game_over.player_hp = player_hp or 0
+    -- Show system cursor on game over screen
+    love.mouse.setVisible(true)
 end
 
 function game_over.hide()
     game_over.active = false
+    -- Hide system cursor when returning to gameplay
+    love.mouse.setVisible(false)
 end
 
 local hud = require "scripts/hud"

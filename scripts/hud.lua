@@ -21,8 +21,8 @@ function hud.reset()
     hud.score = 0
     hud.kills = 0
     hud.money = 0
-    hud.auto_fire_enabled = false
-    hud.aim_line_enabled = true
+    hud.auto_fire_enabled = true
+    hud.aim_line_enabled = false
     hud.player_hp = nil
     hud.player_max_hp = nil
     -- Reset any font objects if needed

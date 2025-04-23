@@ -2,6 +2,7 @@
 local settings = require "settings"
 local hud = require "scripts/hud"
 local debug = require "scripts/debug"
+local popup = require "scripts/popup"
 local pause_menu = {}
 
 pause_menu.active = false
@@ -13,20 +14,32 @@ pause_menu.buttons = {
 }
 
 -- Show the pause menu
-function pause_menu.show()
-    debug.log("[PauseMenu] show() called")
+function pause_menu.activate()
+    debug.log("[PauseMenu] Activating pause menu")
     pause_menu.active = true
+    game_paused = true
+    -- Show system cursor in pause menu
+    love.mouse.setVisible(true)
+    popup.create_notification("Game Paused", popup.STYLES.SUBHEAD)
 end
 
 -- Hide the pause menu
-function pause_menu.hide()
-    debug.log("[PauseMenu] hide() called")
+function pause_menu.deactivate()
+    debug.log("[PauseMenu] Deactivating pause menu")
     pause_menu.active = false
+    game_paused = false
+    -- Hide system cursor in pause menu
+    love.mouse.setVisible(false)
 end
 
 -- Toggle the pause menu
 function pause_menu.toggle()
     debug.log("[PauseMenu] toggle() called. New state: " .. tostring(not pause_menu.active))
+    if pause_menu.active then
+        pause_menu.deactivate()
+    else
+        pause_menu.activate()
+    end
     pause_menu.active = not pause_menu.active
 end
 

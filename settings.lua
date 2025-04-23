@@ -193,6 +193,7 @@ settings.boss_duration = 30
 settings.weapons = {
     forward = {
         display_name = "Pistol",
+        projectile_image = "assets/img/projectile1.png",
         -- Main gun, fires forward
         { damage = 1, fire_rate = 1.0, pierce = false, radius = 10 },
         { damage = 1, fire_rate = 1.2, pierce = true, radius = 10 },

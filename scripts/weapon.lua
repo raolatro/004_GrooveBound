@@ -8,6 +8,9 @@ weapon.projectiles = {}
 
 local projectile_radius = 10
 
+-- Cache for projectile images
+weapon.projectile_images = {}
+
 -- weapon.spawn now takes weapon_settings for custom stats
 function weapon.spawn(x, y, dir, on_beat, weapon_settings)
     sfx.play('projectile')
@@ -16,6 +19,10 @@ function weapon.spawn(x, y, dir, on_beat, weapon_settings)
     weapon_settings = weapon_settings or {}
     -- Use orange for area projectiles, fallback to other color if not set
     local proj_color = weapon_settings.color
+    
+    -- Get weapon type for image rendering
+    local weapon_type = weapon_settings.weapon_type or "forward"
+    
     table.insert(weapon.projectiles, {
         x = x,
         y = y,
@@ -27,7 +34,8 @@ function weapon.spawn(x, y, dir, on_beat, weapon_settings)
         radius = weapon_settings.radius or projectile_radius,
         color = proj_color, -- Area gun passes orange here
         on_beat = on_beat or false,
-        on_beat_buffer = on_beat_buffer
+        on_beat_buffer = on_beat_buffer,
+        weapon_type = weapon_type -- Store weapon type for image rendering
     })
 end
 
@@ -47,12 +55,26 @@ end
 
 function weapon.draw(player_x, player_y)
     local main = settings.main
+    
+    -- Load the pistol projectile image if not already loaded
+    if not weapon.projectile_images.forward and settings.weapons.forward.projectile_image then
+        weapon.projectile_images.forward = love.graphics.newImage(settings.weapons.forward.projectile_image)
+    end
+    
     for _, p in ipairs(weapon.projectiles) do
         local scale = p.on_beat and (main.on_beat_scale or settings.projectile.on_beat_scale) or settings.projectile.normal_scale
         -- Use custom color for area projectiles, else fallback
         local color = p.color or (p.on_beat and (main.on_beat_color or settings.projectile.on_beat_color) or settings.projectile.normal_color)
         love.graphics.setColor(color)
-        love.graphics.circle("fill", p.x, p.y, (p.radius or projectile_radius) * scale)
+        
+        -- For pistol projectiles, use the image
+        if p.weapon_type == "forward" and weapon.projectile_images.forward then
+            local img = weapon.projectile_images.forward
+            love.graphics.draw(img, p.x, p.y, p.dir, scale, scale, img:getWidth()/2, img:getHeight()/2)
+        else
+            -- For other weapons, use the default circle
+            love.graphics.circle("fill", p.x, p.y, (p.radius or projectile_radius) * scale)
+        end
     end
 end
 

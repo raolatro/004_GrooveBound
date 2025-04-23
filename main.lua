@@ -33,6 +33,14 @@ current_boss = 0
 
 
 function love.load()
+    -- Load custom cursor image
+    custom_cursor = {
+        image = love.graphics.newImage("assets/img/target1-idle.png"),
+        enabled = true
+    }
+    -- Hide system cursor
+    love.mouse.setVisible(false)
+    
     hud.load_fonts() -- Ensure HUD fonts are loaded before anything else
     hud.reset() -- Ensure HUD and fonts are always initialized
     player.init()
@@ -323,6 +331,13 @@ function love.draw()
     
     -- Draw debug overlay at the very end, over absolutely everything else
     debug.draw()
+    
+    -- Draw custom cursor last (if in gameplay)
+    if custom_cursor.enabled and not (game_over.active or pause_menu.active or game_paused) then
+        love.graphics.setColor(1, 1, 1, 1)
+        local mx, my = love.mouse.getPosition()
+        love.graphics.draw(custom_cursor.image, mx, my, 0, 1, 1, custom_cursor.image:getWidth()/2, custom_cursor.image:getHeight()/2)
+    end
 end
 
 -- Ensure hud. receives mouse and key events
