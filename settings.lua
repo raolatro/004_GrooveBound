@@ -225,6 +225,14 @@ settings.weapons = {
     },
     drones = {
         display_name = "Drones",
+        -- Sprite settings for drones
+        sprite_path = "assets/img/drone1-sprite.png",
+        sprite_frames = 4,        -- Total frames in spritesheet
+        sprite_rows = 2,          -- Number of rows in spritesheet
+        sprite_cols = 2,          -- Number of columns in spritesheet
+        sprite_frame_width = 64,  -- Width of each frame
+        sprite_frame_height = 64, -- Height of each frame
+        sprite_anim_speed = 8,    -- Frames per second for animation
         -- Orbiting drones, auto-fire at enemies
         { count = 1, damage = 1, fire_rate = 2, range = 80, orbit_radius = 100, drone_radius = 15, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
         { count = 2, damage = 1, fire_rate = 4, range = 100, orbit_radius = 120, drone_radius = 17, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2

@@ -333,21 +333,61 @@ function player.draw()
                 
                 -- Store aim angle for drawing
                 local arrow_angle = aim_angle
-                -- Draw drone body
-                love.graphics.setColor(w.color or {0,1,1,1})
-                love.graphics.circle("fill", px, py, drone_radius)
-                -- Drone hit area (range) circles are now hidden
-                -- Draw arrow (triangle) inside drone
-                local arrow_len = drone_radius * 0.9
-                local arrow_w = drone_radius * 0.7
-                local tip_x = px + math.cos(arrow_angle) * arrow_len
-                local tip_y = py + math.sin(arrow_angle) * arrow_len
-                local left_x = px + math.cos(arrow_angle + math.pi*0.75) * (arrow_w/2)
-                local left_y = py + math.sin(arrow_angle + math.pi*0.75) * (arrow_w/2)
-                local right_x = px + math.cos(arrow_angle - math.pi*0.75) * (arrow_w/2)
-                local right_y = py + math.sin(arrow_angle - math.pi*0.75) * (arrow_w/2)
-                love.graphics.setColor(0,0,0,0.8)
-                love.graphics.polygon("fill", tip_x, tip_y, left_x, left_y, right_x, right_y)
+                -- Initialize drone sprite if it doesn't exist yet
+                if not player.drone_sprite then
+                    -- Load the drone sprite sheet
+                    local drone_settings = settings.weapons.drones
+                    local sprite_path = drone_settings.sprite_path
+                    local sprite_rows = drone_settings.sprite_rows or 2
+                    local sprite_cols = drone_settings.sprite_cols or 2
+                    local frame_width = drone_settings.sprite_frame_width or 64
+                    local frame_height = drone_settings.sprite_frame_height or 64
+                    
+                    -- Create the sprite data
+                    player.drone_sprite = {
+                        image = love.graphics.newImage(sprite_path),
+                        quads = {},
+                        current_frame = 1,
+                        frames = drone_settings.sprite_frames or 4,
+                        anim_speed = drone_settings.sprite_anim_speed or 8,
+                        anim_timer = 0
+                    }
+                    
+                    -- Create quads for each frame
+                    for row = 0, sprite_rows - 1 do
+                        for col = 0, sprite_cols - 1 do
+                            local index = col + row * sprite_cols + 1
+                            if index <= player.drone_sprite.frames then
+                                player.drone_sprite.quads[index] = love.graphics.newQuad(
+                                    col * frame_width, row * frame_height,
+                                    frame_width, frame_height,
+                                    player.drone_sprite.image:getDimensions()
+                                )
+                            end
+                        end
+                    end
+                end
+                
+                -- Update animation
+                player.drone_sprite.anim_timer = player.drone_sprite.anim_timer or 0
+                player.drone_sprite.anim_timer = player.drone_sprite.anim_timer + love.timer.getDelta()
+                
+                if player.drone_sprite.anim_timer >= 1 / player.drone_sprite.anim_speed then
+                    player.drone_sprite.current_frame = player.drone_sprite.current_frame % player.drone_sprite.frames + 1
+                    player.drone_sprite.anim_timer = 0
+                end
+                
+                -- Draw drone sprite instead of circle
+                love.graphics.setColor(w.color or {1,1,1,1})
+                love.graphics.draw(
+                    player.drone_sprite.image,
+                    player.drone_sprite.quads[player.drone_sprite.current_frame],
+                    px, py,
+                    arrow_angle, -- rotate towards target
+                    drone_radius / 32, drone_radius / 32, -- scale to match drone_radius
+                    32, 32 -- center of 64x64 frame
+                )
+                -- The hit area circle is now hidden but still used for collision
                 love.graphics.setColor(1,1,1,1)
             end
         end
@@ -410,9 +450,8 @@ function player.draw()
         player._on_beat_anim = math.max(0, player._on_beat_anim - love.timer.getDelta())
         if player._on_beat_anim == 0 then player._on_beat_active = false end
     end
-    -- Draw the player sprite (rotated)
-    local dir = gamepad.dir or 0
-    player.sprite:draw(center_x, center_y, 1, dir - math.pi/2, {1,1,1,1})
+    -- Draw the player sprite (fixed orientation, not rotating with mouse)
+    player.sprite:draw(center_x, center_y, 1, 0, {1,1,1,1})
     -- (Optional: draw hit circle for debugging)
     -- love.graphics.setColor(1,0,0,0.2)
     -- love.graphics.circle("line", center_x, center_y, gamepad.radius)
