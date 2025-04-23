@@ -4,6 +4,7 @@ local popup = {}
 popup.active = {}
 popup._fonts = {} -- cache fonts by size
 local settings = require "settings"
+local font = settings.main.fonts
 
 -- Popup spawn
 function popup.spawn(args)
@@ -41,7 +42,6 @@ function popup.update(dt)
 end
 
 function popup.draw()
-    local font = love.graphics.getFont()
     for _, p in ipairs(popup.active) do
         local alpha = math.max(0, p.timer / p.fade_duration)
         local text = p.text
@@ -63,20 +63,31 @@ function popup.draw()
         love.graphics.setFont(popup_font)
         -- Shadow
         if p.shadow then
+            -- Handle both number and table for shadow_offset
+            local sx, sy = 2, 2
+            if type(p.shadow_offset) == "table" then
+                sx = p.shadow_offset[1] or 2
+                sy = p.shadow_offset[2] or 2
+            elseif type(p.shadow_offset) == "number" then
+                sx = p.shadow_offset
+                sy = p.shadow_offset
+            end
             love.graphics.setColor(p.shadow_color[1], p.shadow_color[2], p.shadow_color[3], (p.shadow_color[4] or 1) * alpha)
-            love.graphics.print(text, (p.shadow_offset and p.shadow_offset[1]) or 2, (p.shadow_offset and p.shadow_offset[2]) or 2)
+            love.graphics.print(text, sx, sy)
         end
         -- Box
         if p.box then
-            local tw = font:getWidth(text) * (p.font_size or 1)
-            local th = font:getHeight() * (p.font_size or 1)
+            -- Use the popup_font for width/height calculations
+            local tw = popup_font:getWidth(text)
+            local th = popup_font:getHeight()
             love.graphics.setColor(p.box_color[1], p.box_color[2], p.box_color[3], (p.box_color[4] or 1) * alpha)
             love.graphics.rectangle("fill", -p.box_padding, -p.box_padding, tw + p.box_padding*2, th + p.box_padding*2, 8, 8)
         end
         -- Outline
         if p.outline then
-            local tw = font:getWidth(text) * (p.font_size or 1)
-            local th = font:getHeight() * (p.font_size or 1)
+            -- Use the popup_font for width/height calculations
+            local tw = popup_font:getWidth(text)
+            local th = popup_font:getHeight()
             love.graphics.setColor(p.outline_color[1], p.outline_color[2], p.outline_color[3], (p.outline_color[4] or 1) * alpha)
             love.graphics.setLineWidth(p.outline_width or 2)
             love.graphics.rectangle("line", -p.box_padding, -p.box_padding, tw + p.box_padding*2, th + p.box_padding*2, 8, 8)

@@ -56,6 +56,8 @@ game_paused = game_paused or false
 
 function love.update(dt)
     hud.update(dt)
+    -- Update popups (must be called every frame)
+    require("scripts/popup").update(dt)
     -- Keep level_stats in sync
     if level_stats then
         level_stats.set_wave(current_wave)
@@ -105,24 +107,25 @@ function love.update(dt)
             wave_timer = settings.wave_duration or 15
             debug.log("Wave "..current_wave.." started!")
             
-            -- Create big centered wave announcement popup
+            -- Create big centered wave announcement popup using the existing popup system
             local w, h = love.graphics.getWidth(), love.graphics.getHeight()
             popup.spawn({
                 x = w/2,
                 y = h/2 - 50,
                 text = "WAVE " .. current_wave,
                 color = {1, 0.3, 0.3, 1},  -- Red color
-                font_size = 72,             -- Large font
-                fade_duration = 3.0,        -- Longer duration
-                box = true,                 -- Add box
-                box_color = {0, 0, 0, 0.8}, -- Dark background
-                box_padding = 20,           -- Padding around text
-                outline = true,             -- Add outline
-                outline_color = {1, 1, 1, 1}, -- White outline
-                outline_width = 3,          -- Thicker outline
-                shadow = true,              -- Add shadow
-                shadow_color = {0, 0, 0, 0.8}, -- Dark shadow
-                shadow_offset = {4, 4}      -- Shadow offset
+                font_scale = 2.5,          -- Use font_scale instead of font_size
+                fade_duration = 3.0,
+                y_offset = 0,              -- No offset needed for centered popup
+                box = true,
+                box_color = {0, 0, 0, 0.8},
+                box_padding = 20,
+                outline = true,
+                outline_color = {1, 1, 1, 1},
+                outline_width = 3,
+                shadow = true,
+                shadow_color = {0, 0, 0, 0.8},
+                shadow_offset = 4          -- Single value for shadow
             })
             
             -- Play sound effect if available
@@ -145,7 +148,7 @@ function love.update(dt)
             local boss_color = settings.boss.color[math.min(current_boss,#settings.boss.color)]
             local boss_sfx = settings.boss.sfx[math.min(current_boss,#settings.boss.sfx)]
             
-            -- Create dramatic boss announcement popup
+            -- Create dramatic boss announcement popup using the existing popup system
             local w, h = love.graphics.getWidth(), love.graphics.getHeight()
             
             -- Warning popup
@@ -153,31 +156,33 @@ function love.update(dt)
                 x = w/2,
                 y = h/2 - 80,
                 text = "BOSS " .. current_boss .. " INCOMING!!",
-                color = {1, 0.1, 0.1, 1},  -- Brighter red
-                font_size = 84,             -- Extra large font
-                fade_duration = 4.0,        -- Longer duration
-                box = true,                 
-                box_color = {0, 0, 0, 0.9}, 
-                box_padding = 25,           
-                outline = true,             
+                color = {1, 0.1, 0.1, 1},    -- Brighter red
+                font_scale = 3.0,            -- Using font_scale instead of font_size
+                fade_duration = 4.0,
+                y_offset = 0,                -- No y offset needed
+                box = true,
+                box_color = {0, 0, 0, 0.9},
+                box_padding = 25,
+                outline = true,
                 outline_color = {1, 0.7, 0, 1}, -- Gold outline
-                outline_width = 4,          
-                shadow = true,              
+                outline_width = 4,
+                shadow = true,
                 shadow_color = {0.5, 0, 0, 0.8}, -- Red shadow
-                shadow_offset = {5, 5}      
+                shadow_offset = 5            -- Single value for shadow
             })
             
             -- Secondary effect popup
             popup.spawn({
                 x = w/2,
-                y = h/2 + 30,
+                y = h/2 + 70,               -- Adjusted positioning
                 text = "Prepare for battle!",
-                color = {1, 0.8, 0, 1},  -- Gold text
-                font_size = 42,          
-                fade_duration = 3.5,     
-                shadow = true,          
+                color = {1, 0.8, 0, 1},      -- Gold text
+                font_scale = 1.5,            -- Using font_scale instead of font_size
+                fade_duration = 3.5,
+                y_offset = 0,                -- No y offset needed
+                shadow = true,
                 shadow_color = {0, 0, 0, 0.8},
-                shadow_offset = {3, 3}   
+                shadow_offset = 3            -- Single value for shadow
             })
             
             -- Update level stats display
@@ -321,6 +326,8 @@ function love.draw()
     end
     
     -- Draw UI elements that should be on top, regardless of game state
+    -- Draw popups above gameplay and UI
+    require("scripts/popup").draw()
     
     -- Draw loot/weapon attraction debug overlay
     loot.draw_debug(gamepad.x, gamepad.y, (player.outline_radius or gamepad.radius))

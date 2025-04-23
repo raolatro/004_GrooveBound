@@ -93,6 +93,12 @@ function game_over.mousepressed(x, y, button)
             hud.player_max_hp = tonumber(settings.player.hp) or 5
             hud.game_over = false
             
+            -- CRITICAL FIX: Reset all item level definitions to level 1
+            if _G.reset_item_levels then
+                debug.log("[Game] Resetting all weapon level definitions to level 1")
+                settings.item_data.Items = _G.reset_item_levels()
+            end
+            
             -- Reset inventory - first fully clear all slots
             local inventory = require "scripts/inventory"
             inventory.reset() -- This empties all inventory slots
