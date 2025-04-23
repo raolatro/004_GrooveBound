@@ -29,11 +29,22 @@ function loot.update(dt, player_x, player_y, outline_radius)
                 -- debug.log((is_money and 'Coin' or 'Weapon')..' attraction started!')
                 d._attracting = true
             end
-            -- Ease-out (starts fast, finishes slow): use quadratic ease-out for lerp factor
-            local t = 1 - (dist-pickup_radius)/(attr_radius-pickup_radius)
-            local lerp_factor = math.min(0.15 + 0.6 * (1-(1-t)^2), 1) -- quadratic ease-out
-            d.x = d.x + (player_x - d.x) * lerp_factor * dt * 2
-            d.y = d.y + (player_y - d.y) * lerp_factor * dt * 2
+            -- Exponential ease-in: starts slow, accelerates as it approaches the player
+            -- Calculate normalized distance - 0 when at pickup radius, 1 when at max attraction distance
+            local normalized_dist = (dist - pickup_radius) / (attr_radius - pickup_radius)
+            -- Clamp to 0-1 range
+            normalized_dist = math.max(0, math.min(1, normalized_dist))
+            -- Invert so it's 1 near player, 0 at edge
+            local t = 1 - normalized_dist
+            -- Exponential ease-in curve: t^3 accelerates dramatically as t increases
+            local ease_factor = t * t * t -- cubic ease-in
+            -- Apply easing to base speed
+            local effective_speed = attr_speed * ease_factor * dt
+            -- Calculate movement
+            local angle = math.atan2(player_y - d.y, player_x - d.x)
+            local move_dist = math.min(dist, effective_speed)
+            d.x = d.x + math.cos(angle) * move_dist
+            d.y = d.y + math.sin(angle) * move_dist
         else
             d._attracting = false
         end
@@ -218,19 +229,27 @@ function loot.draw(player_x, player_y, outline_radius)
         local color = (item and item.color) or (data.Rarity[d.rarity] and data.Rarity[d.rarity].color) or {1,1,1,1}
         love.graphics.setColor(color)
         love.graphics.circle("fill", d.x, d.y, 6)
-        -- Debug: draw pickup radius if enabled
-        if loot.debug_draw_pickup_radius and player_x and outline_radius then
-            local is_money = (d.id == "money")
-            local pickup_mult = is_money and (loot_settings.pickup_radius_mult or 1.3) or 1.0
-            local pickup_radius = outline_radius * pickup_mult
-            love.graphics.setColor(0.5,0,1,0.1)
-            love.graphics.circle("fill", player_x, player_y, pickup_radius)
-        end
+    end
+    
+    -- Draw pickup radius if enabled (moved outside the loop to avoid drawing multiple circles)
+    if settings.loot.show_pickup_radius and player_x and outline_radius then
+        -- Draw money pickup radius
+        local money_pickup_mult = loot_settings.pickup_radius_mult or 1.3
+        local money_pickup_radius = outline_radius * money_pickup_mult
+        love.graphics.setColor(0.2, 0.8, 0.2, 0.15) -- Green for money
+        love.graphics.circle("fill", player_x, player_y, money_pickup_radius)
+        
+        -- Draw weapon pickup radius
+        local weapon_pickup_mult = settings.weapon.pickup_radius_mult or 1.0
+        local weapon_pickup_radius = outline_radius * weapon_pickup_mult
+        love.graphics.setColor(0.5, 0, 1, 0.15) -- Purple for weapons
+        love.graphics.circle("line", player_x, player_y, weapon_pickup_radius)
+        love.graphics.setColor(0.5, 0, 1, 0.05) -- Lighter fill
+        love.graphics.circle("fill", player_x, player_y, weapon_pickup_radius)
     end
     love.graphics.setColor(1,1,1,1)
 end
 
--- Toggle for debug pickup radius
-loot.debug_draw_pickup_radius = true
+-- Note: Debug toggle replaced by settings.loot.show_pickup_radius
 
 return loot

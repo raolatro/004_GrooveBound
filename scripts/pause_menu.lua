@@ -9,7 +9,8 @@ pause_menu.active = false
 -- Button areas for hit detection
 pause_menu.buttons = {
     auto_fire = {x = 0, y = 0, width = 0, height = 0}, -- Coordinates set in draw()
-    aim_assist = {x = 0, y = 0, width = 0, height = 0}  -- Coordinates set in draw()
+    aim_assist = {x = 0, y = 0, width = 0, height = 0},  -- Coordinates set in draw()
+    pickup_radius = {x = 0, y = 0, width = 0, height = 0} -- Coordinates set in draw()
 }
 
 -- Show the pause menu
@@ -42,6 +43,12 @@ function pause_menu.toggle_aim_assist()
     hud.aim_line_enabled = not hud.aim_line_enabled
 end
 
+-- Toggle pickup radius visibility
+function pause_menu.toggle_pickup_radius()
+    debug.log("[PauseMenu] toggle_pickup_radius() called")
+    settings.loot.show_pickup_radius = not settings.loot.show_pickup_radius
+end
+
 -- Handle mouse interaction with pause menu
 function pause_menu.mousepressed(x, y, button)
     if not pause_menu.active then return false end
@@ -60,6 +67,14 @@ function pause_menu.mousepressed(x, y, button)
     if x >= aim.x and x <= aim.x + aim.width and
        y >= aim.y and y <= aim.y + aim.height then
         pause_menu.toggle_aim_assist()
+        return true
+    end
+    
+    -- Check if pickup radius visibility button was clicked
+    local pickup = pause_menu.buttons.pickup_radius
+    if x >= pickup.x and x <= pickup.x + pickup.width and
+       y >= pickup.y and y <= pickup.y + pickup.height then
+        pause_menu.toggle_pickup_radius()
         return true
     end
     
@@ -120,11 +135,33 @@ function pause_menu.draw()
     love.graphics.setColor(hud.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
     love.graphics.circle("fill", af_x + btn_width - 20, af_y + btn_height/2, 12)
     
+    -- Pickup Radius visibility toggle button
+    local pickup_y = af_y + 60
+    local pickup_x = af_x
+    -- Store button area for hit detection
+    pause_menu.buttons.pickup_radius = {x = pickup_x, y = pickup_y, width = btn_width, height = btn_height}
+    
+    -- Button background
+    love.graphics.setColor(0.2, 0.2, 0.2, 0.8)
+    love.graphics.rectangle("fill", pickup_x, pickup_y, btn_width, btn_height, btn_radius, btn_radius)
+    love.graphics.setColor(0.5, 0.5, 0.5, 1)
+    love.graphics.rectangle("line", pickup_x, pickup_y, btn_width, btn_height, btn_radius, btn_radius)
+    
+    -- Button text
+    love.graphics.setColor(1,1,1,1)
+    love.graphics.printf("PICKUP RADIUS", pickup_x + 10, pickup_y + 12, btn_width - 50, "left")
+    
+    -- Status indicator
+    love.graphics.setColor(settings.loot.show_pickup_radius and {0,1,0,1} or {1,0,0,1})
+    love.graphics.circle("fill", pickup_x + btn_width - 20, pickup_y + btn_height/2, 12)
+    
     -- Aim Line toggle button
-    local aim_y = af_y + 60
+    local aim_y = pickup_y + 60
     local aim_x = af_x
     -- Store button area for hit detection
     pause_menu.buttons.aim_assist = {x = aim_x, y = aim_y, width = btn_width, height = btn_height}
+    
+
     
     -- Button background
     love.graphics.setColor(0.2, 0.2, 0.2, 0.8)

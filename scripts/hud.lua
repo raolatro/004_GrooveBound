@@ -46,9 +46,6 @@ function hud.draw()
     local n_hearts = tonumber(hud.player_max_hp) or 3
     local bar_x = margin
     local bar_y = margin
-
-    -- [REMOVED] Pause overlay and text are now handled exclusively by pause_menu.lua. No legacy HUD overlay remains.
-
     -- Top left: HP hearts and inventory (drawn under overlay)
     local left_x = 16
     local left_y = 16
@@ -56,17 +53,13 @@ function hud.draw()
     local heart_box_height = bar_height + 8
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", left_x, left_y, heart_box_width, heart_box_height, 10, 10)
-    -- No outline around HP hearts box
     love.graphics.setColor(1,1,1,1)
-    -- (Removed rectangle line for HP hearts box)
     for i=1,n_hearts do
         local x = left_x + 12 + (i-1)*heart_w
         local quad = (i <= (hud.player_hp or 0)) and hud.hp_full_quad or hud.hp_empty_quad
         love.graphics.draw(hud.hp_img, quad, x, left_y + 8, 0, heart_w/64, heart_h/56)
     end
     -- Inventory slots below hearts
-
-    -- [REMOVED] Legacy pause toggles/overlay code fully deleted. All pause logic is handled by pause_menu.lua only.
     local slot_size = 28
     local slot_spacing = 8
     local max_slots = settings.inventory.max_slots or 4
@@ -75,11 +68,9 @@ function hud.draw()
     local slot_box_y = left_y + heart_box_height + 8
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", slot_box_x, slot_box_y, slot_box_width, slot_size + 16, 10, 10)
-    -- No rectangle("line", ...) for slot box or items
     for idx = 1, max_slots do
         local x0 = slot_box_x + 12 + (idx-1)*(slot_size + slot_spacing)
         local y0 = slot_box_y + 8
-        -- No border/rectangle for inventory item slot
         local s = inventory.slots[idx]
         if s then
             love.graphics.setColor(s.color or {1,1,1,1})
@@ -113,9 +104,6 @@ function hud.draw()
     love.graphics.printf("Kills: "..tostring(hud.kills), right_x, kills_y+8, right_box_width, "center")
     love.graphics.rectangle("line", right_x, kills_y, right_box_width, bar_height, 10, 10)
 
-    -- [REMOVED] Pause toggles/overlay are now handled exclusively by pause_menu. This block is intentionally deleted for clarity and to prevent UI conflicts.
-
-
     -- Draw bottom-center instruction (always visible)
     local instruction_bar_width = 700
     local instruction_font = hud.font_instruction
@@ -124,7 +112,7 @@ function hud.draw()
     love.graphics.setColor(1,1,1,1)
     local prev_font = love.graphics.getFont()
     love.graphics.setFont(instruction_font)
-    love.graphics.printf("Move: WASD   |   Aim: Mouse   |   Shoot: Left Click or Auto-Fire", w/2-instruction_bar_width/2+10, h-48, instruction_bar_width-20, "center")
+    love.graphics.printf("Move: WASD or Arrows | Aim: Mouse | Shoot: Left Click | ESC: Pause game", w/2-instruction_bar_width/2+10, h-48, instruction_bar_width-20, "center")
     love.graphics.setFont(prev_font)
 end
 

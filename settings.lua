@@ -2,7 +2,7 @@
 local settings = {
     main = {
         sfx = {
-            volume = 0.8, -- global SFX volume (0-1)
+            volume = 0.25, -- global SFX volume (0-1)
             loot_enabled = true,
             weapon_enabled = true,
             projectile_enabled = true,
@@ -102,7 +102,7 @@ local settings = {
             main = {
                 font_size = 64,
                 fade_duration = 3.0,
-                hold_time = 2.0,
+                hold_time = 4.0,
                 box = true,
                 box_color = {0, 0, 0, 0.9},
                 box_padding = 25,
@@ -118,7 +118,7 @@ local settings = {
             subhead = {
                 font_size = 42,
                 fade_duration = 2.5,
-                hold_time = 2.0,
+                hold_time = 3.0,
                 box = true,
                 box_color = {0, 0, 0, 0.8},
                 box_padding = 15,
@@ -132,7 +132,7 @@ local settings = {
             weapon = {
                 font_size = 32,
                 fade_duration = 2.0,
-                hold_time = 1.5,
+                hold_time = 2.5,
                 box = true,
                 box_color = {0.1, 0.1, 0.1, 0.8},
                 box_padding = 12,
@@ -154,15 +154,16 @@ local settings = {
     item_data = require "data/items",
     loot = {
         attraction_enabled = true, -- coins chase player
-        attraction_speed = 10000,   -- px/sec
-        attraction_radius_mult = 30, -- chase starts at outline_radius * this
-        pickup_radius_mult = 10, -- pickup area = outline_radius * this
+        attraction_speed = 500,   -- px/sec
+        attraction_radius_mult = 70, -- chase starts at outline_radius * this
+        pickup_radius_mult = 0.8, -- now matches beat_checker_base_radius (which is 64px)
+        show_pickup_radius = true, -- toggle visibility of pickup radius
     },
     weapon = {
         attraction_enabled = true,
-        attraction_speed = 10000, -- px/sec
-        attraction_radius_mult = 50,
-        pickup_radius_mult = 10, -- pickup area = outline_radius * this
+        attraction_speed = 500, -- px/sec
+        attraction_radius_mult = 70, -- chase starts at outline_radius * this
+        pickup_radius_mult = 0.8, -- now matches beat_checker_base_radius (which is 64px)
     }
 }
 
@@ -183,11 +184,11 @@ settings.waves = {
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 20, 40, 80, 120, 160, 200, 240, 280, 320, 360 }, -- Boss HP per boss number
-    speed = { 100, 120, 140, 160, 180, 200, 220, 240, 260, 280 },
-    radius = { 40, 60, 80, 100, 120, 140, 160, 180, 200, 220 },
+    hp = { 20, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400 }, -- Boss HP per boss number
+    speed = { 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300 },
+    radius = { 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240 },
     color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1}, {0.2,0.2,1,1} },
-    sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10' },
+    sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10', 'boss11' },
 }
 settings.wave_duration = 10
 settings.boss_duration = 30
@@ -198,18 +199,32 @@ settings.weapons = {
         display_name = "Pistol",
         -- Main gun, fires forward
         { damage = 1, fire_rate = 1.0, pierce = false, radius = 10 },
-        { damage = 2, fire_rate = 1.2, pierce = true, radius = 10 },
-        { damage = 3, fire_rate = 1.4, pierce = true, radius = 10 },
-        { damage = 4, fire_rate = 1.6, pierce = true, radius = 10 },
+        { damage = 1, fire_rate = 1.2, pierce = true, radius = 10 },
+        { damage = 2, fire_rate = 1.4, pierce = true, radius = 10 },
+        { damage = 2, fire_rate = 1.6, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 1.8, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 2.0, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 2.2, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 2.4, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 2.6, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 2.8, pierce = true, radius = 10 },
+        { damage = 5, fire_rate = 3.0, pierce = true, radius = 10 },
     },
     cross = {
         display_name = "Blaster",
         -- Fires in 4 or more directions
         { damage = 1, fire_rate = 0.5, pierce = false, radius = 10, directions = 2 },
         { damage = 2, fire_rate = 0.7, pierce = true, radius = 10, directions = 4 },
-        { damage = 3, fire_rate = 0.9, pierce = true, radius = 10, directions = 6 },
+        { damage = 2, fire_rate = 0.9, pierce = true, radius = 10, directions = 6 },
         { damage = 4, fire_rate = 1.1, pierce = true, radius = 10, directions = 8 },
-        { damage = 5, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
+        { damage = 4, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
+        { damage = 6, fire_rate = 1.7, pierce = true, radius = 10, directions = 12 },
+        { damage = 8, fire_rate = 2.0, pierce = true, radius = 10, directions = 14 },
+        { damage = 10, fire_rate = 2.2, pierce = true, radius = 10, directions = 16 },
+        { damage = 10, fire_rate = 2.4, pierce = true, radius = 10, directions = 18 },
+        { damage = 10, fire_rate = 2.6, pierce = true, radius = 10, directions = 20 },
+        { damage = 10, fire_rate = 2.8, pierce = true, radius = 10, directions = 22 },
+        { damage = 10, fire_rate = 3.0, pierce = true, radius = 10, directions = 24 },
     },
     drones = {
         display_name = "Drones",
@@ -219,15 +234,20 @@ settings.weapons = {
         { count = 3, damage = 2, fire_rate = 6, range = 120, orbit_radius = 140, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
         { count = 4, damage = 2, fire_rate = 8, range = 140, orbit_radius = 160, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 4
         { count = 5, damage = 3, fire_rate = 10, range = 160, orbit_radius = 180, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 5
+        { count = 6, damage = 3, fire_rate = 12, range = 180, orbit_radius = 200, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 6
+        { count = 7, damage = 4, fire_rate = 14, range = 200, orbit_radius = 220, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 7
     },
     area = {
         display_name = "Shotgun",
         -- Shotgun-like, fires multiple projectiles in a spread
-        { pellets = 2, damage = 3, spread = 10, fire_rate = 1.5, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 4, damage = 3, spread = 20, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 6, damage = 4, spread = 30, fire_rate = 0.5, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 8, damage = 4, spread = 40, fire_rate = 0.2, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 10, damage = 5, spread = 50, fire_rate = 0.1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 2, damage = 3, spread = 10, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 3, damage = 3, spread = 20, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 4, damage = 4, spread = 30, fire_rate = 1.2, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 5, damage = 4, spread = 40, fire_rate = 1.2, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 6, damage = 5, spread = 50, fire_rate = 1.4, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 7, damage = 5, spread = 60, fire_rate = 1.6, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 8, damage = 6, spread = 70, fire_rate = 1.8, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 9, damage = 6, spread = 80, fire_rate = 2, color = {1,0.5,0,1} }, -- Orange
     },
 }
 
