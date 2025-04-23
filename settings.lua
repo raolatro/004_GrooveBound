@@ -104,22 +104,23 @@ local settings = {
     item_data = require "data/items",
     loot = {
         attraction_enabled = true, -- coins chase player
-        attraction_speed = 1200,   -- px/sec
-        attraction_radius_mult = 15.0, -- chase starts at outline_radius * this
-        pickup_radius_mult = 4, -- pickup area = outline_radius * this
+        attraction_speed = 10000,   -- px/sec
+        attraction_radius_mult = 30, -- chase starts at outline_radius * this
+        pickup_radius_mult = 10, -- pickup area = outline_radius * this
     },
     weapon = {
         attraction_enabled = true,
-        attraction_speed = 1200,
-        attraction_radius_mult = 15.0,
+        attraction_speed = 10000, -- px/sec
+        attraction_radius_mult = 50,
+        pickup_radius_mult = 10, -- pickup area = outline_radius * this
     }
 }
 
 settings.waves = {
-    { hp = 12, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
-    { hp = 15, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
-    { hp = 20, speed = 90, spawn_rate = 1.6, max_enemies = 15 }, -- Wave 3
-    { hp = 30, speed = 100, spawn_rate = 1, max_enemies = 30 } -- Wave 4
+    { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
+    { hp = 12, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
+    { hp = 14, speed = 90, spawn_rate = 2, max_enemies = 15 }, -- Wave 3
+    { hp = 20, speed = 100, spawn_rate = 2, max_enemies = 30 } -- Wave 4
     -- Add more for easy tuning
 }
 settings.boss = {
@@ -136,24 +137,34 @@ settings.boss_duration = 20
 settings.weapons = {
     forward = {
         -- Main gun, fires forward
-        { damage = 5, fire_rate = 1.0, pierce = false, radius = 10 },
-        { damage = 7, fire_rate = 1.2, pierce = true, radius = 10 },
+        { damage = 1, fire_rate = 1.0, pierce = false, radius = 10 },
+        { damage = 2, fire_rate = 1.2, pierce = true, radius = 10 },
+        { damage = 3, fire_rate = 1.4, pierce = true, radius = 10 },
+        { damage = 4, fire_rate = 1.6, pierce = true, radius = 10 },
     },
     cross = {
         -- Fires in 4 or more directions
-        { damage = 3, fire_rate = 0.5, pierce = false, radius = 10, directions = 4 },
-        { damage = 4, fire_rate = 0.4, pierce = true, radius = 10, directions = 8 },
+        { damage = 1, fire_rate = 0.5, pierce = false, radius = 10, directions = 2 },
+        { damage = 2, fire_rate = 0.7, pierce = true, radius = 10, directions = 4 },
+        { damage = 3, fire_rate = 0.9, pierce = true, radius = 10, directions = 6 },
+        { damage = 4, fire_rate = 1.1, pierce = true, radius = 10, directions = 8 },
+        { damage = 5, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
     },
     drones = {
         -- Orbiting drones, auto-fire at enemies
-        { count = 1, damage = 2, fire_rate = 0.5, range = 150, orbit_radius = 150, drone_radius = 10, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
-        { count = 2, damage = 2, fire_rate = 1.2, range = 200, orbit_radius = 200, drone_radius = 11, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
-        { count = 4, damage = 3, fire_rate = 1.5, range = 250, orbit_radius = 250, drone_radius = 12, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
+        { count = 1, damage = 2, fire_rate = 2, range = 80, orbit_radius = 100, drone_radius = 15, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
+        { count = 2, damage = 2, fire_rate = 5, range = 100, orbit_radius = 130, drone_radius = 17, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
+        { count = 3, damage = 3, fire_rate = 10, range = 120, orbit_radius = 160, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
+        { count = 4, damage = 3, fire_rate = 15, range = 140, orbit_radius = 190, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 4
+        { count = 5, damage = 3, fire_rate = 20, range = 160, orbit_radius = 220, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 5
     },
     area = {
         -- Shotgun-like, fires multiple projectiles in a spread
-        { pellets = 3, damage = 2, spread = 15, fire_rate = 2, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 7, damage = 2, spread = 40, fire_rate = 1.6, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 2, damage = 3, spread = 40, fire_rate = 1.5, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 4, damage = 4, spread = 70, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 6, damage = 5, spread = 100, fire_rate = 0.5, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 8, damage = 6, spread = 130, fire_rate = 0.2, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 10, damage = 7, spread = 160, fire_rate = 0.1, color = {1,0.5,0,1} }, -- Orange
     },
 }
 

@@ -71,7 +71,8 @@ function enemy.update(dt, player_x, player_y, projectiles)
         -- check collision with projectiles
         for j = #projectiles, 1, -1 do
             local p = projectiles[j]
-            if collision.circle_circle(e.x, e.y, settings.enemy.radius or 20, p.x, p.y, p.radius) then
+            local e_radius = e.is_boss and (e.boss_radius or 40) or (e.radius or settings.enemy.radius or 20)
+if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                 -- Scalable: use projectile damage type
                 local dmg = p.on_beat and settings.projectile.on_beat_damage or settings.projectile.normal_damage
                 e.hp = e.hp - dmg

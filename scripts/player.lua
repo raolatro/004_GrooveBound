@@ -269,16 +269,35 @@ function player.draw()
             local drone_radius = drone_settings.drone_radius or 10
             local orbit_speed = drone_settings.orbit_speed or 0.7
             local engaged_orbit_speed = drone_settings.engaged_orbit_speed or 0.2
-            -- Get drone range from settings if available
-            local drone_level = w.level or 1
-            local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}
+            
+            -- Get drone weapon parameters from settings
+            local drone_damage = drone_settings.damage or 1
+            local drone_fire_rate = drone_settings.fire_rate or 0.5  -- Shots per second
             local drone_range = drone_settings.range or ((w.hit_area_mult or 3) * drone_radius)
             local hit_area_radius = drone_range
+            
+            -- Cache current time
             local t = love.timer.getTime()
+            
+            -- Initialize drone firing timers if needed
+            if not player.drone_timers then
+                player.drone_timers = {}
+            end
+            
+            -- Create weapon module reference
+            local weapon = require "scripts/weapon"
+            
             for i = 1, num_drones do
-                local angle = (2 * math.pi / num_drones) * (i-1) + t * 0.7
+                -- Initialize timer for this drone if needed
+                if not player.drone_timers[i] then
+                    player.drone_timers[i] = 0
+                end
+                
+                -- Calculate drone position based on orbit
+                local angle = (2 * math.pi / num_drones) * (i-1) + t * orbit_speed
                 local px = center_x + math.cos(angle) * orbit_radius
                 local py = center_y + math.sin(angle) * orbit_radius
+                
                 -- Find nearest enemy within hit area
                 local nearest_enemy = nil
                 local min_dist = hit_area_radius
@@ -290,14 +309,45 @@ function player.draw()
                         nearest_enemy = e
                     end
                 end
-                -- Calculate arrow direction: points to nearest enemy or mouse if none
-                local arrow_angle
+                
+                -- Calculate aim direction (points to nearest enemy or mouse if none)
+                local aim_angle
                 if nearest_enemy then
-                    arrow_angle = math.atan2(nearest_enemy.y - py, nearest_enemy.x - px)
+                    aim_angle = math.atan2(nearest_enemy.y - py, nearest_enemy.x - px)
+                    
+                    -- Fire at enemies if timer allows
+                    if player.drone_timers[i] <= 0 then
+                        -- Fire projectile at enemy using drone settings
+                        local drone_projectile_settings = {
+                            damage = drone_damage,
+                            color = w.color,  -- Use drone color for projectiles
+                            speed = drone_settings.projectile_speed or 400,
+                            radius = drone_settings.projectile_radius or 6,
+                            range = drone_range * 0.8  -- Slightly shorter than detection range
+                        }
+                        
+                        weapon.spawn(px, py, aim_angle, false, drone_projectile_settings)
+                        
+                        -- Reset firing timer for this drone
+                        player.drone_timers[i] = 1 / drone_fire_rate
+                        
+                        -- Visual feedback that drone fired
+                        if not player.drone_flash then player.drone_flash = {} end
+                        player.drone_flash[i] = 0.1  -- Flash for 0.1 seconds
+                    end
                 else
+                    -- Just aim at mouse if no enemies
                     local mx, my = love.mouse.getPosition()
-                    arrow_angle = math.atan2(my - py, mx - px)
+                    aim_angle = math.atan2(my - py, mx - px)
                 end
+                
+                -- Update drone firing timer
+                if player.drone_timers[i] > 0 then
+                    player.drone_timers[i] = player.drone_timers[i] - love.timer.getDelta()
+                end
+                
+                -- Store aim angle for drawing
+                local arrow_angle = aim_angle
                 -- Draw drone body
                 love.graphics.setColor(w.color or {0,1,1,1})
                 love.graphics.circle("fill", px, py, drone_radius)

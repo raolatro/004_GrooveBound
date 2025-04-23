@@ -17,6 +17,10 @@ local hud = require "scripts/hud"
 local game_over = require "scripts/game_over"
 local loot = require "scripts/loot"
 local inventory = require "scripts/inventory"
+local level_stats = require "scripts/level_stats"
+local pause_menu = require "scripts/pause_menu"
+
+require("scripts/init_fonts")()
 
 local arena_margin = 32
 local enemy_spawn_timer = 0
@@ -29,6 +33,7 @@ current_boss = 0
 
 
 function love.load()
+    hud.load_fonts() -- Ensure HUD fonts are loaded before anything else
     hud.reset() -- Ensure HUD and fonts are always initialized
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
@@ -51,7 +56,39 @@ game_paused = game_paused or false
 
 function love.update(dt)
     hud.update(dt)
-    if hud.active or game_over.active or game_paused then return end -- Pause game logic if menu is open, game over, or paused
+    -- Keep level_stats in sync
+    if level_stats then
+        level_stats.set_wave(current_wave)
+        if current_boss and current_boss > 0 then
+            level_stats.set_boss(current_boss)
+        else
+            level_stats.set_boss(nil)
+        end
+    end
+    -- Pause logic
+    if pause_menu.active or game_paused then
+        return
+    end
+    -- Main gameplay update
+    player.update(dt)
+    enemy.update(dt, gamepad.x, gamepad.y, weapon.projectiles)
+    weapon.update(dt)
+    loot.update(dt, gamepad.x, gamepad.y, player.radius)
+    gamepad.update(dt)
+    camera.update(dt, gamepad.x, gamepad.y)
+    -- Drones update (skip if paused)
+    if not (pause_menu.active or game_paused) and player.drones then
+        for _, drone in ipairs(player.drones) do
+            drone:update(dt)
+        end
+    end
+    -- Enemy spawn logic
+    enemy_spawn_timer = enemy_spawn_timer + dt
+    if #enemy.enemies < settings.enemy.max_enemies and enemy_spawn_timer >= settings.enemy.spawn_rate then
+        enemy.spawn_far(gamepad.x, gamepad.y)
+        -- debug.log("Enemy spawned.")
+        enemy_spawn_timer = 0
+    end
     -- Wave escalation logic
     wave_timer = wave_timer - dt
     boss_timer = boss_timer - dt
@@ -108,14 +145,9 @@ function love.update(dt)
         debug.log("Mini Boss "..current_boss.." spawned!")
     end
     beat.update(dt)
-    player.update(dt)
-    weapon.update(dt)
-    enemy.update(dt, gamepad.x, gamepad.y, weapon.projectiles)
-    camera.update(dt, gamepad.x, gamepad.y)
     popup.update(dt)
     -- Use beat checker outline radius for attraction & pickup
     local outline_radius = (player.outline_radius or gamepad.radius)
-    loot.update(dt, gamepad.x, gamepad.y, outline_radius)
     -- Handle loot pickup collisions
     do
         local px, py = gamepad.x, gamepad.y
@@ -141,13 +173,6 @@ function love.update(dt)
                 table.remove(loot.drops, i)
             end
         end
-    end
-    -- Enemy spawn logic
-    enemy_spawn_timer = enemy_spawn_timer + dt
-    if #enemy.enemies < settings.enemy.max_enemies and enemy_spawn_timer >= settings.enemy.spawn_rate then
-        enemy.spawn_far(gamepad.x, gamepad.y)
-        -- debug.log("Enemy spawned.")
-        enemy_spawn_timer = 0
     end
     -- Auto-Fire and manual fire logic
     player.fire_timer = player.fire_timer or 0
@@ -191,70 +216,83 @@ function love.update(dt)
 end
 
 function love.draw()
+    -- Draw game state: game over, pause menu, or normal gameplay
     if game_over.active then
         game_over.draw()
-        return
+    elseif pause_menu.active or game_paused then
+        debug.log("[Main] Drawing pause menu (pause_menu.active=" .. tostring(pause_menu.active) .. ", game_paused=" .. tostring(game_paused) .. ")")
+        -- Only pause_menu.draw handles the pause overlay and UI
+        pause_menu.draw()
+    else
+        -- Camera translation (centered on player)
+        camera.attach()
+        -- Draw everything else first...
+        -- (Beat checker text removed as requested)
+        -- Draw everything that should move with the camera
+        -- Draw everything that moves with the camera
+        love.graphics.setColor(0.1,0.1,0.1,1)
+        love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
+        -- Draw corpses under entities
+        love.graphics.setColor(0.5,0.5,0.5,1)
+        for _, c in ipairs(enemy.corpses) do
+            love.graphics.line(c.x-8, c.y-8, c.x+8, c.y+8)
+            love.graphics.line(c.x+8, c.y-8, c.x-8, c.y+8)
+        end
+        -- Draw loot drops
+        loot.draw()
+        love.graphics.setColor(1,1,1,1)
+        player.draw()
+        enemy.draw()
+        loot.draw(gamepad.x, gamepad.y)
+        weapon.draw(gamepad.x, gamepad.y)
+        camera.detach()
     end
-    -- Draw everything else first...
-    -- (Beat checker text removed as requested)
-    -- Draw everything that should move with the camera
-    -- Draw everything that moves with the camera
-    camera.attach()
-    love.graphics.setColor(0.1,0.1,0.1,1)
-    love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
-    -- Draw corpses under entities
-    love.graphics.setColor(0.5,0.5,0.5,1)
-    for _, c in ipairs(enemy.corpses) do
-        love.graphics.line(c.x-8, c.y-8, c.x+8, c.y+8)
-        love.graphics.line(c.x+8, c.y-8, c.x-8, c.y+8)
-    end
-    -- Draw loot drops
-    loot.draw()
-    love.graphics.setColor(1,1,1,1)
-    enemy.draw()
-    player.draw()
-    weapon.draw(gamepad.x, gamepad.y)
-    popup.draw()
-    camera.detach()
-    -- Draw everything that should stay fixed on screen (UI, overlays)
-
-    -- Draw hud. overlay LAST, outside of camera, so it is always in the foreground and doesn't affect camera stack
-    hud.draw()
-    -- Draw debug overlay
-    debug.draw()
+    
+    -- Draw UI elements that should be on top, regardless of game state
+    
     -- Draw loot/weapon attraction debug overlay
     loot.draw_debug(gamepad.x, gamepad.y, (player.outline_radius or gamepad.radius))
-    -- (Beat checker box and duplicate player.draw() removed to avoid camera stack errors and UI clutter)
-
-    -- Draw popups (should be on top)
-    -- (Removed duplicate popup.draw() to prevent duplicate popups)
-
-    -- Draw wave and boss info at top bar
-    love.graphics.setColor(1,1,1,1)
-    local wave_text = string.format("Wave: %d", current_wave)
-    local boss_text = string.format("Mini Boss: %d", current_boss)
-    love.graphics.print(wave_text, 320, 16)
-    love.graphics.print(boss_text, 480, 16)
-    love.graphics.setColor(1,1,1,1)
-
+    
+    -- Draw wave and boss info at top bar when not in game over
+    if not game_over.active then
+        love.graphics.setColor(1,1,1,1)
+        local wave_text = string.format("Wave: %d", current_wave)
+        local boss_text = string.format("Mini Boss: %d", current_boss)
+        love.graphics.print(wave_text, 320, 16)
+        love.graphics.print(boss_text, 480, 16)
+    end
+    
     -- Draw 'Game paused' left of hamburger menu if paused
-    if game_paused then
+    if game_paused and not pause_menu.active then
         local menu_x, menu_y = 24, 24
-        local font = love.graphics.getFont()
         love.graphics.setColor(1, 1, 1, 1)
         love.graphics.print("Game paused", menu_x + 50, menu_y)
-        love.graphics.setColor(1,1,1,1)
     end
+    
+    -- Draw HUD overlay
+    hud.draw()
+    
+    -- Draw debug overlay at the very end, over absolutely everything else
+    debug.draw()
 end
 
 -- Ensure hud. receives mouse and key events
 function love.mousepressed(x, y, button)
     print('DEBUG: love.mousepressed called')
+    -- Check for game over screen interactions first
     if game_over.active then
         if game_over.mousepressed(x, y, button) then return end
     end
+    
+    -- Check for pause menu interactions when paused
+    if pause_menu.active or game_paused then
+        if pause_menu.mousepressed(x, y, button) then return end
+    end
+    
+    -- Handle HUD interactions
     hud.mousepressed(x, y, button)
     if hud.active then return end
+    
     -- Track mouse down for firing
     if button == 1 then
         player.is_mouse_down = true
@@ -273,7 +311,9 @@ function love.keypressed(key)
         if hud.active then
             hud.active = false
         else
-            game_paused = not game_paused
+            -- Toggle the dedicated pause menu and sync global pause flag
+            pause_menu.toggle()
+            game_paused = pause_menu.active
         end
     end
     if key == "space" or key == "z" then

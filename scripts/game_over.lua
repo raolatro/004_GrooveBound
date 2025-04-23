@@ -33,6 +33,7 @@ function game_over.hide()
     game_over.active = false
 end
 
+local hud = require "scripts/hud"
 function game_over.draw()
     if not game_over.active then return end
     local w, h = love.graphics.getWidth(), love.graphics.getHeight()

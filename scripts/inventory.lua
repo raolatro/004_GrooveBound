@@ -19,33 +19,58 @@ function inventory.find_by_category(category)
     return nil
 end
 
--- Add a weapon (itemId or item table) to inventory
+-- Add a weapon (itemId or item table) to inventory or level up existing weapon
 function inventory.add(item)
     local data = settings.item_data
+    local debug = require "scripts/debug"
+    
     -- Accept either itemId or item table
     if type(item) == "string" then
         item = data.Items[item]
     end
+    
     if not item or item.type ~= "weapon" then
-        print("Inventory: invalid or non-weapon item", item and item.id or item)
+        debug.log("Inventory: invalid or non-weapon item " .. tostring(item and item.id or item))
         return
     end
-    -- Only one weapon per category: replace if present
+    
+    -- Check if weapon of same category exists, attempt to level it up
     local idx = inventory.find_by_category(item.category)
     if idx then
-        inventory.slots[idx] = item
-        print("Inventory: replaced weapon in slot", idx, "with", item.id)
-        return
+        local current_weapon = inventory.slots[idx]
+        local current_level = current_weapon.level or 1
+        local category = current_weapon.category
+        local weapon_levels = settings.weapons[category]
+        
+        -- Check if next level exists
+        if weapon_levels and current_level < #weapon_levels then
+            -- Level up the weapon
+            local new_level = current_level + 1
+            current_weapon.level = new_level
+            
+            -- Apply any stats from the settings if needed
+            -- (the actual stats are used from settings.weapons when firing)
+            
+            debug.log("Inventory: leveled up " .. category .. " weapon to level " .. new_level)
+            -- Trigger a visual effect or feedback for level-up
+            return true, "level_up", category, new_level
+        else
+            debug.log("Inventory: " .. category .. " weapon already at max level (" .. current_level .. ")")
+            return false, "max_level", category, current_level
+        end
     end
-    -- Add to first empty slot
+    
+    -- If not found, add to first empty slot
     for i = 1, settings.inventory.max_slots do
         if not inventory.slots[i] then
             inventory.slots[i] = item
-            print("Inventory: added weapon", item.id, "to slot", i)
-            return
+            debug.log("Inventory: added " .. item.category .. " weapon to slot " .. i)
+            return true, "added", item.category, item.level or 1
         end
     end
-    print("Inventory: all slots full, cannot add", item.id)
+    
+    debug.log("Inventory: all slots full, cannot add " .. item.id)
+    return false, "full", nil, nil
 end
 
 -- Get all active (non-nil) weapons
