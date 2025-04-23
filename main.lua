@@ -63,6 +63,11 @@ end
 game_paused = game_paused or false
 
 function love.update(dt)
+    -- Always update game over screen if active, and halt all gameplay mechanics
+    if game_over.active then
+        if game_over.update then game_over.update(dt) end
+        return
+    end
     hud.update(dt)
     -- Update popups (must be called every frame)
     require("scripts/popup").update(dt)
