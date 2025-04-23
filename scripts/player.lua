@@ -60,15 +60,38 @@ function player.register_fire()
             elseif w.category == "drones" then
                 -- Drone logic: spawn projectiles in a circle around the player
                 -- Use orbit_radius and drone_radius from settings
+                local enemy = require "scripts/enemy"
                 local num_drones = weapon_settings.count or 2
                 local orbit_radius = weapon_settings.orbit_radius or (48 + 8 * (w.level or 1))
                 local drone_radius = weapon_settings.drone_radius or 10
+                local orbit_speed = weapon_settings.orbit_speed or 0.7
+                local engaged_orbit_speed = weapon_settings.engaged_orbit_speed or 0.2
+                -- Get drone range from settings if available
+                local drone_level = w.level or 1
+                local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}
+                local drone_range = drone_settings.range or ((w.hit_area_mult or 3) * drone_radius)
+                local hit_area_radius = drone_range
                 local t = love.timer.getTime()
                 for i = 1, num_drones do
-                    local angle = (2 * math.pi / num_drones) * (i-1) + t * 0.7 -- rotate with time
-                    local px = gamepad.x + math.cos(angle) * orbit_radius
-                    local py = gamepad.y + math.sin(angle) * orbit_radius
-                    local dir = angle
+                -- Find nearest enemy within hit area for this drone
+                local px = gamepad.x + math.cos((2 * math.pi / num_drones) * (i-1)) * orbit_radius
+                local py = gamepad.y + math.sin((2 * math.pi / num_drones) * (i-1)) * orbit_radius
+                local nearest_enemy = nil
+                local min_dist = drone_settings.range or 100
+                for _, e in ipairs(enemy.enemies) do
+                    local ex, ey = e.x, e.y
+                    local dist = math.sqrt((ex - px)^2 + (ey - py)^2)
+                    if dist < min_dist then
+                        min_dist = dist
+                        nearest_enemy = e
+                    end
+                end
+                -- Use engaged orbit speed if locked on, otherwise normal
+                local speed = nearest_enemy and engaged_orbit_speed or orbit_speed
+                local angle = (2 * math.pi / num_drones) * (i-1) + t * speed
+                px = gamepad.x + math.cos(angle) * orbit_radius
+                py = gamepad.y + math.sin(angle) * orbit_radius
+                local dir = angle
                     weapon.spawn(px, py, dir, true, weapon_settings)
                     -- Draw drone as solid cyan dot
                     love.graphics.setColor(0,1,1,1)
@@ -238,12 +261,14 @@ function player.draw()
     local enemy = require "scripts/enemy"
     for _, w in ipairs(inventory.get_active()) do
         if w.category == "drones" then
-            -- Always use up-to-date settings for orbit and size
+            -- Always use up-to-date settings for orbit, size, and speed
             local drone_level = w.level or 1
             local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}
             local num_drones = drone_settings.count or 2
             local orbit_radius = drone_settings.orbit_radius or (48 + 8 * drone_level)
             local drone_radius = drone_settings.drone_radius or 10
+            local orbit_speed = drone_settings.orbit_speed or 0.7
+            local engaged_orbit_speed = drone_settings.engaged_orbit_speed or 0.2
             -- Get drone range from settings if available
             local drone_level = w.level or 1
             local drone_settings = settings.weapons.drones and settings.weapons.drones[drone_level] or {}

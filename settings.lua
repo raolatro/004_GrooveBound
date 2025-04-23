@@ -116,21 +116,21 @@ local settings = {
 }
 
 settings.waves = {
-    { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
-    { hp = 10, speed = 80, spawn_rate = 2.2, max_enemies = 10 }, -- Wave 2
-    { hp = 10, speed = 90, spawn_rate = 2.0, max_enemies = 13 }, -- Wave 3
-    { hp = 10, speed = 100, spawn_rate = 1.8, max_enemies = 16 } -- Wave 4
+    { hp = 12, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
+    { hp = 15, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
+    { hp = 20, speed = 90, spawn_rate = 1.6, max_enemies = 15 }, -- Wave 3
+    { hp = 30, speed = 100, spawn_rate = 1, max_enemies = 30 } -- Wave 4
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 20, 50, 100, 150 }, -- Boss HP per boss number
+    hp = { 20, 40, 80, 120 }, -- Boss HP per boss number
     speed = { 100, 120, 140, 160 },
     radius = { 40, 60, 80, 100 },
     color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1} },
     sfx = { 'boss1', 'boss2', 'boss3', 'boss4' },
 }
-settings.wave_duration = 10
-settings.boss_duration = 30
+settings.wave_duration = 5
+settings.boss_duration = 20
 
 -- Weapon categories and levels
 settings.weapons = {
@@ -146,9 +146,9 @@ settings.weapons = {
     },
     drones = {
         -- Orbiting drones, auto-fire at enemies
-        { count = 2, damage = 2, fire_rate = 0.5, range = 50, orbit_radius = 300, drone_radius = 10 }, -- Level 1
-        { count = 2, damage = 2, fire_rate = 1.2, range = 80, orbit_radius = 150, drone_radius = 11 }, -- Level 2
-        { count = 4, damage = 3, fire_rate = 1.5, range = 100, orbit_radius = 200, drone_radius = 12 }, -- Level 3
+        { count = 1, damage = 2, fire_rate = 0.5, range = 150, orbit_radius = 150, drone_radius = 10, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
+        { count = 2, damage = 2, fire_rate = 1.2, range = 200, orbit_radius = 200, drone_radius = 11, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
+        { count = 4, damage = 3, fire_rate = 1.5, range = 250, orbit_radius = 250, drone_radius = 12, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
     },
     area = {
         -- Shotgun-like, fires multiple projectiles in a spread

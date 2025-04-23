@@ -96,25 +96,28 @@ function hud.draw()
     love.graphics.setColor(1,1,1,1)
     love.graphics.printf("Kills: "..tostring(hud.kills), after_score_x, bar_y+8, 80, "center")
     local after_kills_x = after_score_x + 80 + 12
-    -- Auto-Fire toggle
-    local af_width = 160
-    love.graphics.setColor(0.12,0.12,0.12,0.92)
-    love.graphics.rectangle("fill", after_kills_x, bar_y, af_width, bar_height, 10, 10)
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.printf("Auto-Fire", after_kills_x+0, bar_y+8, af_width-36, "right")
-    love.graphics.setColor(hud.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
-    love.graphics.circle("fill", after_kills_x+af_width-20, bar_y+bar_height/2, 12)
-    love.graphics.setColor(1,1,1,1)
-    -- Aim Line toggle
-    local aim_width = 160
-    local aim_x = after_kills_x + af_width + 12
-    love.graphics.setColor(0.12,0.12,0.12,0.92)
-    love.graphics.rectangle("fill", aim_x, bar_y, aim_width, bar_height, 10, 10)
-    love.graphics.setColor(1,1,1,1)
-    love.graphics.printf("Aim Line", aim_x, bar_y+8, aim_width-36, "right")
-    love.graphics.setColor(hud.aim_line_enabled and {0.9,0.9,0,1} or {0.5,0.5,0.2,1})
-    love.graphics.circle("fill", aim_x+aim_width-20, bar_y+bar_height/2, 12)
-    love.graphics.setColor(1,1,1,1)
+    -- Show auto-fire and aim toggles only in pause state
+    if hud.show_pause_controls then
+        -- Auto-Fire toggle
+        local af_width = 160
+        love.graphics.setColor(0.12,0.12,0.12,0.92)
+        love.graphics.rectangle("fill", after_kills_x, bar_y, af_width, bar_height, 10, 10)
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.printf("Auto-Fire", after_kills_x+0, bar_y+8, af_width-36, "right")
+        love.graphics.setColor(hud.auto_fire_enabled and {0,1,0,1} or {1,0,0,1})
+        love.graphics.circle("fill", after_kills_x+af_width-20, bar_y+bar_height/2, 12)
+        love.graphics.setColor(1,1,1,1)
+        -- Aim Line toggle
+        local aim_width = 160
+        local aim_x = after_kills_x + af_width + 12
+        love.graphics.setColor(0.12,0.12,0.12,0.92)
+        love.graphics.rectangle("fill", aim_x, bar_y, aim_width, bar_height, 10, 10)
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.printf("Aim Line", aim_x, bar_y+8, aim_width-36, "right")
+        love.graphics.setColor(hud.aim_line_enabled and {0.9,0.9,0,1} or {0.5,0.5,0.2,1})
+        love.graphics.circle("fill", aim_x+aim_width-20, bar_y+bar_height/2, 12)
+        love.graphics.setColor(1,1,1,1)
+    end
     -- Draw bottom-center instruction (always visible)
     local instruction_bar_width = 700
     local instruction_font = hud.font_instruction
