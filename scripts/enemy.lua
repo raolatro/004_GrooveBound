@@ -15,15 +15,19 @@ enemy.corpses = {}
 defaults = { enemy_speed = 60, enemy_hp = 2, enemy_flash_duration = 0.18 }
 
 local function get_settings(k)
-    -- Map old keys to new grouped settings
+    -- Get current wave settings
+    local current_wave = _G.current_wave or 1
+    local wave = settings.waves[current_wave] or settings.waves[1]
+    
+    -- Map keys to settings
     local map = {
-        enemy_speed = settings.enemy.speed,
-        enemy_hp = settings.enemy.hp,
-        enemy_flash_duration = settings.enemy.flash_duration,
+        enemy_speed = wave.speed,
+        enemy_hp = wave.hp,
+        enemy_flash_duration = settings.enemy.flash_duration, -- Keep this from settings.enemy as it's not in waves
         window_width = settings.main.window_width,
         window_height = settings.main.window_height,
-        max_enemies = settings.enemy.max_enemies,
-        enemy_spawn_rate = settings.enemy.spawn_rate
+        max_enemies = wave.max_enemies,
+        enemy_spawn_rate = wave.spawn_rate
     }
     return map[k] or defaults[k]
 end
@@ -71,7 +75,7 @@ function enemy.update(dt, player_x, player_y, projectiles)
         -- check collision with projectiles
         for j = #projectiles, 1, -1 do
             local p = projectiles[j]
-            local e_radius = e.is_boss and (e.boss_radius or 40) or (e.radius or settings.enemy.radius or 20)
+            local e_radius = e.is_boss and (e.boss_radius or 40) or (e.radius or 30)
 if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                 -- Scalable: use projectile damage type
                 local dmg = p.on_beat and settings.projectile.on_beat_damage or settings.projectile.normal_damage
@@ -93,7 +97,7 @@ if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                     if killed_by_groove then
                         local popup = require "scripts/popup"
                         popup.spawn({
-                            x = e.x + (settings.enemy.radius or 20) + 20,
+                            x = e.x + 30 + 20, -- Use fixed radius of 30 (from settings.enemy.radius)
                             y = e.y,
                             text = settings.popup.killed_text,
                             color = settings.popup.killed_color,
@@ -152,7 +156,7 @@ function enemy.draw()
         else
             -- Draw normal enemy
             love.graphics.setColor(1,0.2,0.2,1)
-            love.graphics.circle("fill", e.x, e.y, settings.enemy.radius or 20)
+            love.graphics.circle("fill", e.x, e.y, 30) -- Use fixed radius of 30 (from settings.enemy.radius)
         end
         -- Draw HP above enemy
         if e.hp and e.hp > 0 then

@@ -125,14 +125,10 @@ function game_over.mousepressed(x, y, button)
             local loot = require "scripts/loot"
             loot.drops = {}
             
-            -- CRITICAL FIX: Reset enemy stats to Wave 1 values
-            if settings.waves and settings.waves[1] then
-                local wave1 = settings.waves[1]
-                settings.enemy.hp = wave1.hp
-                settings.enemy.speed = wave1.speed
-                settings.enemy.spawn_rate = wave1.spawn_rate
-                settings.enemy.max_enemies = wave1.max_enemies
-                debug.log("[Game] Reset enemy stats to Wave 1 values: HP=" .. wave1.hp .. ", Speed=" .. wave1.speed)
+            -- Reset to Wave 1
+            if package.loaded["main"] then
+                _G.current_wave = 1
+                debug.log("[Game] Reset to Wave 1")
             end
             
             -- Reset escalation system to wave 1

@@ -86,7 +86,11 @@ function love.update(dt)
     end
     -- Enemy spawn logic
     enemy_spawn_timer = enemy_spawn_timer + dt
-    if #enemy.enemies < settings.enemy.max_enemies and enemy_spawn_timer >= settings.enemy.spawn_rate then
+    
+    -- Get current wave settings
+    local current_wave_settings = settings.waves[current_wave] or settings.waves[1]
+    
+    if #enemy.enemies < current_wave_settings.max_enemies and enemy_spawn_timer >= current_wave_settings.spawn_rate then
         enemy.spawn_far(gamepad.x, gamepad.y)
         -- debug.log("Enemy spawned.")
         enemy_spawn_timer = 0
@@ -97,13 +101,8 @@ function love.update(dt)
     if wave_timer <= 0 then
         if current_wave < #settings.waves then
             current_wave = current_wave + 1
-            local wave = settings.waves[current_wave]
-            if wave then
-                settings.enemy.hp = wave.hp
-                settings.enemy.speed = wave.speed
-                settings.enemy.spawn_rate = wave.spawn_rate
-                settings.enemy.max_enemies = wave.max_enemies
-            end
+            -- Wave settings are now used directly in enemy.lua, no need to copy to settings.enemy
+            -- Just update the global current_wave variable which is already done above
             wave_timer = settings.wave_duration or 15
             debug.log("Wave "..current_wave.." started!")
             

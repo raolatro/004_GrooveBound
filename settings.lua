@@ -1,4 +1,4 @@
--- settings.lua: All designer-tunable variables
+-- settings.lua
 local settings = {
     main = {
         sfx = {
@@ -12,7 +12,7 @@ local settings = {
             kill_point = 10,         -- points for normal kill
             groove_kill_point = 50, -- points for groove kill
         },
-        auto_fire_angle = 0.3, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
+        auto_fire_angle = 0.15, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
         bpm = 32,
@@ -33,9 +33,9 @@ local settings = {
         beat_checker_on_beat_buffer = 0.05, -- seconds, window for perfect on-beat
         beat_checker_on_beat_anim_time = 0.6, -- seconds, green fill anim duration
         on_beat_color = {0,1,0,1}, -- global on-beat color for all visuals
-        on_beat_scale = 1.2, -- global on-beat scale for all visuals
+        on_beat_scale = 1.1, -- global on-beat scale for all visuals
         -- On-beat circle animation (player outline) settings
-        on_beat_scale_initial = 1.7,      -- scale at the start of on-beat animation
+        on_beat_scale_initial = 1.2,      -- scale at the start of on-beat animation
         on_beat_scale_final = 1.0,        -- scale at the end of on-beat animation
         on_beat_ease = 0.18,              -- how quickly it animates
         beat_flash = 1,                -- seconds to flash outline on beat
@@ -51,8 +51,8 @@ local settings = {
     },
 
     player = {
-        speed = 25,
-        hp = 5,
+        speed = 20,
+        hp = 7,
     },
     projectile = {
         -- Damage values for different projectile types (scalable for future weapons)
@@ -65,13 +65,9 @@ local settings = {
         normal_color = {1,1,1,1},   -- RGBA for normal projectile
         normal_scale = 0.7,         -- scale for normal projectile
     },
+    -- Note: Most enemy settings are now handled directly by the wave system
     enemy = {
-        speed = 70,
-        hp = 10,
-        radius = 30,                -- radius of enemy (for drawing and collision)
-        spawn_rate = 2.5,           -- seconds between spawns
-        max_enemies = 10,            -- max enemies on screen
-        flash_duration = 0.5,      -- seconds
+        flash_duration = 0.5,      -- seconds enemy flashes when hit
     },
     popup = {
         -- Default popup settings
