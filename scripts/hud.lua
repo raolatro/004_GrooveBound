@@ -77,7 +77,8 @@ function hud.draw()
             love.graphics.circle("fill", x0 + slot_size/2, y0 + slot_size/2, slot_size/2 - 4)
             love.graphics.setColor(0,0,0,1)
             love.graphics.setFont(hud.font)
-            love.graphics.printf(s.category:sub(1,1):upper(), x0, y0+slot_size/2-7, slot_size, "center")
+            -- Show weapon level instead of first letter
+            love.graphics.printf(tostring(s.level or 1), x0, y0+slot_size/2-7, slot_size, "center")
         end
     end
 

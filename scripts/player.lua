@@ -239,22 +239,7 @@ function player.draw()
     local now = love.timer.getTime()
     local since_full_beat = (now - (player.last_beat_time or 0)) % full_beat_duration
 
-    -- === Full Beat Circle (always visible) ===
-    love.graphics.setColor(1,1,1,full_beat_opacity)
-    love.graphics.setLineWidth(full_beat_outline_width)
-    love.graphics.circle("line", center_x, center_y, base_radius)
-    -- === Quarter Beat Circles ===
-    for i=1,quarter_count do
-        local quarter_start = (i-1)*quarter_duration
-        local quarter_progress = (since_full_beat - quarter_start)/quarter_duration
-        if quarter_progress >= 0 and quarter_progress < 1 then
-            local scale = quarter_progress
-            local alpha = quarter_opacity
-            love.graphics.setColor(1,1,1,alpha)
-            love.graphics.setLineWidth(quarter_outline_width)
-            love.graphics.circle("line", center_x, center_y, base_radius*scale)
-        end
-    end
+    -- Beat checker circles are now hidden
     love.graphics.setLineWidth(1)
     -- === Drone Visuals ===
     local inventory = require "scripts/inventory"
@@ -351,13 +336,7 @@ function player.draw()
                 -- Draw drone body
                 love.graphics.setColor(w.color or {0,1,1,1})
                 love.graphics.circle("fill", px, py, drone_radius)
-                -- Draw hit area: thin outline and 10% opacity fill
-                love.graphics.setColor((w.color and {w.color[1],w.color[2],w.color[3],0.10}) or {0,1,1,0.10})
-                love.graphics.circle("fill", px, py, hit_area_radius)
-                love.graphics.setColor((w.color and {w.color[1],w.color[2],w.color[3],0.7}) or {0,1,1,0.7})
-                love.graphics.setLineWidth(2)
-                love.graphics.circle("line", px, py, hit_area_radius)
-                love.graphics.setLineWidth(1)
+                -- Drone hit area (range) circles are now hidden
                 -- Draw arrow (triangle) inside drone
                 local arrow_len = drone_radius * 0.9
                 local arrow_w = drone_radius * 0.7
