@@ -74,12 +74,13 @@ local settings = {
         flash_duration = 0.5,      -- seconds
     },
     popup = {
+        -- Default popup settings
         enable_groove_popup = false,  -- toggle player groove popup
         text = "Groove punch!",
         color = {0,1,0,1}, -- default color
         font_size = 20,         -- font size in px for popup text
-        stay_duration = 0.75,   -- seconds popup stays before fading
-        fade_duration = 1,    -- seconds to fade out
+        stay_duration = 3,      -- seconds popup stays before fading
+        fade_duration = 0.3,    -- seconds to fade out
         y_offset = 10,
         box = false,
         box_color = {0,0,0,0.7},
@@ -90,9 +91,58 @@ local settings = {
         shadow = false,
         shadow_color = {0,0,0,0.5},
         shadow_offset = {2,2},
+        
         -- Popup for enemy killed by groove
         killed_text = "Killed by the groove!",
         killed_color = {1,0,0,1},
+        
+        -- Standardized popup styles
+        styles = {
+            -- Main popup style (for boss announcements, major events)
+            main = {
+                font_size = 64,
+                fade_duration = 3.0,
+                hold_time = 2.0,
+                box = true,
+                box_color = {0, 0, 0, 0.9},
+                box_padding = 25,
+                outline = true,
+                outline_color = {1, 0.7, 0, 1}, -- Gold outline
+                outline_width = 4,
+                shadow = true,
+                shadow_color = {0, 0, 0, 0.8},
+                shadow_offset = {5, 5}
+            },
+            
+            -- Subhead style (secondary information)
+            subhead = {
+                font_size = 42,
+                fade_duration = 2.5,
+                hold_time = 2.0,
+                box = true,
+                box_color = {0, 0, 0, 0.8},
+                box_padding = 15,
+                outline = false,
+                shadow = true,
+                shadow_color = {0, 0, 0, 0.8},
+                shadow_offset = 3
+            },
+            
+            -- Weapon style (for weapon pickups, level-ups)
+            weapon = {
+                font_size = 32,
+                fade_duration = 2.0,
+                hold_time = 1.5,
+                box = true,
+                box_color = {0.1, 0.1, 0.1, 0.8},
+                box_padding = 12,
+                outline = true,
+                outline_width = 2,
+                shadow = true,
+                shadow_color = {0, 0, 0, 0.6},
+                shadow_offset = 3
+            }
+        },
     },
     enemy_hp_display = {
         font_size = 12,           -- px
@@ -145,6 +195,7 @@ settings.boss_duration = 30
 -- Weapon categories and levels
 settings.weapons = {
     forward = {
+        display_name = "Pistol",
         -- Main gun, fires forward
         { damage = 1, fire_rate = 1.0, pierce = false, radius = 10 },
         { damage = 2, fire_rate = 1.2, pierce = true, radius = 10 },
@@ -152,6 +203,7 @@ settings.weapons = {
         { damage = 4, fire_rate = 1.6, pierce = true, radius = 10 },
     },
     cross = {
+        display_name = "Blaster",
         -- Fires in 4 or more directions
         { damage = 1, fire_rate = 0.5, pierce = false, radius = 10, directions = 2 },
         { damage = 2, fire_rate = 0.7, pierce = true, radius = 10, directions = 4 },
@@ -160,6 +212,7 @@ settings.weapons = {
         { damage = 5, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
     },
     drones = {
+        display_name = "Drones",
         -- Orbiting drones, auto-fire at enemies
         { count = 1, damage = 1, fire_rate = 2, range = 80, orbit_radius = 100, drone_radius = 15, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
         { count = 2, damage = 1, fire_rate = 4, range = 100, orbit_radius = 120, drone_radius = 17, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
@@ -168,6 +221,7 @@ settings.weapons = {
         { count = 5, damage = 3, fire_rate = 10, range = 160, orbit_radius = 180, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 5
     },
     area = {
+        display_name = "Shotgun",
         -- Shotgun-like, fires multiple projectiles in a spread
         { pellets = 2, damage = 3, spread = 10, fire_rate = 1.5, color = {1,0.5,0,1} }, -- Orange
         { pellets = 4, damage = 3, spread = 20, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange

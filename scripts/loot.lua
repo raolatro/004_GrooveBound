@@ -56,24 +56,22 @@ function loot.update(dt, player_x, player_y, outline_radius)
                     item_color = data_item.color
                 end
                 
-                -- Spawn level up popup with special effect and weapon color
+                -- Spawn level up popup with special effect and weapon color as notification
                 popup.spawn({
-                    x = player_x,
-                    y = player_y - 40,
-                    text = category:upper() .. " LVL " .. level .. " !!!",
-                    color = item_color, -- Use weapon's own color scheme
-                    font_scale = 1.5,  -- Larger font for emphasis
-                    fade_duration = 1.8,
-                    y_offset = -60,
+                    text = category:upper() .. " LEVEL UP TO " .. level,
+                    color = item_color,
+                    font_size = 30, -- Use font_size instead of font_scale for consistency
+                    fade_duration = settings.popup.fade_duration or 0.5,
                     box = true,
                     box_color = {0.1, 0.1, 0.1, 0.8},
                     box_padding = 12,
                     outline = true,
                     outline_color = {1, 1, 1, 0.8},
                     outline_width = 2,
-                    shadow = true,
+                    shadow = false,
                     shadow_color = {0, 0, 0, 0.6},
-                    shadow_offset = 3,
+                    shadow_offset = 2,
+                    popup_type = popup.TYPES.NOTIFICATION -- Use notification type for top-center display
                 })
                 
                 -- Play a special sound effect for level up
@@ -82,27 +80,59 @@ function loot.update(dt, player_x, player_y, outline_radius)
                     sfx.play('levelup')
                 end
             elseif action == "max_level" then
-                -- Show max level notification
+                -- Show max level notification at top center
                 popup.spawn({
-                    x = player_x,
-                    y = player_y - 40,
                     text = category:upper() .. " MAXED OUT",
                     color = {1, 0.8, 0, 1}, -- Gold color for max level
-                    font_scale = 1.0,
+                    font_size = 32, -- Use font_size instead of font_scale
                     fade_duration = 1.0,
-                    y_offset = -40,
+                    box = true,
+                    box_color = {0.1, 0.1, 0.1, 0.8},
+                    box_padding = 12,
+                    outline = true,
+                    outline_color = {1, 0.8, 0, 0.8}, -- Gold outline
+                    outline_width = 2,
+                    shadow = true,
+                    shadow_color = {0, 0, 0, 0.6},
+                    shadow_offset = 3,
+                    popup_type = popup.TYPES.NOTIFICATION -- Use notification type for top-center display
                 })
             elseif action == "added" then
-                -- Show weapon acquired notification
-                popup.spawn({
-                    x = player_x,
-                    y = player_y - 40,
-                    text = category:upper() .. " ACQUIRED",
-                    color = {1, 1, 1, 1},
-                    font_scale = 1.0,
-                    fade_duration = 1.0,
-                    y_offset = -40,
-                })
+                -- Check if weapon is already in inventory and what level it is
+                local in_inventory = false
+                local inv_level = 1
+                local maxed_out = false
+                
+                for _, slot in ipairs(inventory.slots) do
+                    if slot and slot.category == category then
+                        in_inventory = true
+                        inv_level = slot.level or 1
+                        
+                        -- Check if weapon is maxed out
+                        local weapon_levels = settings.weapons[category]
+                        if weapon_levels and inv_level >= #weapon_levels then
+                            maxed_out = true
+                        end
+                        break
+                    end
+                end
+                
+                -- Get display name and color for the weapon
+                local weapon_settings = settings.weapons[category]
+                local display_name = weapon_settings and weapon_settings.display_name or category:upper()
+                local color = (data_item and data_item.color) or {1, 1, 1, 1}
+                
+                -- Show appropriate popup based on weapon status
+                if maxed_out then
+                    -- Show maxed out notification
+                    popup.create_notification(display_name .. " MAXED OUT!", popup.STYLES.WEAPON, {0.8, 0.8, 0.8, 1})
+                elseif in_inventory then
+                    -- Show level up notification
+                    popup.create_notification(display_name .. " LEVEL " .. tostring(inv_level), popup.STYLES.WEAPON, color)
+                else
+                    -- Show new weapon notification
+                    popup.create_notification("Got a new " .. display_name .. "!!", popup.STYLES.WEAPON, color)
+                end
             end
             
             -- Remove the loot regardless of outcome

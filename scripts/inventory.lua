@@ -54,46 +54,18 @@ function inventory.add(item)
             
             debug.log("Inventory: leveled up " .. category .. " weapon to level " .. new_level)
             
-            -- Create centered popup for weapon level-up
-            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-            
-            -- Get weapon color (default to white if not found)
+            -- Get weapon color and display name
             local weapon_color = {1, 1, 1, 1}
+            local weapon_settings = settings.weapons[category]
+            local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
+            
+            -- Get color from item data if available
             if data.Items[category .. "Gun"] and data.Items[category .. "Gun"].color then
                 weapon_color = data.Items[category .. "Gun"].color
             end
             
-            -- Main level up popup (centered)
-            popup.spawn({
-                x = w/2,
-                y = h/2 - 20,
-                text = category:gsub("^%l", string.upper) .. " LEVEL UP!", -- Capitalize first letter
-                color = weapon_color,
-                font_size = 56,
-                fade_duration = 2.5,
-                box = true,
-                box_color = {0, 0, 0, 0.8},
-                box_padding = 20,
-                outline = true,
-                outline_color = {1, 1, 1, 0.9},
-                outline_width = 3,
-                shadow = true,
-                shadow_color = {0, 0, 0, 0.7},
-                shadow_offset = {3, 3}
-            })
-            
-            -- Level indicator popup (below main popup)
-            popup.spawn({
-                x = w/2,
-                y = h/2 + 50,
-                text = "LEVEL " .. new_level,
-                color = {1, 0.9, 0.2, 1}, -- Gold color for level
-                font_size = 42,
-                fade_duration = 2.3,
-                shadow = true,
-                shadow_color = {0, 0, 0, 0.8},
-                shadow_offset = {2, 2}
-            })
+            -- Use the weapon style for level up notification
+            popup.create_notification(display_name .. " LEVEL " .. new_level, popup.STYLES.WEAPON, weapon_color)
             
             -- Play level up sound if available
             if sfx and sfx.play then
@@ -105,25 +77,12 @@ function inventory.add(item)
         else
             debug.log("Inventory: " .. category .. " weapon already at max level (" .. current_level .. ")")
             
-            -- Create "max level" popup
-            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-            popup.spawn({
-                x = w/2,
-                y = h/2,
-                text = category:gsub("^%l", string.upper) .. " MAXED OUT!",
-                color = {0.8, 0.8, 0.8, 1}, -- Silver color for max level
-                font_size = 48,
-                fade_duration = 2.0,
-                box = true,
-                box_color = {0.1, 0.1, 0.1, 0.9},
-                box_padding = 15,
-                outline = true,
-                outline_color = {0.6, 0.6, 0.6, 1},
-                outline_width = 2,
-                shadow = true,
-                shadow_color = {0, 0, 0, 0.7},
-                shadow_offset = {2, 2}
-            })
+            -- Get weapon display name
+            local weapon_settings = settings.weapons[category]
+            local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
+            
+            -- Use the weapon style for max level notification with silver color
+            popup.create_notification(display_name .. " MAXED OUT!", popup.STYLES.WEAPON, {0.8, 0.8, 0.8, 1})
             
             return false, "max_level", category, current_level
         end

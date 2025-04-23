@@ -107,26 +107,8 @@ function love.update(dt)
             wave_timer = settings.wave_duration or 15
             debug.log("Wave "..current_wave.." started!")
             
-            -- Create big centered wave announcement popup using the existing popup system
-            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
-            popup.spawn({
-                x = w/2,
-                y = h/2 - 50,
-                text = "WAVE " .. current_wave,
-                color = {1, 0.3, 0.3, 1},  -- Red color
-                font_scale = 2.5,          -- Use font_scale instead of font_size
-                fade_duration = 3.0,
-                y_offset = 0,              -- No offset needed for centered popup
-                box = true,
-                box_color = {0, 0, 0, 0.8},
-                box_padding = 20,
-                outline = true,
-                outline_color = {1, 1, 1, 1},
-                outline_width = 3,
-                shadow = true,
-                shadow_color = {0, 0, 0, 0.8},
-                shadow_offset = 4          -- Single value for shadow
-            })
+            -- Create big wave announcement popup using the main style
+            popup.create_notification("WAVE " .. current_wave, popup.STYLES.MAIN, {0.1, 0.8, 0.1, 1}) -- Green
             
             -- Play sound effect if available
             if sfx and sfx.play then
@@ -148,42 +130,14 @@ function love.update(dt)
             local boss_color = settings.boss.color[math.min(current_boss,#settings.boss.color)]
             local boss_sfx = settings.boss.sfx[math.min(current_boss,#settings.boss.sfx)]
             
-            -- Create dramatic boss announcement popup using the existing popup system
+            -- Create dramatic boss announcement popup using the notification system
             local w, h = love.graphics.getWidth(), love.graphics.getHeight()
             
-            -- Warning popup
-            popup.spawn({
-                x = w/2,
-                y = h/2 - 80,
-                text = "BOSS " .. current_boss .. " INCOMING!!",
-                color = {1, 0.1, 0.1, 1},    -- Brighter red
-                font_scale = 3.0,            -- Using font_scale instead of font_size
-                fade_duration = 4.0,
-                y_offset = 0,                -- No y offset needed
-                box = true,
-                box_color = {0, 0, 0, 0.9},
-                box_padding = 25,
-                outline = true,
-                outline_color = {1, 0.7, 0, 1}, -- Gold outline
-                outline_width = 4,
-                shadow = true,
-                shadow_color = {0.5, 0, 0, 0.8}, -- Red shadow
-                shadow_offset = 5            -- Single value for shadow
-            })
+            -- Boss warning popup using main style
+            popup.create_notification("BOSS " .. current_boss .. " INCOMING!!", popup.STYLES.MAIN, {1, 0.1, 0.1, 1}) -- Brighter red
             
-            -- Secondary effect popup
-            popup.spawn({
-                x = w/2,
-                y = h/2 + 70,               -- Adjusted positioning
-                text = "Prepare for battle!",
-                color = {1, 0.8, 0, 1},      -- Gold text
-                font_scale = 1.5,            -- Using font_scale instead of font_size
-                fade_duration = 3.5,
-                y_offset = 0,                -- No y offset needed
-                shadow = true,
-                shadow_color = {0, 0, 0, 0.8},
-                shadow_offset = 3            -- Single value for shadow
-            })
+            -- Second popup using subhead style
+            popup.create_notification("Prepare for battle!", popup.STYLES.SUBHEAD, {1, 0.8, 0, 1}) -- Gold text
             
             -- Update level stats display
             local level_stats = require "scripts/level_stats"
@@ -245,7 +199,32 @@ function love.update(dt)
                     inventory.add(d.id)
                     sfx.play('weapon')
                     local md = settings.item_data
-                    popup.spawn({ x = px, y = py - 20, text = "New "..d.id, color = md.Items[d.id].color })
+                    -- Check if weapon is in inventory or not to show appropriate popup
+                    local in_inventory = false
+                    local category = d.id:gsub("Gun$", "") -- Strip 'Gun' suffix if present
+                    local inv_level = 1
+                    
+                    -- Check if the weapon already exists in inventory
+                    for _, slot in ipairs(inventory.slots) do
+                        if slot and slot.category == category then
+                            in_inventory = true
+                            inv_level = slot.level or 1
+                            break
+                        end
+                    end
+                    
+                    -- Get display name for the weapon
+                    local weapon_settings = settings.weapons[category]
+                    local display_name = weapon_settings and weapon_settings.display_name or category:upper()
+                    local color = md.Items[d.id].color
+                    
+                    if in_inventory then
+                        -- Show level up popup
+                        popup.create_notification(display_name .. " LEVEL " .. tostring(inv_level), popup.STYLES.WEAPON, color)
+                    else
+                        -- Show new weapon popup
+                        popup.create_notification("Got a new " .. display_name .. "!!", popup.STYLES.WEAPON, color)
+                    end
                 end
                 table.remove(loot.drops, i)
             end
