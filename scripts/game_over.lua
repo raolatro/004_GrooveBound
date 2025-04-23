@@ -81,35 +81,76 @@ function game_over.mousepressed(x, y, button)
             -- Reset all properties and stats
             game_over.hide()
             local hud = require "scripts/hud"
+            local debug = require "scripts/debug"
+            
+            -- Reset HUD and stats
+            debug.log("[Game] Restarting game - resetting all stats and weapons")
             hud.score = 0
             hud.kills = 0
-            hud.money = 0 -- Reset money on restart
+            hud.money = 0 
             hud.reset() -- Fully reset HUD state and fonts
             hud.player_hp = tonumber(settings.player.hp) or 5
             hud.player_max_hp = tonumber(settings.player.hp) or 5
             hud.game_over = false
-            -- Reset inventory (clear all slots and add level 1 forward gun)
+            
+            -- Reset inventory - first fully clear all slots
             local inventory = require "scripts/inventory"
-            inventory.reset()
+            inventory.reset() -- This empties all inventory slots
+            
+            -- Add only starting weapon at level 1
             inventory.add('forwardGun')
+            debug.log("[Game] Reset inventory to only level 1 forward gun")
+            
+            -- Remove any drone timers or other weapon-specific state
+            if player.drone_timers then player.drone_timers = {} end
+            if player.drone_flash then player.drone_flash = {} end
+            
+            -- Reset player position and state
             player.init()
+            
+            -- Clear ALL enemies, projectiles, corpses, etc.
             enemy.enemies = {}
             enemy.corpses = {}
-            enemy.explosions = {}
+            if enemy.explosions then enemy.explosions = {} end
             weapon.projectiles = {}
+            debug.log("[Game] Cleared all enemies and projectiles")
+            
             -- Reset loot drops
             local loot = require "scripts/loot"
             loot.drops = {}
-            -- Reset escalation system
+            
+            -- CRITICAL FIX: Reset enemy stats to Wave 1 values
+            if settings.waves and settings.waves[1] then
+                local wave1 = settings.waves[1]
+                settings.enemy.hp = wave1.hp
+                settings.enemy.speed = wave1.speed
+                settings.enemy.spawn_rate = wave1.spawn_rate
+                settings.enemy.max_enemies = wave1.max_enemies
+                debug.log("[Game] Reset enemy stats to Wave 1 values: HP=" .. wave1.hp .. ", Speed=" .. wave1.speed)
+            end
+            
+            -- Reset escalation system to wave 1
             if package.loaded["main"] then
                 local main = package.loaded["main"]
                 _G.wave_timer = settings.wave_duration or 10
                 _G.boss_timer = settings.boss_duration or 30
                 _G.current_wave = 1
                 _G.current_boss = 0
+                debug.log("[Game] Reset to wave 1")
             end
+            
+            -- Reset level_stats display
+            local level_stats = require "scripts/level_stats"
+            level_stats.set_wave(1)
+            level_stats.set_boss(nil)
+            
+            -- Reinitialize player position
             gamepad.init(settings.main.window_width/2, settings.main.window_height/2)
+            
+            -- Spawn a single wave 1 enemy
             enemy.spawn_far(gamepad.x, gamepad.y)
+            
+            debug.log("[Game] Game successfully restarted")
             return true
         end
     end

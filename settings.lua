@@ -119,19 +119,28 @@ local settings = {
 settings.waves = {
     { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
     { hp = 12, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
-    { hp = 14, speed = 90, spawn_rate = 2, max_enemies = 15 }, -- Wave 3
-    { hp = 20, speed = 100, spawn_rate = 2, max_enemies = 30 } -- Wave 4
+    { hp = 14, speed = 90, spawn_rate = 1.5, max_enemies = 15 }, -- Wave 3
+    { hp = 20, speed = 100, spawn_rate = 1.5, max_enemies = 20 }, -- Wave 4
+    { hp = 25, speed = 110, spawn_rate = 1.3, max_enemies = 25 }, -- Wave 5
+    { hp = 30, speed = 120, spawn_rate = 1.1, max_enemies = 30 }, -- Wave 6
+    { hp = 35, speed = 130, spawn_rate = 1.0, max_enemies = 35 }, -- Wave 7
+    { hp = 40, speed = 140, spawn_rate = 0.9, max_enemies = 40 }, -- Wave 8
+    { hp = 45, speed = 150, spawn_rate = 0.8, max_enemies = 45 }, -- Wave 9
+    { hp = 50, speed = 160, spawn_rate = 0.7, max_enemies = 50 }, -- Wave 10
+    { hp = 55, speed = 170, spawn_rate = 0.6, max_enemies = 55 }, -- Wave 11
+    { hp = 60, speed = 180, spawn_rate = 0.5, max_enemies = 60 }, -- Wave 12
+    { hp = 65, speed = 190, spawn_rate = 0.4, max_enemies = 65 }, -- Wave 13
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 20, 40, 80, 120 }, -- Boss HP per boss number
-    speed = { 100, 120, 140, 160 },
-    radius = { 40, 60, 80, 100 },
-    color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1} },
-    sfx = { 'boss1', 'boss2', 'boss3', 'boss4' },
+    hp = { 20, 40, 80, 120, 160, 200, 240, 280, 320, 360 }, -- Boss HP per boss number
+    speed = { 100, 120, 140, 160, 180, 200, 220, 240, 260, 280 },
+    radius = { 40, 60, 80, 100, 120, 140, 160, 180, 200, 220 },
+    color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1}, {0.2,0.2,1,1} },
+    sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10' },
 }
-settings.wave_duration = 5
-settings.boss_duration = 20
+settings.wave_duration = 10
+settings.boss_duration = 30
 
 -- Weapon categories and levels
 settings.weapons = {
@@ -152,19 +161,19 @@ settings.weapons = {
     },
     drones = {
         -- Orbiting drones, auto-fire at enemies
-        { count = 1, damage = 2, fire_rate = 2, range = 80, orbit_radius = 100, drone_radius = 15, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
-        { count = 2, damage = 2, fire_rate = 5, range = 100, orbit_radius = 130, drone_radius = 17, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
-        { count = 3, damage = 3, fire_rate = 10, range = 120, orbit_radius = 160, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
-        { count = 4, damage = 3, fire_rate = 15, range = 140, orbit_radius = 190, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 4
-        { count = 5, damage = 3, fire_rate = 20, range = 160, orbit_radius = 220, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 5
+        { count = 1, damage = 1, fire_rate = 2, range = 80, orbit_radius = 100, drone_radius = 15, orbit_speed = 0.6, engaged_orbit_speed = 0.3 }, -- Level 1
+        { count = 2, damage = 1, fire_rate = 4, range = 100, orbit_radius = 120, drone_radius = 17, orbit_speed = 0.5, engaged_orbit_speed = 0.15 }, -- Level 2
+        { count = 3, damage = 2, fire_rate = 6, range = 120, orbit_radius = 140, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 3
+        { count = 4, damage = 2, fire_rate = 8, range = 140, orbit_radius = 160, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 4
+        { count = 5, damage = 3, fire_rate = 10, range = 160, orbit_radius = 180, drone_radius = 20, orbit_speed = 0.4, engaged_orbit_speed = 0.1 }, -- Level 5
     },
     area = {
         -- Shotgun-like, fires multiple projectiles in a spread
-        { pellets = 2, damage = 3, spread = 40, fire_rate = 1.5, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 4, damage = 4, spread = 70, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 6, damage = 5, spread = 100, fire_rate = 0.5, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 8, damage = 6, spread = 130, fire_rate = 0.2, color = {1,0.5,0,1} }, -- Orange
-        { pellets = 10, damage = 7, spread = 160, fire_rate = 0.1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 2, damage = 3, spread = 10, fire_rate = 1.5, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 4, damage = 3, spread = 20, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 6, damage = 4, spread = 30, fire_rate = 0.5, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 8, damage = 4, spread = 40, fire_rate = 0.2, color = {1,0.5,0,1} }, -- Orange
+        { pellets = 10, damage = 5, spread = 50, fire_rate = 0.1, color = {1,0.5,0,1} }, -- Orange
     },
 }
 

@@ -104,6 +104,31 @@ function love.update(dt)
             end
             wave_timer = settings.wave_duration or 15
             debug.log("Wave "..current_wave.." started!")
+            
+            -- Create big centered wave announcement popup
+            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+            popup.spawn({
+                x = w/2,
+                y = h/2 - 50,
+                text = "WAVE " .. current_wave,
+                color = {1, 0.3, 0.3, 1},  -- Red color
+                font_size = 72,             -- Large font
+                fade_duration = 3.0,        -- Longer duration
+                box = true,                 -- Add box
+                box_color = {0, 0, 0, 0.8}, -- Dark background
+                box_padding = 20,           -- Padding around text
+                outline = true,             -- Add outline
+                outline_color = {1, 1, 1, 1}, -- White outline
+                outline_width = 3,          -- Thicker outline
+                shadow = true,              -- Add shadow
+                shadow_color = {0, 0, 0, 0.8}, -- Dark shadow
+                shadow_offset = {4, 4}      -- Shadow offset
+            })
+            
+            -- Play sound effect if available
+            if sfx and sfx.play then
+                sfx.play('wave')
+            end
         else
             -- Last wave reached, pause wave timer
             wave_timer = 0
@@ -119,9 +144,56 @@ function love.update(dt)
             local boss_radius = settings.boss.radius[math.min(current_boss,#settings.boss.radius)]
             local boss_color = settings.boss.color[math.min(current_boss,#settings.boss.color)]
             local boss_sfx = settings.boss.sfx[math.min(current_boss,#settings.boss.sfx)]
+            
+            -- Create dramatic boss announcement popup
+            local w, h = love.graphics.getWidth(), love.graphics.getHeight()
+            
+            -- Warning popup
+            popup.spawn({
+                x = w/2,
+                y = h/2 - 80,
+                text = "BOSS " .. current_boss .. " INCOMING!!",
+                color = {1, 0.1, 0.1, 1},  -- Brighter red
+                font_size = 84,             -- Extra large font
+                fade_duration = 4.0,        -- Longer duration
+                box = true,                 
+                box_color = {0, 0, 0, 0.9}, 
+                box_padding = 25,           
+                outline = true,             
+                outline_color = {1, 0.7, 0, 1}, -- Gold outline
+                outline_width = 4,          
+                shadow = true,              
+                shadow_color = {0.5, 0, 0, 0.8}, -- Red shadow
+                shadow_offset = {5, 5}      
+            })
+            
+            -- Secondary effect popup
+            popup.spawn({
+                x = w/2,
+                y = h/2 + 30,
+                text = "Prepare for battle!",
+                color = {1, 0.8, 0, 1},  -- Gold text
+                font_size = 42,          
+                fade_duration = 3.5,     
+                shadow = true,          
+                shadow_color = {0, 0, 0, 0.8},
+                shadow_offset = {3, 3}   
+            })
+            
+            -- Update level stats display
+            local level_stats = require "scripts/level_stats"
+            level_stats.set_boss(current_boss)
+            
+            -- Play boss alert sound
+            if sfx and sfx.play then
+                sfx.play(boss_sfx or 'boss')
+            end
+            
+            -- Spawn the boss
             if enemy.spawn_boss then
                 enemy.spawn_boss(gamepad.x, gamepad.y, boss_hp, boss_speed, boss_radius, boss_color, boss_sfx)
             end
+            
             boss_timer = settings.boss_duration or 60
             debug.log("Mini Boss "..current_boss.." spawned!")
         else
