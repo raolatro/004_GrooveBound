@@ -36,6 +36,13 @@ function loot.update(dt, player_x, player_y, outline_radius)
         else
             d._attracting = false
         end
+        -- Pickup logic: if within pickup radius and not money, add to inventory
+        if not is_money and dist < pickup_radius then
+            local inventory = require "scripts/inventory"
+            inventory.add(d.id)
+            inventory.debug_print() -- Debug: print inventory after pickup
+            table.remove(loot.drops, i)
+        end
     end
 end
 
@@ -68,7 +75,8 @@ end
 function loot.draw()
     local data = settings.item_data
     for _, d in ipairs(loot.drops) do
-        local color = data.Rarity[d.rarity].color or {1,1,1,1}
+        local item = data.Items[d.id]
+        local color = (item and item.color) or (data.Rarity[d.rarity] and data.Rarity[d.rarity].color) or {1,1,1,1}
         love.graphics.setColor(color)
         love.graphics.circle("fill", d.x, d.y, 6)
     end

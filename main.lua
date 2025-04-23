@@ -13,7 +13,7 @@ local gamepad = require "scripts/gamepad"
 local collision = require "scripts/collision"
 local popup = require "scripts/popup"
 local sfx = require "scripts/sfx"
-local settings_menu = require "scripts/settings_menu"
+local hud = require "scripts/hud"
 local game_over = require "scripts/game_over"
 local loot = require "scripts/loot"
 local inventory = require "scripts/inventory"
@@ -32,9 +32,9 @@ function love.load()
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
     debug.log("Game loaded.")
-    debug.log("Milestone: Attraction and snap/ease-in features enabled.")
+    -- debug.log("Milestone: Attraction and snap/ease-in features enabled.")
     enemy.spawn_far(gamepad.x, gamepad.y)
-    debug.log("Enemy spawned.")
+    -- debug.log("Enemy spawned.")
     -- Hook beat event to player visual cue
     beat.on_beat(player.on_beat)
     -- Give player starting forward gun
@@ -49,8 +49,8 @@ end
 game_paused = game_paused or false
 
 function love.update(dt)
-    settings_menu.update(dt)
-    if settings_menu.active or game_over.active or game_paused then return end -- Pause game logic if menu is open, game over, or paused
+    hud.update(dt)
+    if hud.active or game_over.active or game_paused then return end -- Pause game logic if menu is open, game over, or paused
     -- Wave escalation logic
     wave_timer = wave_timer - dt
     boss_timer = boss_timer - dt
@@ -98,14 +98,14 @@ function love.update(dt)
             local pickup_radius = outline_radius
             if dx*dx + dy*dy <= pickup_radius*pickup_radius then
                 if d.id == "money" then
-                    debug.log('Coin picked up!')
+                    -- debug.log('Coin picked up!')
                     sfx.play('coin')
                     local md = settings.item_data
                     local amt = md.Items.money.baseValue * md.Rarity[d.rarity].multiplier
-                    settings_menu.money = (settings_menu.money or 0) + amt
+                    hud.money = (hud.money or 0) + amt
                     popup.spawn({ x = px, y = py - 20, text = "+"..amt.."₵", color = md.Rarity[d.rarity].color })
                 else
-                    debug.log('Weapon picked up!')
+                    debug.log('Weapon picked up: '..d.id..' | Rarity: '..d.rarity)
                     inventory.add(d.id)
                     sfx.play('weapon')
                     local md = settings.item_data
@@ -119,14 +119,14 @@ function love.update(dt)
     enemy_spawn_timer = enemy_spawn_timer + dt
     if #enemy.enemies < settings.enemy.max_enemies and enemy_spawn_timer >= settings.enemy.spawn_rate then
         enemy.spawn_far(gamepad.x, gamepad.y)
-        debug.log("Enemy spawned.")
+        -- debug.log("Enemy spawned.")
         enemy_spawn_timer = 0
     end
     -- Auto-Fire and manual fire logic
     player.fire_timer = player.fire_timer or 0
     player.fire_timer = player.fire_timer - dt
 
-    if not settings_menu.auto_fire_enabled then
+    if not hud.auto_fire_enabled then
         -- Manual: fire only while mouse is held
         if player.is_mouse_down and player.fire_timer <= 0 then
             local dir = gamepad.dir or 0
@@ -191,8 +191,8 @@ function love.draw()
     camera.detach()
     -- Draw everything that should stay fixed on screen (UI, overlays)
 
-    -- Draw settings menu overlay LAST, outside of camera, so it is always in the foreground and doesn't affect camera stack
-    settings_menu.draw()
+    -- Draw hud. overlay LAST, outside of camera, so it is always in the foreground and doesn't affect camera stack
+    hud.draw()
     -- Draw debug overlay
     debug.draw()
     -- Draw loot/weapon attraction debug overlay
@@ -220,14 +220,14 @@ function love.draw()
     end
 end
 
--- Ensure settings menu receives mouse and key events
+-- Ensure hud. receives mouse and key events
 function love.mousepressed(x, y, button)
     print('DEBUG: love.mousepressed called')
     if game_over.active then
         if game_over.mousepressed(x, y, button) then return end
     end
-    settings_menu.mousepressed(x, y, button)
-    if settings_menu.active then return end
+    hud.mousepressed(x, y, button)
+    if hud.active then return end
     -- Track mouse down for firing
     if button == 1 then
         player.is_mouse_down = true
@@ -243,8 +243,8 @@ end
 
 function love.keypressed(key)
     if key == "escape" then
-        if settings_menu.active then
-            settings_menu.active = false
+        if hud.active then
+            hud.active = false
         else
             game_paused = not game_paused
         end
@@ -252,7 +252,7 @@ function love.keypressed(key)
     if key == "space" or key == "z" then
         player.register_fire() -- Use register_fire, not try_fire
     end
-    print('DEBUG: love.keypressed called, forwarding to settings_menu')
-    if settings_menu.active then settings_menu.keypressed(key) return end
+    print('DEBUG: love.keypressed called, forwarding to hud')
+    if hud.active then hud.keypressed(key) return end
     -- (rest of your key handling logic here)
 end

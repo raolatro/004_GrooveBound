@@ -5,7 +5,7 @@ local sfx = require "scripts/sfx"
 local collision = require "scripts/collision"
 local debug = require "scripts/debug"
 
-local settings_menu = require "scripts/settings_menu"
+local settings_menu = require "scripts/hud"
 local scoring = require "scripts/scoring"
 local loot = require "scripts/loot"
 local enemy = {}
@@ -39,7 +39,7 @@ function enemy.spawn_far(player_x, player_y)
         tries = tries + 1
     until ((x-player_x)^2 + (y-player_y)^2) > min_dist^2 or tries > 10
     table.insert(enemy.enemies, {x=x, y=y, hp=get_settings('enemy_hp'), flash=0})
-    debug.log("Enemy spawned far.")
+    -- debug.log("Enemy spawned far.")
 end
 
 function enemy.update(dt, player_x, player_y, projectiles)
@@ -64,7 +64,7 @@ function enemy.update(dt, player_x, player_y, projectiles)
             table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
             sfx.play('dead') -- Play death SFX
             table.remove(enemy.enemies, i)
-            debug.log("Enemy sacrificed: player damaged!")
+            -- debug.log("Enemy sacrificed: player damaged!")
             -- No corpse left
             -- continue to next enemy (no goto)
         end
@@ -78,14 +78,14 @@ function enemy.update(dt, player_x, player_y, projectiles)
                 e.flash = get_settings('enemy_flash_duration')
                 local killed_by_groove = (p.on_beat and e.hp <= 0)
                 table.remove(projectiles, j)
-                debug.log("Enemy hit!" .. (killed_by_groove and " Killed by groove!" or ""))
+                -- debug.log("Enemy hit!" .. (killed_by_groove and " Killed by groove!" or ""))
                 if e.hp <= 0 then
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
                     -- Spawn loot drop near corpse
                     loot.spawn(e.x, e.y)
                     sfx.play('dead') -- Play death SFX
                     table.remove(enemy.enemies, i)
-                    debug.log("Enemy dead!")
+                    -- debug.log("Enemy dead!")
                     -- Score system
                     scoring.add_kill(killed_by_groove)
                     -- Popup if killed by groove
@@ -184,7 +184,7 @@ function enemy.spawn_boss(player_x, player_y, hp, speed, radius, color, sfx)
     })
     local sfxmod = require "scripts/sfx"
     if sfx then sfxmod.play(sfx) end
-    debug.log("Mini Boss spawned!")
+    -- debug.log("Mini Boss spawned!")
 end
 
 return enemy

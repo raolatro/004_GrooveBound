@@ -37,6 +37,25 @@ function player.register_fire()
         -- Animate green outline scaling up
         player.outline_scale = settings.main.beat_checker_scale_min or 1.0
         player.outline_target_scale = settings.main.beat_checker_scale_max or 1.4
+        -- Fire all active weapons in inventory
+        local inventory = require "scripts/inventory"
+        local weapon = require "scripts/weapon"
+        -- Fire all active weapons in inventory
+        for _, w in ipairs(inventory.get_active()) do
+            if w.category == "forward" then
+                local dir = gamepad.dir or 0
+                weapon.spawn(gamepad.x, gamepad.y, dir, true)
+            elseif w.category == "cross" then
+                local dirs = {0, math.pi/2, math.pi, 3*math.pi/2}
+                for _, dir in ipairs(dirs) do
+                    weapon.spawn(gamepad.x, gamepad.y, dir, true)
+                end
+            elseif w.category == "drones" then
+                -- TODO: Implement drone weapon firing logic
+            elseif w.category == "area" then
+                -- TODO: Implement area/shotgun weapon firing logic
+            end
+        end
         -- Spawn popup using new popup system
         local popup = require "scripts/popup"
         if settings.popup.enable_groove_popup then
@@ -71,20 +90,23 @@ function player.init()
     player.hp = player.max_hp
     player.want_to_fire = false
     player.fire_timer = 0
-    -- Sync HP to settings_menu for UI
-    local settings_menu = require "scripts/settings_menu"
-    settings_menu.player_max_hp = player.max_hp
-    settings_menu.player_hp = player.hp
+    -- Ensure player always starts with the forward gun
+    local inventory = require "scripts/inventory"
+    inventory.add('forwardGun')
+    inventory.debug_print() -- Debug: print inventory after adding forwardGun
+    -- Sync HP to hud for UI
+    local hud = require "scripts/hud"
+    hud.player_max_hp = player.max_hp
+    hud.player_hp = player.hp
 end
 
 function player.damage(amount)
-    local settings_menu = require "scripts/settings_menu"
+    local hud = require "scripts/hud"
     player.hp = math.max(0, player.hp - (amount or 1))
-    settings_menu.player_hp = player.hp
+    hud.player_hp = player.hp
     if player.hp <= 0 then
         local game_over = require "scripts/game_over"
-        local settings_menu = require "scripts/settings_menu"
-        game_over.show(settings_menu.score, settings_menu.kills, player.hp)
+        game_over.show(hud.score, hud.kills, player.hp)
     end
 end
 
@@ -126,13 +148,13 @@ function player.update(dt)
 end
 
 function player.draw()
-    local settings_menu = require "scripts/settings_menu"
+    local hud = require "scripts/hud"
     local center_x, center_y = gamepad.x, gamepad.y
     if type(center_x) ~= "number" or type(center_y) ~= "number" then
         return -- Don't draw if coordinates are invalid
     end
     -- Draw aim line if enabled
-    if settings_menu.aim_line_enabled then
+    if hud.aim_line_enabled then
         if type(center_x) ~= "number" or type(center_y) ~= "number" then
             return -- Don't draw if coordinates are invalid
         end

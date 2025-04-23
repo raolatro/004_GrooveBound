@@ -77,12 +77,17 @@ function game_over.mousepressed(x, y, button)
         if mouse_in_box(x, y, game_over._restart_btn) then
             -- Reset all properties and stats
             game_over.hide()
-            local settings_menu = require "scripts/settings_menu"
-            settings_menu.score = 0
-            settings_menu.kills = 0
-            settings_menu.player_hp = tonumber(settings.player.hp) or 5
-            settings_menu.player_max_hp = tonumber(settings.player.hp) or 5
-            settings_menu.game_over = false
+            local hud = require "scripts/hud"
+            hud.score = 0
+            hud.kills = 0
+            hud.money = 0 -- Reset money on restart
+            hud.player_hp = tonumber(settings.player.hp) or 5
+            hud.player_max_hp = tonumber(settings.player.hp) or 5
+            hud.game_over = false
+            -- Reset inventory (clear all slots and add level 1 forward gun)
+            local inventory = require "scripts/inventory"
+            inventory.reset()
+            inventory.add('forwardGun')
             player.init()
             enemy.enemies = {}
             enemy.corpses = {}

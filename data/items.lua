@@ -2,7 +2,7 @@
 
 local Rarity = {
     Common    = { multiplier = 1, color = {1,1,0,1}, weight = 80 },
-    Rare      = { multiplier = 2, color = {0,0,1,1}, weight = 15 },
+    Rare      = { multiplier = 2, color = {0,0,1,1}, weight = 40 },
     Legendary = { multiplier = 5, color = {1,0,1,1}, weight = 5 },
 }
 
@@ -16,7 +16,7 @@ local Items = {
         category = "forward",
         damage   = 1,
         level    = 1,
-        color    = {1,0,0,3},
+        color    = {1,1,1,1}, -- White for loot/inventory
     },
     crossGun = {
         type     = "weapon",
@@ -27,7 +27,7 @@ local Items = {
     },
     drone = {
         type     = "weapon",
-        category = "drone",
+        category = "drones",
         damage   = 1,
         level    = 1,
         color    = {0,1,1,1},

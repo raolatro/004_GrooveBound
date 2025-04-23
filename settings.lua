@@ -132,4 +132,34 @@ settings.boss = {
 settings.wave_duration = 10
 settings.boss_duration = 30
 
+-- Weapon categories and levels
+settings.weapons = {
+    forward = {
+        -- Main gun, fires forward
+        { damage = 5, fire_rate = 1.0, pierce = false },
+        { damage = 7, fire_rate = 1.2, pierce = true },
+    },
+    cross = {
+        -- Fires in 4 or more directions
+        { damage = 3, fire_rate = 0.8, directions = 4 },
+        { damage = 4, fire_rate = 1.0, directions = 8 },
+    },
+    drones = {
+        -- Orbiting drones, auto-fire at enemies
+        { count = 1, damage = 2, fire_rate = 1.0, range = 250 },
+        { count = 2, damage = 2, fire_rate = 1.2, range = 300 },
+        { count = 4, damage = 3, fire_rate = 1.5, range = 350 },
+    },
+    area = {
+        -- Shotgun-like, fires multiple projectiles in a spread
+        { pellets = 5, damage = 2, spread = 30, fire_rate = 0.7 },
+        { pellets = 7, damage = 2, spread = 40, fire_rate = 1.0 },
+    },
+}
+
+settings.inventory = {
+    max_slots = 4, -- Default slots, can be changed for upgrades
+    allowed_categories = {"forward", "cross", "drones", "area"},
+}
+
 return settings
