@@ -13,14 +13,15 @@ function loot.update(dt, player_x, player_y, outline_radius)
         local d = loot.drops[i]
         local dx, dy = d.x - player_x, d.y - player_y
         local dist = math.sqrt(dx*dx + dy*dy)
-        local is_money = (d.id == "money")
-        local attr_enabled = is_money and loot_settings.attraction_enabled or weapon_settings.attraction_enabled
-        local attr_speed = is_money and loot_settings.attraction_speed or weapon_settings.attraction_speed
-        local attr_mult = is_money and loot_settings.attraction_radius_mult or weapon_settings.attraction_radius_mult
+        -- Check if this is any kind of cash drop (any of the coin types)
+        local is_cash = d.id:match("coin") or d.id:match("gold") or d.id:match("treasure")
+        local attr_enabled = is_cash and loot_settings.attraction_enabled or weapon_settings.attraction_enabled
+        local attr_speed = is_cash and loot_settings.attraction_speed or weapon_settings.attraction_speed
+        local attr_mult = is_cash and loot_settings.attraction_radius_mult or weapon_settings.attraction_radius_mult
         -- Attraction radius is based on outline_radius * attraction_radius_mult
         local attr_radius = outline_radius * (attr_mult or 2)
         -- Pickup radius is now outline_radius * loot.pickup_radius_mult (controllable in settings)
-        local pickup_mult = is_money and (loot_settings.pickup_radius_mult or 1.3) or 1.0
+        local pickup_mult = is_cash and (loot_settings.pickup_radius_mult or 1.3) or 1.0
         local pickup_radius = outline_radius * pickup_mult
         -- Attraction: if within attraction radius but outside pickup radius
         d._attracting = d._attracting or false
@@ -48,15 +49,20 @@ function loot.update(dt, player_x, player_y, outline_radius)
         else
             d._attracting = false
         end
-        -- Pickup logic: if within pickup radius and not money, add to inventory or level up
-        if not is_money and dist < pickup_radius then
-            local inventory = require "scripts/inventory"
+        -- Pickup logic: if within pickup radius...
+        if dist < pickup_radius then
+            local data = settings.item_data
             local popup = require "scripts/popup"
-            local data = settings.item_data -- Fix: Add reference to item_data
+            local sfx = require "scripts/sfx"
             
-            -- Get results from inventory.add - now returns status info
-            local success, action, category, level = inventory.add(d.id)
-            inventory.debug_print() -- Debug: print inventory after pickup
+            -- Handle weapon pickups - this shouldn't happen anymore with updated system
+            -- but keeping it for backward compatibility
+            if not is_cash then
+                local inventory = require "scripts/inventory"
+                
+                -- Get results from inventory.add - now returns status info
+                local success, action, category, level = inventory.add(d.id)
+                inventory.debug_print() -- Debug: print inventory after pickup
             
             -- Handle different outcomes with appropriate visual feedback
             if action == "level_up" then
@@ -143,6 +149,40 @@ function loot.update(dt, player_x, player_y, outline_radius)
                 end
                 -- No duplicate or extra popups
             end
+            -- Handle cash pickups
+            else
+                -- Find the loot type by ID to get value
+                local loot_value = 10 -- default value
+                local loot_name = "Coin" -- default name
+                for _, loot_type in ipairs(data.LootTypes) do
+                    if loot_type.id == d.id then
+                        loot_value = loot_type.value
+                        loot_name = loot_type.name
+                        break
+                    end
+                end
+                
+                -- Add money to player cash
+                if not hud.cash then hud.cash = 0 end
+                hud.cash = hud.cash + loot_value
+                
+                -- Create popup showing the cash pickup amount
+                popup.spawn({
+                    x = d.x,
+                    y = d.y,
+                    text = "$" .. loot_value,
+                    color = {1, 0.9, 0, 1}, -- Golden yellow
+                    font_size = 16,
+                    fade_duration = 0.5,
+                    stay_duration = 0.2,
+                    y_offset = -20,
+                })
+                
+                -- Play cash pickup sound
+                if sfx.play then
+                    sfx.play('coin')
+                end
+            end
             
             -- Remove the loot regardless of outcome
             table.remove(loot.drops, i)
@@ -157,67 +197,81 @@ function loot.draw_debug() end
 -- Spawn a new drop near (x,y) with random offset
 function loot.spawn(x, y)
     local data = settings.item_data
-    local inventory = require "scripts/inventory"
     
-    -- Check for maxed out weapons to skip
-    local maxed_categories = {}
-    for i, slot in ipairs(inventory.slots) do
-        if slot then
-            local category = slot.category
-            local current_level = slot.level or 1
-            local weapon_levels = settings.weapons[category]
-            
-            -- If weapon exists and is at max level, add to skip list
-            if weapon_levels and current_level >= #weapon_levels then
-                maxed_categories[category] = true
-                debug.log("Skipping drops for maxed out category: " .. category)
-            end
+    -- Roll drop table by weight to select a loot type (only loot, no weapons)
+    local total_weight = 0
+    for _, loot_type in ipairs(data.LootTypes) do
+        total_weight = total_weight + (loot_type.weight or 1)
+    end
+    
+    local roll = math.random() * total_weight
+    local current_weight = 0
+    local chosen_loot = nil
+    
+    -- Select a loot type based on weight
+    for _, loot_type in ipairs(data.LootTypes) do
+        current_weight = current_weight + (loot_type.weight or 1)
+        if roll <= current_weight then
+            chosen_loot = loot_type
+            break
         end
     end
     
-    -- Roll drop table by weight, potentially multiple times if we hit maxed weapons
-    local max_attempts = 5  -- Avoid infinite loops
-    local attempts = 0
-    local chosen = nil
-    
-    repeat
-        attempts = attempts + 1
-        
-        -- Standard drop roll
-        local total = 0
-        for _, entry in ipairs(data.DropTable) do total = total + entry.weight end
-        local r = math.random() * total
-        local acc = 0
-        chosen = data.DropTable[1]
-        
-        for _, entry in ipairs(data.DropTable) do
-            acc = acc + entry.weight
-            if r <= acc then chosen = entry break end
-        end
-        
-        -- Check if this is a maxed out weapon
-        local chosen_item = data.Items[chosen.id]
-        local skip_drop = false
-        
-        if chosen_item and chosen_item.type == "weapon" then
-            if maxed_categories[chosen_item.category] then
-                skip_drop = true
-                debug.log("Rerolling drop: " .. chosen.id .. " (maxed out category)")
+    -- Fallback to a basic coin if nothing was selected
+    if not chosen_loot then
+        for _, loot_type in ipairs(data.LootTypes) do
+            if loot_type.id == "coin_medium" then
+                chosen_loot = loot_type
+                break
             end
         end
-        
-        -- Exit loop if we found a valid drop or hit max attempts
-    until (not skip_drop) or (attempts >= max_attempts)
-    
-    -- Only spawn if we didn't skip the drop
-    if attempts < max_attempts or not skip_drop then
-        -- Offset spawn position
-        local angle = math.random() * 2 * math.pi
-        local dist = math.random(20, 40)
-        local dropX = x + math.cos(angle) * dist
-        local dropY = y + math.sin(angle) * dist
-        table.insert(loot.drops, { x = dropX, y = dropY, id = chosen.id, rarity = chosen.rarity })
+        -- Final fallback if coin_medium doesn't exist
+        if not chosen_loot and #data.LootTypes > 0 then
+            chosen_loot = data.LootTypes[1]
+        else
+            -- Emergency fallback if loot types table is empty
+            chosen_loot = {
+                id = "coin_medium",
+                size = 10,
+                tint = {1, 0.9, 0, 1},
+                value = 10
+            }
+        end
     end
+    
+    -- Add random offset so drops aren't exactly on monster position
+    local offset_range = 30
+    local offset_x = math.random(-offset_range, offset_range)
+    local offset_y = math.random(-offset_range, offset_range)
+    
+    -- Create the drop with the loot properties
+    table.insert(loot.drops, {
+        id = chosen_loot.id,
+        x = x + offset_x,
+        y = y + offset_y,
+        size = chosen_loot.size or 10,
+        tint = chosen_loot.tint or {1, 0.9, 0, 1},
+        value = chosen_loot.value or 10
+    })
+    
+    debug.log("Spawned loot: " .. chosen_loot.id .. " with value " .. (chosen_loot.value or 10))
+end
+
+-- Draw loot drops with appropriate size and color for each type
+function loot.draw()
+    local camera = require "scripts/camera"
+    local data = settings.item_data
+    
+    for _, d in ipairs(loot.drops) do
+        -- Draw cash with appropriate size and color
+        love.graphics.setColor(d.tint or {1, 0.9, 0, 1}) -- Golden yellow default
+        love.graphics.circle("fill", d.x, d.y, d.size or 10)
+        love.graphics.setColor(1, 1, 1, 0.8) -- White outline
+        love.graphics.circle("line", d.x, d.y, (d.size or 10) + 1)
+    end
+    
+    -- Reset color
+    love.graphics.setColor(1, 1, 1, 1)
 end
 
 -- Draw all loot drops

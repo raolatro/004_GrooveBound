@@ -104,16 +104,20 @@ function enemy.update(dt, player_x, player_y, projectiles)
         local dist = math.sqrt(dx*dx + dy*dy)
         if e.state == "walk" then
             -- Move toward player, but stop at collision radius
-            if dist > player_radius + enemy_radius then
-                e.x = e.x + get_settings('enemy_speed') * dx/dist * dt
-                e.y = e.y + get_settings('enemy_speed') * dy/dist * dt
+            local move_speed = e.is_boss and (e.speed or get_settings('enemy_speed') * 1.5) or get_settings('enemy_speed')
+            local collision_radius = e.is_boss and (e.radius or 40) or enemy_radius
+            
+            if dist > player_radius + collision_radius then
+                e.x = e.x + move_speed * dx/dist * dt
+                e.y = e.y + move_speed * dy/dist * dt
                 e.anim_row = get_direction_row(dx, dy)
             else
                 -- Enemy touches player: deal damage, trigger explosion, and remove enemy
                 local player = require "scripts/player"
-                player.damage(1)
+                local damage = e.is_boss and 2 or 1 -- Bosses deal more damage
+                player.damage(damage)
                 table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
-                sfx.play('dead') -- Play death SFX
+                sfx.play(e.boss_sfx or 'dead') -- Play boss-specific SFX if available
                 table.remove(enemy.enemies, i)
                 -- No corpse left, continue to next enemy
                 break
@@ -274,13 +278,21 @@ function enemy.spawn_boss(player_x, player_y, hp, speed, radius, color, sfx)
         y = math.random(settings.main.window_height)
         tries = tries + 1
     until ((x-player_x)^2 + (y-player_y)^2) > min_dist^2 or tries > 10
+    
+    -- Add essential state and animation properties for proper movement
     table.insert(enemy.enemies, {
         x = x, y = y, hp = hp, speed = speed, radius = radius, is_boss = true,
-        boss_color = color, boss_radius = radius, boss_sfx = sfx, flash = 0
+        boss_color = color, boss_radius = radius, boss_sfx = sfx, flash = 0,
+        -- Add these essential properties for update logic to work
+        state = "walk", -- This is critical - allows update to move the boss
+        anim_timer = 0,
+        anim_frame = 1,
+        anim_row = settings.enemy1.directions.down
     })
+    
     local sfxmod = require "scripts/sfx"
     if sfx then sfxmod.play(sfx) end
-    -- debug.log("Mini Boss spawned!")
+    debug.log("Boss spawned with speed: " .. speed)
 end
 
 return enemy

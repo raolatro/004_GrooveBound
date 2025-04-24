@@ -159,7 +159,7 @@ function love.update(dt)
             popup.create_notification("BOSS " .. current_boss .. " INCOMING!!", popup.STYLES.MAIN, {1, 0.1, 0.1, 1}) -- Brighter red
             
             -- Second popup using subhead style
-            popup.create_notification("Prepare for battle!", popup.STYLES.SUBHEAD, {1, 0.8, 0, 1}) -- Gold text
+            -- popup.create_notification("Prepare for battle!", popup.STYLES.SUBHEAD, {1, 0.8, 0, 1}) -- Gold text
             
             -- Update level stats display
             local level_stats = require "scripts/level_stats"
@@ -209,15 +209,36 @@ function love.update(dt)
             local dx, dy = d.x - px, d.y - py
             local pickup_radius = outline_radius
             if dx*dx + dy*dy <= pickup_radius*pickup_radius then
-                if d.id == "money" then
-                    -- debug.log('Coin picked up!')
+                -- Check if this is any kind of cash/coin item (matches our new loot system)
+                if d.id:match("coin") or d.id:match("gold") or d.id:match("treasure") or d.id == "money" then
+                    -- Handle cash pickup
                     sfx.play('coin')
                     local md = settings.item_data
-                    local amt = md.Items.money.baseValue * md.Rarity[d.rarity].multiplier
-                    hud.money = (hud.money or 0) + amt
-                    popup.spawn({ x = px, y = py - 20, text = "+"..amt.."₵", color = md.Rarity[d.rarity].color })
+                    
+                    -- Get value from loot types if possible
+                    local value = 10 -- default value
+                    if d.value then
+                        -- Use the value directly from the drop (new system)
+                        value = d.value
+                    elseif d.id == "money" and d.rarity then
+                        -- Legacy money with rarity (old system)
+                        value = md.Items.money.baseValue * md.Rarity[d.rarity].multiplier
+                    end
+                    
+                    -- Add to player cash total
+                    if not hud.cash then hud.cash = 0 end
+                    hud.cash = hud.cash + value
+                    
+                    -- Simple pickup message
+                    popup.spawn({ 
+                        x = px, 
+                        y = py - 20, 
+                        text = "+$"..value, 
+                        color = d.tint or {1, 0.9, 0, 1} -- Use drop tint or default gold
+                    })
                 else
-                    debug.log('Weapon picked up: '..d.id..' | Rarity: '..d.rarity)
+                    -- Handle weapon pickup (old system)
+                    debug.log('Weapon picked up: '..d.id)
                     
                     -- Add to inventory but get the result to know what happened
                     local success, action, category, level = inventory.add(d.id)
@@ -396,6 +417,17 @@ function love.mousereleased(x, y, button)
     if button == 1 then
         player.is_mouse_down = false
     end
+end
+
+-- Handle mouse movement for UI hover states
+function love.mousemoved(x, y, dx, dy)
+    -- Forward mouse movement to shop menu for hover effects
+    local shop_menu = require "scripts/shop_menu"
+    if shop_menu.active then
+        shop_menu.mousemoved(x, y)
+    end
+    
+    -- Add other UI hover handlers here if needed
 end
 
 function love.keypressed(key)

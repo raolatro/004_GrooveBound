@@ -20,7 +20,7 @@ hud.load_fonts()
 function hud.reset()
     hud.score = 0
     hud.kills = 0
-    hud.money = 0
+    hud.cash = 0 -- Use cash instead of money for consistency with main.lua
     hud.xp = 0
     hud.level = 1
     hud.auto_fire_enabled = true
@@ -73,19 +73,21 @@ function hud.draw()
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", xp_box_x, xp_box_y, xp_box_width, xp_box_height, 10, 10)
     
-    -- Get current level and XP progress
+    -- Get current level and XP progress using the scoring module
     local scoring = require "scripts/scoring"
     local current_xp = hud.xp or 0
     local current_level = hud.level or 1
-    local next_threshold = scoring.get_next_level_threshold(current_level)
-    local prev_threshold = 0
     
-    -- Find previous threshold
-    for i, level_data in ipairs(settings.xp.levels) do
-        if level_data.level == current_level then
-            prev_threshold = level_data.threshold
-            break
-        end
+    -- Get the correct thresholds for the current level
+    -- This will correctly show increasing thresholds (50, 100, 150, etc.) based on level
+    local next_threshold = scoring.get_next_level_threshold(current_level)  
+    local prev_threshold = scoring.get_current_level_threshold(current_level)
+    
+    -- Debug output to verify thresholds
+    if hud.last_threshold_debug ~= current_level then
+        hud.last_threshold_debug = current_level
+        print(string.format("HUD: Level %d showing thresholds %d → %d (XP: %d)", 
+                          current_level, prev_threshold, next_threshold, current_xp))
     end
     
     -- Calculate progress percentage for this level
@@ -104,9 +106,16 @@ function hud.draw()
     love.graphics.setColor(settings.xp.color)
     love.graphics.rectangle("fill", xp_bar_x, xp_bar_y, xp_bar_width * progress, xp_bar_height, 5, 5)
     
-    -- Draw XP text
+    -- Draw XP text with proper level-based thresholds
     love.graphics.setColor(1, 1, 1, 1)
-    local xp_text = string.format("LVL %d - %d/%d XP", current_level, xp_for_this_level, xp_needed_for_next)
+    
+    -- Format: "LVL X - Current/Target XP" with accurate values for each level
+    -- Shows absolute XP values to ensure thresholds are increasing (e.g., 315/350 for Level 8)
+    local xp_text = string.format("LVL %d - %d/%d XP", 
+                                current_level, 
+                                current_xp,     -- Show total accumulated XP
+                                next_threshold) -- Show actual next threshold
+    
     love.graphics.setFont(hud.font)
     love.graphics.printf(xp_text, xp_box_x, xp_bar_y + xp_bar_height + 16, xp_box_width, "center") -- Adjusted text offset for increased bottom padding
     
@@ -139,8 +148,8 @@ function hud.draw()
     local right_y = 16
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", right_x, right_y, right_box_width, bar_height, 10, 10)
-    love.graphics.setColor(1,1,0,1) -- yellow for money
-    love.graphics.printf("Money: "..tostring(hud.money), right_x, right_y+8, right_box_width, "center")
+    love.graphics.setColor(1,0.9,0,1) -- gold for cash
+    love.graphics.printf("Cash: $"..tostring(hud.cash or 0), right_x, right_y+8, right_box_width, "center")
     love.graphics.setColor(1,1,1,1)
     love.graphics.rectangle("line", right_x, right_y, right_box_width, bar_height, 10, 10)
     local score_y = right_y + bar_height + 8

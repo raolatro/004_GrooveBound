@@ -233,17 +233,18 @@ local settings = {
         text_offset = 5, -- Space between bar and text
         
         -- Level thresholds (total XP needed to reach each level)
+        difficulty = 1,
         levels = {
-            {level = 1, threshold = 0},    -- Starting level
-            {level = 2, threshold = 50},  -- Need 50 XP for level 2
-            {level = 3, threshold = 100},  -- Need 100 XP for level 3
-            {level = 4, threshold = 150},  -- Need 150 XP for level 4
-            {level = 5, threshold = 200}, -- Need 200 XP for level 5
-            {level = 6, threshold = 250}, -- Need 250 XP for level 6
-            {level = 7, threshold = 300}, -- Need 300 XP for level 7
-            {level = 8, threshold = 350}, -- Need 350 XP for level 8
-            {level = 9, threshold = 400}, -- Need 400 XP for level 9
-            {level = 10, threshold = 450}, -- Need 450 XP for level 10
+            {level = 1, threshold = 0}, -- Starting level
+            {level = 2, threshold = 100}, 
+            {level = 3, threshold = 300}, 
+            {level = 4, threshold = 600}, 
+            {level = 5, threshold = 1000},
+            {level = 6, threshold = 1500},
+            {level = 7, threshold = 2100},
+            {level = 8, threshold = 2800}, 
+            {level = 9, threshold = 4000}, 
+            {level = 10, threshold = 5000},
         }
     }
 }
