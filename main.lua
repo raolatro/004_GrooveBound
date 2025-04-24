@@ -411,6 +411,21 @@ function love.keypressed(key)
     if key == "space" or key == "z" then
         player.register_fire() -- Use register_fire, not try_fire
     end
+    
+    -- Camera zoom controls with numpad + and -
+    if key == "kp+" then
+        camera.zoom_in()
+    elseif key == "kp-" then
+        camera.zoom_out()
+    end
+    
+    -- Handle regular + and - keys as well for keyboards without numpad
+    if key == "+" or key == "=" then -- = key is often the unshifted + key
+        camera.zoom_in()
+    elseif key == "-" then
+        camera.zoom_out()
+    end
+    
     print('DEBUG: love.keypressed called, forwarding to hud')
     if hud.active then hud.keypressed(key) return end
     -- (rest of your key handling logic here)

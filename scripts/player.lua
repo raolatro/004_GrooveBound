@@ -2,10 +2,56 @@
 local paths = require "paths"
 local settings = require "settings"
 local gamepad = require "scripts/gamepad"
-local sprite_registry = require "scripts/sprite_registry"
 local player = {}
 
-player.sprite = sprite_registry.player
+-- === Modular Player Animation System (state/direction/frame/shadow) ===
+local anim_settings = settings.player1
+player.anim = {
+    state = anim_settings.default_state,
+    direction = anim_settings.directions.down, -- 1=down, 2=up, 3=left, 4=right
+    frame = 1,
+    timer = 0,
+    quads = {},
+    images = {},
+    shadows = {},
+    shadow_quads = {},
+}
+
+-- Preload all images and quads for player and shadow for each state
+local function load_player_sprites()
+    for state, conf in pairs(anim_settings.states) do
+        -- Load main sprite
+        player.anim.images[state] = love.graphics.newImage(conf.sprite)
+        player.anim.quads[state] = {}
+        for row=1,conf.grid.rows do
+            player.anim.quads[state][row] = {}
+            for col=1,conf.grid.cols do
+                player.anim.quads[state][row][col] = love.graphics.newQuad(
+                    (col-1)*conf.frame_size.w,
+                    (row-1)*conf.frame_size.h,
+                    conf.frame_size.w,
+                    conf.frame_size.h,
+                    player.anim.images[state]:getDimensions()
+                )
+            end
+        end
+        -- Load shadow sprite
+        player.anim.shadows[state] = love.graphics.newImage(conf.shadow)
+        player.anim.shadow_quads[state] = {}
+        for row=1,conf.grid.rows do
+            player.anim.shadow_quads[state][row] = {}
+            for col=1,conf.grid.cols do
+                player.anim.shadow_quads[state][row][col] = love.graphics.newQuad(
+                    (col-1)*conf.frame_size.w,
+                    (row-1)*conf.frame_size.h,
+                    conf.frame_size.w,
+                    conf.frame_size.h,
+                    player.anim.shadows[state]:getDimensions()
+                )
+            end
+        end
+    end
+end
 
 -- Beat/visual cue state
 player.last_beat_time = 0
@@ -150,6 +196,13 @@ function player.init()
     local hud = require "scripts/hud"
     hud.player_max_hp = player.max_hp
     hud.player_hp = player.hp
+    -- Load all player and shadow sprites/quads for all states
+    load_player_sprites()
+    -- Reset animation state
+    player.anim.state = anim_settings.default_state
+    player.anim.direction = anim_settings.directions.down
+    player.anim.frame = 1
+    player.anim.timer = 0
 end
 
 function player.damage(amount)
@@ -169,23 +222,57 @@ function player.update(dt)
     -- Always aim toward mouse cursor
     local camera = require "scripts/camera"
     local mx, my = love.mouse.getPosition()
-    -- Convert screen to world coordinates (camera position)
     local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
     local wx = camera.x + (mx - cx)
     local wy = camera.y + (my - cy)
     local dx, dy = wx - gamepad.x, wy - gamepad.y
-    if dx ~= 0 or dy ~= 0 then
-        gamepad.dir = math.atan2(dy, dx)
-    end
-
-    -- Sprite animation state logic
-    local moving = (math.abs(gamepad.aim_x) > 0.1 or math.abs(gamepad.aim_y) > 0.1)
-    if moving then
-        player.sprite:set_state("walk")
+    
+    -- CRITICAL: Set actual aim direction for shooting
+    local angle = math.atan2(wy - gamepad.y, wx - gamepad.x)
+    gamepad.dir = angle  -- This is what fixes the aiming
+    
+    -- Determine sprite direction (row) based on player position relative to mouse/target
+    -- This makes the sprite always face the mouse (twin-stick style)
+    -- Use PI to convert radians to cardinal directions
+    -- Note: The sprite sheet rows are: 1=down, 2=up, 3=left, 4=right
+    local dir
+    -- Convert angle to 0-360 degrees for easier logic
+    local degrees = (angle * 180 / math.pi) % 360
+    if degrees > 45 and degrees <= 135 then
+        -- Bottom quadrant - sprite faces down
+        dir = anim_settings.directions.down -- 1
+    elseif degrees > 135 and degrees <= 225 then
+        -- Left quadrant - sprite faces left 
+        dir = anim_settings.directions.left -- 3
+    elseif degrees > 225 and degrees <= 315 then
+        -- Top quadrant - sprite faces up
+        dir = anim_settings.directions.up -- 2
     else
-        player.sprite:set_state("idle")
+        -- Right quadrant - sprite faces right
+        dir = anim_settings.directions.right -- 4
     end
-    player.sprite:update(dt)
+    player.anim.direction = dir
+    -- Determine state (idle, run, attack, death)
+    -- (You may want to add more sophisticated logic for attack/death)
+    local moving = (math.abs(gamepad.aim_x) > 0.1 or math.abs(gamepad.aim_y) > 0.1)
+    if player.hp <= 0 then
+        player.anim.state = "death"
+    elseif player.want_to_fire then
+        player.anim.state = "attack"
+    elseif moving then
+        player.anim.state = "run"
+    else
+        player.anim.state = "idle"
+    end
+    -- Animation timing
+    local conf = anim_settings.states[player.anim.state]
+    player.anim.timer = player.anim.timer + dt
+    if player.anim.timer > 1/(conf.fps or 12) then
+        player.anim.timer = player.anim.timer - 1/(conf.fps or 12)
+        -- Clamp frame to grid.cols
+        player.anim.frame = (player.anim.frame % conf.grid.cols) + 1
+        if player.anim.frame > conf.grid.cols then player.anim.frame = 1 end
+    end
     -- Beat flash decay
     if player.beat_flash > 0 then
         player.beat_flash = player.beat_flash - dt
@@ -216,10 +303,26 @@ function player.draw()
         local cx, cy = love.graphics.getWidth()/2, love.graphics.getHeight()/2
         local wx = camera.x + (mx - cx)
         local wy = camera.y + (my - cy)
-        love.graphics.setColor(1,1,0,0.8)
-        love.graphics.setLineWidth(2)
-        love.graphics.line(center_x, center_y, wx, wy)
-        love.graphics.setColor(1,1,1,1)
+        -- Thin dotted line with low opacity (manual implementation since dashed isn't available)
+        love.graphics.setColor(1,1,1,0.3) -- White with 30% opacity
+        love.graphics.setLineWidth(1) -- Thin line
+        
+        -- Create a dotted line effect manually
+        local dist = math.sqrt((wx-center_x)^2 + (wy-center_y)^2)
+        local dash_length = 5 -- Length of each dash
+        local gap_length = 5 -- Length of each gap
+        local step_size = dash_length + gap_length
+        local steps = math.floor(dist / step_size)
+        
+        -- Draw dots for dotted effect
+        for i = 0, steps do
+            local t = i * step_size / dist
+            local dot_x = center_x + (wx - center_x) * t
+            local dot_y = center_y + (wy - center_y) * t
+            love.graphics.circle("fill", dot_x, dot_y, 1) -- Small dot
+        end
+        
+        love.graphics.setColor(1,1,1,1) -- Reset color
     end
     -- === Beat Checker Visual Parameters (from settings) ===
     local main = settings.main
@@ -463,8 +566,37 @@ function player.draw()
         player._on_beat_anim = math.max(0, player._on_beat_anim - love.timer.getDelta())
         if player._on_beat_anim == 0 then player._on_beat_active = false end
     end
-    -- Draw the player sprite (fixed orientation, not rotating with mouse)
-    player.sprite:draw(center_x, center_y, 1, 0, {1,1,1,1})
+    -- === Draw Player Sprite & Shadow (modular animation system) ===
+    local state = player.anim.state
+    local conf = anim_settings.states[state]
+    -- Defensive: fallback to idle if state is missing/misconfigured
+    if not conf or not player.anim.images[state] or not player.anim.quads[state] then
+        state = "idle"
+        conf = anim_settings.states[state]
+    end
+    -- Clamp direction and frame to valid grid size
+    local dir = math.max(1, math.min(player.anim.direction or 1, conf.grid.rows))
+    local frame = math.max(1, math.min(player.anim.frame or 1, conf.grid.cols))
+    -- Fallback if quad is missing
+    local shadow_quad = player.anim.shadow_quads[state] and player.anim.shadow_quads[state][dir] and player.anim.shadow_quads[state][dir][frame]
+    local player_quad = player.anim.quads[state] and player.anim.quads[state][dir] and player.anim.quads[state][dir][frame]
+    if not shadow_quad or not player_quad then
+        print("[Player] Missing quad for state="..tostring(state).." dir="..tostring(dir).." frame="..tostring(frame)..". Falling back to frame 1, dir 1.")
+        dir = 1
+        frame = 1
+        shadow_quad = player.anim.shadow_quads[state] and player.anim.shadow_quads[state][dir] and player.anim.shadow_quads[state][dir][frame]
+        player_quad = player.anim.quads[state] and player.anim.quads[state][dir] and player.anim.quads[state][dir][frame]
+    end
+    -- Draw shadow first
+    love.graphics.setColor(1,1,1,0.6)
+    if player.anim.shadows[state] and shadow_quad then
+        love.graphics.draw(player.anim.shadows[state], shadow_quad, center_x - conf.frame_size.w/2, center_y - conf.frame_size.h/2 + 8)
+    end
+    -- Draw player sprite
+    love.graphics.setColor(1,1,1,1)
+    if player.anim.images[state] and player_quad then
+        love.graphics.draw(player.anim.images[state], player_quad, center_x - conf.frame_size.w/2, center_y - conf.frame_size.h/2)
+    end
     -- (Optional: draw hit circle for debugging)
     -- love.graphics.setColor(1,0,0,0.2)
     -- love.graphics.circle("line", center_x, center_y, gamepad.radius)

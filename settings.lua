@@ -72,6 +72,43 @@ local settings = {
         directions = {down = 1, up = 2, left = 3, right = 4},
     },
 
+    -- Player 1 sprite and animation settings (modular, scalable)
+    player1 = {
+        states = {
+            idle = {
+                sprite = "assets/img/player1/armed_idle/player1-armed_idle.png",
+                shadow = "assets/img/player1/armed_idle/shadow.png",
+                grid = {cols = 4, rows = 4}, -- 6 frames per direction, 4 directions
+                frame_size = {w = 64, h = 64},
+                fps = 10,
+            },
+            run = {
+                sprite = "assets/img/player1/armed_run/player1-armed_run.png",
+                shadow = "assets/img/player1/armed_run/shadow.png",
+                grid = {cols = 8, rows = 4},
+                frame_size = {w = 64, h = 64},
+                fps = 16,
+            },
+            attack = {
+                -- TODO: Replace with real attack sprite and shadow if available
+                sprite = "assets/img/player1/armed_run/player1-armed_run.png",
+                shadow = "assets/img/player1/armed_run/shadow.png",
+                grid = {cols = 6, rows = 4},
+                frame_size = {w = 64, h = 64},
+                fps = 18,
+            },
+            death = {
+                sprite = "assets/img/player1/armed_death/player1-armed_death.png",
+                shadow = "assets/img/player1/armed_death/shadow.png",
+                grid = {cols = 11, rows = 4}, -- 11 frames per direction, 4 directions
+                frame_size = {w = 64, h = 64},
+                fps = 16,
+            },
+        },
+        directions = {down = 1, up = 2, left = 3, right = 4},
+        default_state = "idle"
+    },
+
     player = {
         speed = 8,
         hp = 5,
