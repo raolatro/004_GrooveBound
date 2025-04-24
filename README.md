@@ -12,7 +12,7 @@ GrooveBound is a rhythm-based top-down shooter built with LÖVE2D (Lua). You con
 
 ## 📝 Devlog
 
-- Check the [FULL DEVLOG](index.html](https://raoni.studio/games/groovebound/) here.
+- Check the [FULL DEVLOG](https://raoni.studio/games/groovebound/) here.
 
 ---
 
