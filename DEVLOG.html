@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GrooveBound DEVLOG</title>
+    <style>
+        body { font-family: sans-serif; background: #181c24; color: #e0e3ec; margin: 0; padding: 0; }
+        h1 { text-align: center; color: #7ecfff; margin-top: 32px; }
+        table { margin: 32px auto; border-collapse: collapse; width: 90%; max-width: 950px; background: #212432; box-shadow: 0 2px 12px #0008; }
+        th, td { padding: 12px 16px; border: 1px solid #3c4250; vertical-align: top; }
+        th { background: #232742; color: #7ecfff; font-size: 1.1em; }
+        tr:nth-child(even) { background: #232742; }
+        tr:nth-child(odd) { background: #25293a; }
+        .commit-hash { font-family: monospace; color: #7ecfff; font-weight: bold; }
+        .commit-title { font-weight: bold; color: #fff; }
+        .summary { color: #b3b8c7; }
+    </style>
+</head>
+<body>
+    <h1>GrooveBound DEVLOG</h1>
+    <table>
+        <tr>
+            <th>Commit # / Title</th>
+            <th>Summary</th>
+        </tr>
+        <tr><td><span class="commit-hash">0680d55</span><br><span class="commit-title">Initial commit – clean start from working state</span></td><td class="summary">This commit marks the beginning of the GrooveBound project, establishing a clean working base from which all further development will proceed.</td></tr>
+        <tr><td><span class="commit-hash">51d9a4a</span><br><span class="commit-title">Improved beat checker, bugs to fix with on_beat state</span></td><td class="summary">The beat checking logic was improved to better align gameplay with the rhythm, although some bugs with the on_beat state remain to be addressed in future updates.</td></tr>
+        <tr><td><span class="commit-hash">7431a0f</span><br><span class="commit-title">Add settings menu (not working). Fixed player sprites and animation</span></td><td class="summary">A settings menu was introduced (though not yet functional), and player sprites and their animations were fixed to improve visual consistency.</td></tr>
+        <tr><td><span class="commit-hash">462f07b</span><br><span class="commit-title">Add game icon asset for GrooveBound</span></td><td class="summary">A custom game icon was added, giving GrooveBound a unique visual identity in the system and on the desktop.</td></tr>
+        <tr><td><span class="commit-hash">601a708</span><br><span class="commit-title">Replace keyboard shooting with mouse aim and left-click fire controls</span></td><td class="summary">The shooting mechanic was overhauled to use mouse aiming and left-click firing, replacing the previous keyboard-based controls for a more intuitive experience.</td></tr>
+        <tr><td><span class="commit-hash">9680566</span><br><span class="commit-title">Add Auto-Fire toggle and improve shooting mechanics with dashed aim line</span></td><td class="summary">An auto-fire toggle was introduced, and the shooting mechanics were enhanced with a dashed aim line for better player feedback.</td></tr>
+        <tr><td><span class="commit-hash">e74e917</span><br><span class="commit-title">Add scoring system and adjust player weapon guide visuals</span></td><td class="summary">A scoring system was implemented, and visual guides for player weapons were adjusted to improve clarity and gameplay feedback.</td></tr>
+        <tr><td><span class="commit-hash">73e5081</span><br><span class="commit-title">Add player HP system with UI hearts and enemy collision damage</span></td><td class="summary">A health system for the player was added, featuring UI hearts and handling enemy collision damage to the player.</td></tr>
+        <tr><td><span class="commit-hash">d83e224</span><br><span class="commit-title">Add game over screen and improve aim line visibility with UI adjustments, working properly</span></td><td class="summary">A game over screen was introduced, and aim line visibility was improved through UI adjustments, ensuring the features function as intended.</td></tr>
+        <tr><td><span class="commit-hash">8ddf7ff</span><br><span class="commit-title">Add initial README with game overview, controls and project status</span></td><td class="summary">The first version of the README was added, providing an overview of the game, its controls, and the current status of the project.</td></tr>
+        <tr><td><span class="commit-hash">d9ae9bc</span><br><span class="commit-title">Add font system and standardize UI text rendering across game screens</span></td><td class="summary">A new font system was implemented, standardizing how text is rendered across all game screens for a more cohesive look.</td></tr>
+        <tr><td><span class="commit-hash">4cc0f4a</span><br><span class="commit-title">Add font system and adjust player speed</span></td><td class="summary">Further improvements were made to the font system, and the player's movement speed was adjusted for better gameplay balance.</td></tr>
+        <tr><td><span class="commit-hash">740947f</span><br><span class="commit-title">Update README.md</span></td><td class="summary">The README documentation was updated, likely to reflect new features or changes in game controls or mechanics.</td></tr>
+        <tr><td><span class="commit-hash">ea5f509</span><br><span class="commit-title">Add weapon pickup and loot system with attraction mechanics and SFX. working</span></td><td class="summary">A weapon pickup and loot system was added, including attraction mechanics and sound effects, providing a more engaging reward system for players.</td></tr>
+        <tr><td><span class="commit-hash">bb971c8</span><br><span class="commit-title">Add enemy death SFX and improve loot pickup mechanics with configurable radius. Added pause game on ESC</span></td><td class="summary">Enemy death sound effects were introduced, loot pickup mechanics were improved with a configurable radius, and a pause feature was added, triggered by pressing ESC.</td></tr>
+        <tr><td><span class="commit-hash">1fcd347</span><br><span class="commit-title">Add wave-based enemy escalation and mini-boss system with custom stats</span></td><td class="summary">A wave-based enemy escalation system was implemented, along with mini-bosses that have custom stats, increasing gameplay variety and challenge.</td></tr>
+        <tr><td><span class="commit-hash">bb3bcd6</span><br><span class="commit-title">Adjust enemy waves and boss stats, increase loot attraction speed to 1200</span></td><td class="summary">Enemy wave and boss statistics were balanced, and the loot attraction speed was increased, making loot collection faster and more satisfying.</td></tr>
+        <tr><td><span class="commit-hash">ec0fa95</span><br><span class="commit-title">Reset game state and loot drops when restarting after game over</span></td><td class="summary">The game now resets its state and loot drops properly when restarting after a game over, ensuring a clean slate for each new attempt.</td></tr>
+        <tr><td><span class="commit-hash">39467da</span><br><span class="commit-title">Replace settings_menu with new HUD system and implement inventory-based weapons</span></td><td class="summary">The old settings menu was replaced with a new HUD system, and inventory-based weapons were implemented, enhancing both the interface and gameplay depth.</td></tr>
+        <tr><td><span class="commit-hash">fe41e5e</span><br><span class="commit-title">Working_ Implement weapon system with drones, area attacks and improved projectiles. Drones dont shoot yet.</span></td><td class="summary">Work began on a new weapon system featuring drones and area attacks, as well as improved projectiles. At this stage, drones were not yet able to shoot.</td></tr>
+        <tr><td><span class="commit-hash">bc4a32a</span><br><span class="commit-title">Adjust wave/boss difficulty and improve drone targeting behavior</span></td><td class="summary">The difficulty of waves and bosses was adjusted, and drone targeting behavior was improved for smarter, more effective gameplay support.</td></tr>
+        <tr><td><span class="commit-hash">7754b99</span><br><span class="commit-title">Add pause menu and Add dynamic weapon leveling system. Working properly</span></td><td class="summary">A dedicated pause menu was added, and a dynamic weapon leveling system was implemented, both of which functioned as intended.</td></tr>
+        <tr><td><span class="commit-hash">24fd8fe</span><br><span class="commit-title">Add wave/boss announcements and balance game difficulty. Popups bugging</span></td><td class="summary">Announcements for waves and bosses were added, and the overall game difficulty was balanced. Some bugs with popup notifications were noted.</td></tr>
+        <tr><td><span class="commit-hash">898b124</span><br><span class="commit-title">Improve popup system and add weapon level reset functionality</span></td><td class="summary">The popup notification system was improved, and a feature to reset weapon levels was introduced for more flexible gameplay.</td></tr>
+        <tr><td><span class="commit-hash">f849283</span><br><span class="commit-title">Refactor popup system with standardized styles and notification stack</span></td><td class="summary">The popup system was refactored to use standardized styles and a notification stack, enhancing UI consistency and message management.</td></tr>
+        <tr><td><span class="commit-hash">2b82c2e</span><br><span class="commit-title">Simplify popup notifications and update weapon notification styling</span></td><td class="summary">Popup notifications were simplified and the styling for weapon notifications was updated for a cleaner, more readable interface.</td></tr>
+        <tr><td><span class="commit-hash">ce4a3e4</span><br><span class="commit-title">Improve loot pickup mechanics and add pickup radius toggle in pause menu</span></td><td class="summary">Loot pickup mechanics were further improved, and a toggle for pickup radius was added to the pause menu, giving players more control.</td></tr>
+        <tr><td><span class="commit-hash">662abbc</span><br><span class="commit-title">Display weapon level in HUD and hide beat checker and drone range circles</span></td><td class="summary">Weapon level is now displayed in the HUD, and the beat checker and drone range circles were hidden for a cleaner visual presentation.</td></tr>
+        <tr><td><span class="commit-hash">118d162</span><br><span class="commit-title">Refactor wave system and remove redundant enemy settings</span></td><td class="summary">The wave system was refactored for efficiency, and redundant enemy settings were removed to streamline the codebase.</td></tr>
+        <tr><td><span class="commit-hash">35b04db</span><br><span class="commit-title">Add custom cursor and weapon projectile sprites, update pause menu controls</span></td><td class="summary">A custom cursor and unique weapon projectile sprites were added, and pause menu controls were updated for improved user experience.</td></tr>
+        <tr><td><span class="commit-hash">4d6d169</span><br><span class="commit-title">Replace drone circle with animated sprite and fix player rotation</span></td><td class="summary">The old drone circle was replaced with an animated sprite for better visuals, and player rotation logic was fixed to improve gameplay feel.</td></tr>
+        <tr><td><span class="commit-hash">b99de33</span><br><span class="commit-title">Add pulsating glow effect to drone and use custom projectile colors</span></td><td class="summary">A pulsating glow effect was added beneath drones, and projectiles were given custom colors, enhancing the game's visual appeal.</td></tr>
+        <tr><td><span class="commit-hash">8f6bb59</span><br><span class="commit-title">Fix pause menu toggle and update game assets</span></td><td class="summary">Issues with the pause menu toggle were fixed, and various game assets were updated to reflect recent changes.</td></tr>
+        <tr><td><span class="commit-hash">6d1e538</span><br><span class="commit-title">Add game over screen update logic and halt gameplay when game over is active</span></td><td class="summary">Logic was added to update the game over screen and ensure all gameplay mechanics halt when the game over state is active, preventing further changes to the game state.</td></tr>
+    </table>
+    <p style="text-align:center;color:#555;margin:40px 0 16px 0;font-size:0.95em;">This devlog was generated automatically. For more details, see the project git history.</p>
+</body>
+</html>
