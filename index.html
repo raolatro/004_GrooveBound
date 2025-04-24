@@ -2,25 +2,135 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GrooveBound DEVLOG</title>
+    <title>Groove Bound by Raoni Games</title>
+    <link href="https://fonts.googleapis.com/css?family=Share+Tech+Mono|Orbitron:700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #181c24; color: #e0e3ec; margin: 0; padding: 0; }
-        h1 { text-align: center; color: #7ecfff; margin-top: 32px; }
-        table { margin: 32px auto; border-collapse: collapse; width: 90%; max-width: 950px; background: #212432; box-shadow: 0 2px 12px #0008; }
-        th, td { padding: 12px 16px; border: 1px solid #3c4250; vertical-align: top; }
-        th { background: #232742; color: #7ecfff; font-size: 1.1em; }
-        tr:nth-child(even) { background: #232742; }
-        tr:nth-child(odd) { background: #25293a; }
-        .commit-hash { font-family: monospace; color: #7ecfff; font-weight: bold; }
-        .commit-title { font-weight: bold; color: #fff; }
-        .summary { color: #b3b8c7; }
+        body {
+            font-family: 'Share Tech Mono', 'Orbitron', 'Consolas', 'monospace', 'sans-serif';
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a2132 100%);
+            color: #e0e3ec;
+            margin: 0; padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #7ecfff;
+            font-family: 'Orbitron', 'Share Tech Mono', monospace;
+            font-size: 2.7em;
+            margin-top: 32px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 12px #0cf8, 0 1px 0 #0008;
+        }
+        .summary-block {
+            max-width: 800px;
+            margin: 24px auto 32px auto;
+            background: rgba(36,45,72,0.94);
+            border: 2px solid #2e3a59;
+            border-radius: 18px;
+            box-shadow: 0 4px 32px #0cf4, 0 1px 0 #000a;
+            padding: 32px 30px 28px 30px;
+            font-size: 1.18em;
+            color: #e0eaff;
+        }
+        .devlog-img {
+            display: block;
+            margin: 32px auto 18px auto;
+            border-radius: 12px;
+            border: 2px solid #2e3a59;
+            box-shadow: 0 2px 18px #0cf8, 0 1px 0 #0008;
+            max-width: 320px;
+            background: #232742;
+        }
+        .button-bar {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin: 28px 0 18px 0;
+        }
+        .devlog-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.12s;
+            outline: none;
+        }
+        .devlog-btn:hover {
+            transform: scale(1.07) rotate(-2deg);
+            filter: drop-shadow(0 0 8px #7ecfff88);
+        }
+        table {
+            margin: 32px auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 96%;
+            max-width: 1080px;
+            background: rgba(26,32,50,0.98);
+            box-shadow: 0 2px 20px #000b;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 18px 22px;
+            border-bottom: 1.5px solid #2d3650;
+            vertical-align: top;
+        }
+        th {
+            background: #232742;
+            color: #7ecfff;
+            font-size: 1.1em;
+            font-family: 'Orbitron', 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+        }
+        tr:nth-child(even) {
+            background: #21253a;
+        }
+        tr:nth-child(odd) {
+            background: #232742;
+        }
+        .commit-hash {
+            font-family: 'Share Tech Mono', monospace;
+            color: #7ecfff;
+            font-weight: bold;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+        .commit-title {
+            font-weight: bold;
+            color: #fff;
+            font-size: 1.05em;
+            margin-top: 2px;
+            display: block;
+        }
+        .summary {
+            color: #b3b8c7;
+            font-size: 1.04em;
+        }
+        @media (max-width: 600px) {
+            .summary-block, table, th, td { font-size: 0.98em; padding: 10px 6px; }
+            .devlog-img { max-width: 98vw; }
+        }
     </style>
 </head>
 <body>
-    <h1>GrooveBound DEVLOG</h1>
+    <h1>Groove Bound (Prototype)</h1>
+    <div class="summary-block">
+        <b>Groove Bound</b> is a rhythm-based top-down shooter built with LÖVE2D (Lua). You control a character, dodging and shooting enemies while syncing your actions to the beat. The game features real-time settings adjustment, a responsive UI, and an extensible design for future features.<br><br>
+        <b>How to Play:</b> Move with WASD or Arrow Keys, aim with the mouse, and shoot with left click or auto-fire. Survive as long as possible by dodging enemies and syncing your actions to the beat for bonuses. The game offers a smooth camera, modular codebase, and a game over screen with scoring.<br><br>
+        <b>Project Status:</b> Core gameplay, beat system, and UI are implemented. The codebase is modular and ready for expansion, with plans for more enemies, power-ups, expanded settings, audio, and more polish.<br>
+    </div>
+   
+    <div class="button-bar">
+        <a class="devlog-btn" href="https://github.com/raolatro/004_GrooveBound" target="_blank" title="View on GitHub">
+            <img src="https://raoni.studio/games/groovebound/img/button-github.png" alt="GitHub" height="54"/>
+        </a>
+        <a class="devlog-btn" href="https://raoni.studio/games/groovebound/download" target="_blank" title="Download for macOS Silicon">
+            <img src="https://raoni.studio/games/groovebound/img/button-macOS-silicon.png" alt="Download for macOS Silicon" height="54"/>
+        </a>
+    </div>
+    <img src="https://raoni.studio/games/groovebound/img/man1.png" class="devlog-img" alt="Health Screenshot">
+
     <table>
         <tr>
-            <th>Commit # / Title</th>
+            <th>Log #</th>
             <th>Summary</th>
         </tr>
         <tr><td><span class="commit-hash">0680d55</span><br><span class="commit-title">Initial commit – clean start from working state</span></td><td class="summary">This commit marks the beginning of the GrooveBound project, establishing a clean working base from which all further development will proceed.</td></tr>
@@ -58,6 +168,16 @@
         <tr><td><span class="commit-hash">8f6bb59</span><br><span class="commit-title">Fix pause menu toggle and update game assets</span></td><td class="summary">Issues with the pause menu toggle were fixed, and various game assets were updated to reflect recent changes.</td></tr>
         <tr><td><span class="commit-hash">6d1e538</span><br><span class="commit-title">Add game over screen update logic and halt gameplay when game over is active</span></td><td class="summary">Logic was added to update the game over screen and ensure all gameplay mechanics halt when the game over state is active, preventing further changes to the game state.</td></tr>
     </table>
-    <p style="text-align:center;color:#555;margin:40px 0 16px 0;font-size:0.95em;">This devlog was generated automatically. For more details, see the project git history.</p>
+    <div class="button-bar">
+        <a class="devlog-btn" href="https://github.com/raolatro/004_GrooveBound" target="_blank" title="View on GitHub">
+            <img src="https://raoni.studio/games/groovebound/img/button-github.png" alt="GitHub" height="54"/>
+        </a>
+        <a class="devlog-btn" href="https://raoni.studio/games/groovebound/download" target="_blank" title="Download for macOS Silicon">
+            <img src="https://raoni.studio/games/groovebound/img/button-macOS-silicon.png" alt="Download for macOS Silicon" height="54"/>
+        </a>
+    </div>
+    <p style="text-align:center;color:#555;margin:40px 0 16px 0;font-size:0.95em;">This game is for research and training purposes only, it's not finished and may contain bugs. Check the official Github on the link above.</p>
+    <p style="text-align:center;color:#555;margin:10px 0 16px 0;font-size:0.95em;">Made with love by Raoni Lima, using Windsurf with AI support.</p>
+    <img src="https://raoni.studio/games/groovebound/img/gameover.png" class="devlog-img" alt="Game Over Screenshot">
 </body>
 </html>
