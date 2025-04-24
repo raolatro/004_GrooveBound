@@ -14,6 +14,49 @@ enemy.corpses = {}
 
 defaults = { enemy_speed = 60, enemy_hp = 2, enemy_flash_duration = 0.18 }
 
+-- Load enemy1 walk and death spritesheets
+local enemy1_walk_img = love.graphics.newImage(settings.enemy1.walk_sprite)
+local enemy1_death_img = love.graphics.newImage(settings.enemy1.death_sprite)
+
+-- Precompute enemy1 walk and death quads
+local walk_quads = {}
+for row=1,settings.enemy1.walk_grid.rows do
+    walk_quads[row] = {}
+    for col=1,settings.enemy1.walk_grid.cols do
+        walk_quads[row][col] = love.graphics.newQuad(
+            (col-1)*settings.enemy1.walk_frame_size.w,
+            (row-1)*settings.enemy1.walk_frame_size.h,
+            settings.enemy1.walk_frame_size.w,
+            settings.enemy1.walk_frame_size.h,
+            enemy1_walk_img:getDimensions()
+        )
+    end
+end
+local death_quads = {}
+for row=1,settings.enemy1.death_grid.rows do
+    death_quads[row] = {}
+    for col=1,settings.enemy1.death_grid.cols do
+        death_quads[row][col] = love.graphics.newQuad(
+            (col-1)*settings.enemy1.death_frame_size.w,
+            (row-1)*settings.enemy1.death_frame_size.h,
+            settings.enemy1.death_frame_size.w,
+            settings.enemy1.death_frame_size.h,
+            enemy1_death_img:getDimensions()
+        )
+    end
+end
+
+-- Helper: get direction row from dx, dy
+local function get_direction_row(dx, dy)
+    local absdx, absdy = math.abs(dx), math.abs(dy)
+    if absdx > absdy then
+        return dx > 0 and settings.enemy1.directions.right or settings.enemy1.directions.left
+    else
+        return dy > 0 and settings.enemy1.directions.down or settings.enemy1.directions.up
+    end
+end
+
+
 local function get_settings(k)
     -- Get current wave settings
     local current_wave = _G.current_wave or 1
@@ -42,7 +85,11 @@ function enemy.spawn_far(player_x, player_y)
         y = math.random(get_settings('window_height'))
         tries = tries + 1
     until ((x-player_x)^2 + (y-player_y)^2) > min_dist^2 or tries > 10
-    table.insert(enemy.enemies, {x=x, y=y, hp=get_settings('enemy_hp'), flash=0})
+    -- Initialize animation state for walk
+    table.insert(enemy.enemies, {
+        x=x, y=y, hp=get_settings('enemy_hp'), flash=0,
+        anim_timer=0, anim_frame=1, anim_row=settings.enemy1.directions.down, state="walk", dead_time=0, death_played=false
+    })
     -- debug.log("Enemy spawned far.")
 end
 
@@ -52,31 +99,58 @@ function enemy.update(dt, player_x, player_y, projectiles)
     enemy.explosions = enemy.explosions or {}
     for i = #enemy.enemies, 1, -1 do
         local e = enemy.enemies[i]
-        -- Draw HP above enemy (move this to enemy.draw or love.draw)
-        -- (This block will be moved to enemy.draw implementation)
-        -- Move toward player, but stop at collision radius
+        -- Animation: determine direction (row) based on movement toward player
         local dx, dy = player_x - e.x, player_y - e.y
         local dist = math.sqrt(dx*dx + dy*dy)
-        if dist > player_radius + enemy_radius then
-            e.x = e.x + get_settings('enemy_speed') * dx/dist * dt
-            e.y = e.y + get_settings('enemy_speed') * dy/dist * dt
-        else
-            -- Enemy touches player: sacrifice, deal damage, and explode
-            local player = require "scripts/player"
-            player.damage(1)
-            -- Mark explosion (store with timestamp)
-            table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
-            sfx.play('dead') -- Play death SFX
-            table.remove(enemy.enemies, i)
-            -- debug.log("Enemy sacrificed: player damaged!")
-            -- No corpse left
-            -- continue to next enemy (no goto)
+        if e.state == "walk" then
+            -- Move toward player, but stop at collision radius
+            if dist > player_radius + enemy_radius then
+                e.x = e.x + get_settings('enemy_speed') * dx/dist * dt
+                e.y = e.y + get_settings('enemy_speed') * dy/dist * dt
+                e.anim_row = get_direction_row(dx, dy)
+            else
+                -- Enemy touches player: deal damage, trigger explosion, and remove enemy
+                local player = require "scripts/player"
+                player.damage(1)
+                table.insert(enemy.explosions, {x=e.x, y=e.y, t=love.timer.getTime()})
+                sfx.play('dead') -- Play death SFX
+                table.remove(enemy.enemies, i)
+                -- No corpse left, continue to next enemy
+                break
+            end
+            -- Animation timer for walk
+            e.anim_timer = e.anim_timer + dt
+            local fps = settings.enemy1.walk_fps
+            if e.anim_timer > 1/fps then
+                e.anim_timer = e.anim_timer - 1/fps
+                e.anim_frame = e.anim_frame % settings.enemy1.walk_grid.cols + 1
+            end
+        elseif e.state == "death" then
+            -- Death animation timer
+            e.anim_timer = e.anim_timer + dt
+            local fps = settings.enemy1.death_fps
+            if not e.death_played then
+                if e.anim_timer > 1/fps then
+                    e.anim_timer = e.anim_timer - 1/fps
+                    e.anim_frame = e.anim_frame + 1
+                    if e.anim_frame > settings.enemy1.death_grid.cols then
+                        e.anim_frame = settings.enemy1.death_grid.cols
+                        e.death_played = true
+                        e.dead_time = love.timer.getTime()
+                    end
+                end
+            else
+                -- Remove enemy after death animation has played fully (wait 0.2s)
+                if love.timer.getTime() - e.dead_time > 0.2 then
+                    table.remove(enemy.enemies, i)
+                end
+            end
         end
         -- check collision with projectiles
         for j = #projectiles, 1, -1 do
             local p = projectiles[j]
             local e_radius = e.is_boss and (e.boss_radius or 40) or (e.radius or 30)
-if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
+            if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                 -- Scalable: use projectile damage type
                 local dmg = p.on_beat and settings.projectile.on_beat_damage or settings.projectile.normal_damage
                 e.hp = e.hp - dmg
@@ -84,18 +158,20 @@ if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                 local killed_by_groove = (p.on_beat and e.hp <= 0)
                 table.remove(projectiles, j)
                 -- debug.log("Enemy hit!" .. (killed_by_groove and " Killed by groove!" or ""))
-                if e.hp <= 0 then
+                if e.hp <= 0 and e.state ~= "death" then
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
                     -- Spawn loot drop near corpse
                     loot.spawn(e.x, e.y)
                     sfx.play('dead') -- Play death SFX
-                    
                     -- Save enemy's original HP (for XP) before removing it
                     local original_hp = get_settings('enemy_hp')
                     local enemy_x, enemy_y = e.x, e.y
-                    
-                    table.remove(enemy.enemies, i)
-                    -- debug.log("Enemy dead!")
+                    -- Start death animation
+                    e.state = "death"
+                    e.anim_frame = 1
+                    e.anim_timer = 0
+                    e.anim_row = e.anim_row or settings.enemy1.directions.down
+                    e.death_played = false
                     -- Score system - pass HP and position for XP
                     scoring.add_kill(killed_by_groove, original_hp, enemy_x, enemy_y)
                     -- Popup if killed by groove
@@ -159,12 +235,22 @@ function enemy.draw()
             love.graphics.circle("line", e.x, e.y, (e.boss_radius or 40) + 2)
             love.graphics.setLineWidth(1)
         else
-            -- Draw normal enemy
-            love.graphics.setColor(1,0.2,0.2,1)
-            love.graphics.circle("fill", e.x, e.y, 30) -- Use fixed radius of 30 (from settings.enemy.radius)
+            -- Draw enemy1 sprite (walk or death)
+            love.graphics.setColor(1,1,1,1)
+            local quad, img
+            if e.state == "walk" then
+                quad = walk_quads[e.anim_row or settings.enemy1.directions.down][e.anim_frame]
+                img = enemy1_walk_img
+            elseif e.state == "death" then
+                quad = death_quads[e.anim_row or settings.enemy1.directions.down][e.anim_frame]
+                img = enemy1_death_img
+            end
+            if quad and img then
+                love.graphics.draw(img, quad, e.x - settings.enemy1.walk_frame_size.w/2, e.y - settings.enemy1.walk_frame_size.h/2)
+            end
         end
-        -- Draw HP above enemy
-        if e.hp and e.hp > 0 then
+        -- Draw HP above enemy (only if alive)
+        if e.hp and e.hp > 0 and e.state ~= "death" then
             local prev_font = love.graphics.getFont()
             love.graphics.setFont(enemy._hp_font)
             love.graphics.setColor(hp_settings.color)

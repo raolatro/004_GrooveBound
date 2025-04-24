@@ -64,7 +64,7 @@ function hud.draw()
     
     -- XP bar below hearts
     local xp_bar_height = settings.xp.bar_height
-    local xp_box_height = xp_bar_height + 30 -- Extra padding for better text spacing
+    local xp_box_height = xp_bar_height + 50 -- Increased bottom padding so XP text and bar are inside the same container box
     local xp_box_width = heart_box_width
     local xp_box_x = left_x
     local xp_box_y = left_y + heart_box_height + 12 -- Increased margin between hearts and XP bar
@@ -108,7 +108,7 @@ function hud.draw()
     love.graphics.setColor(1, 1, 1, 1)
     local xp_text = string.format("LVL %d - %d/%d XP", current_level, xp_for_this_level, xp_needed_for_next)
     love.graphics.setFont(hud.font)
-    love.graphics.printf(xp_text, xp_box_x, xp_bar_y + xp_bar_height + 8, xp_box_width, "center") -- Fixed text offset
+    love.graphics.printf(xp_text, xp_box_x, xp_bar_y + xp_bar_height + 16, xp_box_width, "center") -- Adjusted text offset for increased bottom padding
     
     -- Inventory slots below XP bar
     local slot_size = 28
@@ -164,7 +164,7 @@ function hud.draw()
     love.graphics.setColor(1,1,1,1)
     local prev_font = love.graphics.getFont()
     love.graphics.setFont(instruction_font)
-    love.graphics.printf("Move: WASD or Arrows | Aim: Mouse | Shoot: Left Click | ESC: Pause game", w/2-instruction_bar_width/2+10, h-48, instruction_bar_width-20, "center")
+    love.graphics.printf("Move: WASD or Arrows | Aim: Mouse | Shoot: Left Click | ESC: Pause & Settings", w/2-instruction_bar_width/2+10, h-48, instruction_bar_width-20, "center")
     love.graphics.setFont(prev_font)
 end
 

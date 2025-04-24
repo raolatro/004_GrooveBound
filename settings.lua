@@ -59,6 +59,19 @@ local settings = {
         arena_margin = 32
     },
 
+    -- Enemy 1 sprite and animation settings
+    enemy1 = {
+        walk_sprite = "assets/img/enemy1/walk/enemy1_walk.png", -- Walk animation sprite sheet
+        walk_grid = {cols = 6, rows = 4}, -- 6 frames per direction, 4 directions
+        walk_frame_size = {w = 64, h = 64},
+        walk_fps = 16, -- Default fast animation speed (frames per second)
+        death_sprite = "assets/img/enemy1/death/enemy1_death.png", -- Death animation sprite sheet
+        death_grid = {cols = 11, rows = 4}, -- 11 frames per direction, 4 directions
+        death_frame_size = {w = 64, h = 64},
+        death_fps = 16, -- Death animation speed (frames per second)
+        directions = {down = 1, up = 2, left = 3, right = 4},
+    },
+
     player = {
         speed = 8,
         hp = 5,
@@ -185,15 +198,15 @@ local settings = {
         -- Level thresholds (total XP needed to reach each level)
         levels = {
             {level = 1, threshold = 0},    -- Starting level
-            {level = 2, threshold = 100},  -- Need 100 XP for level 2
-            {level = 3, threshold = 300},  -- Need 300 XP for level 3
-            {level = 4, threshold = 600},  -- Need 600 XP for level 4
-            {level = 5, threshold = 1000}, -- Need 1000 XP for level 5
-            {level = 6, threshold = 1500}, -- Need 1500 XP for level 6
-            {level = 7, threshold = 2100}, -- Need 2100 XP for level 7
-            {level = 8, threshold = 2800}, -- Need 2800 XP for level 8
-            {level = 9, threshold = 3600}, -- Need 3600 XP for level 9
-            {level = 10, threshold = 4500}, -- Need 4500 XP for level 10
+            {level = 2, threshold = 50},  -- Need 50 XP for level 2
+            {level = 3, threshold = 100},  -- Need 100 XP for level 3
+            {level = 4, threshold = 150},  -- Need 150 XP for level 4
+            {level = 5, threshold = 200}, -- Need 200 XP for level 5
+            {level = 6, threshold = 250}, -- Need 250 XP for level 6
+            {level = 7, threshold = 300}, -- Need 300 XP for level 7
+            {level = 8, threshold = 350}, -- Need 350 XP for level 8
+            {level = 9, threshold = 400}, -- Need 400 XP for level 9
+            {level = 10, threshold = 450}, -- Need 450 XP for level 10
         }
     }
 }
@@ -221,8 +234,8 @@ settings.boss = {
     color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1}, {0.2,0.2,1,1} },
     sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10', 'boss11' },
 }
-settings.wave_duration = 10
-settings.boss_duration = 30
+settings.wave_duration = 15
+settings.boss_duration = 40
 
 -- Weapon categories and levels
 settings.weapons = {
@@ -247,13 +260,13 @@ settings.weapons = {
         -- Fires in 4 or more directions
         { damage = 1, fire_rate = 0.5, pierce = false, radius = 10, directions = 2 },
         { damage = 2, fire_rate = 0.7, pierce = true, radius = 10, directions = 4 },
-        { damage = 2, fire_rate = 0.9, pierce = true, radius = 10, directions = 6 },
+        { damage = 3, fire_rate = 0.9, pierce = true, radius = 10, directions = 6 },
         { damage = 4, fire_rate = 1.1, pierce = true, radius = 10, directions = 8 },
-        { damage = 4, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
+        { damage = 5, fire_rate = 1.5, pierce = true, radius = 10, directions = 10 },
         { damage = 6, fire_rate = 1.7, pierce = true, radius = 10, directions = 12 },
-        { damage = 8, fire_rate = 2.0, pierce = true, radius = 10, directions = 14 },
-        { damage = 10, fire_rate = 2.2, pierce = true, radius = 10, directions = 16 },
-        { damage = 10, fire_rate = 2.4, pierce = true, radius = 10, directions = 18 },
+        { damage = 7, fire_rate = 2.0, pierce = true, radius = 10, directions = 14 },
+        { damage = 8, fire_rate = 2.2, pierce = true, radius = 10, directions = 16 },
+        { damage = 9, fire_rate = 2.4, pierce = true, radius = 10, directions = 18 },
         { damage = 10, fire_rate = 2.6, pierce = true, radius = 10, directions = 20 },
         { damage = 10, fire_rate = 2.8, pierce = true, radius = 10, directions = 22 },
         { damage = 10, fire_rate = 3.0, pierce = true, radius = 10, directions = 24 },
