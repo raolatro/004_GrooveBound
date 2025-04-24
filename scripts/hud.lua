@@ -21,6 +21,8 @@ function hud.reset()
     hud.score = 0
     hud.kills = 0
     hud.money = 0
+    hud.xp = 0
+    hud.level = 1
     hud.auto_fire_enabled = true
     hud.aim_line_enabled = false
     hud.player_hp = nil
@@ -59,13 +61,62 @@ function hud.draw()
         local quad = (i <= (hud.player_hp or 0)) and hud.hp_full_quad or hud.hp_empty_quad
         love.graphics.draw(hud.hp_img, quad, x, left_y + 8, 0, heart_w/64, heart_h/56)
     end
-    -- Inventory slots below hearts
+    
+    -- XP bar below hearts
+    local xp_bar_height = settings.xp.bar_height
+    local xp_box_height = xp_bar_height + 30 -- Extra padding for better text spacing
+    local xp_box_width = heart_box_width
+    local xp_box_x = left_x
+    local xp_box_y = left_y + heart_box_height + 12 -- Increased margin between hearts and XP bar
+    
+    -- XP bar background
+    love.graphics.setColor(0.12,0.12,0.12,0.92)
+    love.graphics.rectangle("fill", xp_box_x, xp_box_y, xp_box_width, xp_box_height, 10, 10)
+    
+    -- Get current level and XP progress
+    local scoring = require "scripts/scoring"
+    local current_xp = hud.xp or 0
+    local current_level = hud.level or 1
+    local next_threshold = scoring.get_next_level_threshold(current_level)
+    local prev_threshold = 0
+    
+    -- Find previous threshold
+    for i, level_data in ipairs(settings.xp.levels) do
+        if level_data.level == current_level then
+            prev_threshold = level_data.threshold
+            break
+        end
+    end
+    
+    -- Calculate progress percentage for this level
+    local xp_for_this_level = current_xp - prev_threshold
+    local xp_needed_for_next = next_threshold - prev_threshold
+    local progress = math.min(1, xp_for_this_level / math.max(1, xp_needed_for_next))
+    
+    -- Draw empty XP bar
+    local xp_bar_x = xp_box_x + 12
+    local xp_bar_y = xp_box_y + 10 -- Adjusted for better vertical centering
+    local xp_bar_width = xp_box_width - 24
+    love.graphics.setColor(settings.xp.empty_color)
+    love.graphics.rectangle("fill", xp_bar_x, xp_bar_y, xp_bar_width, xp_bar_height, 5, 5)
+    
+    -- Draw filled portion of XP bar
+    love.graphics.setColor(settings.xp.color)
+    love.graphics.rectangle("fill", xp_bar_x, xp_bar_y, xp_bar_width * progress, xp_bar_height, 5, 5)
+    
+    -- Draw XP text
+    love.graphics.setColor(1, 1, 1, 1)
+    local xp_text = string.format("LVL %d - %d/%d XP", current_level, xp_for_this_level, xp_needed_for_next)
+    love.graphics.setFont(hud.font)
+    love.graphics.printf(xp_text, xp_box_x, xp_bar_y + xp_bar_height + 8, xp_box_width, "center") -- Fixed text offset
+    
+    -- Inventory slots below XP bar
     local slot_size = 28
     local slot_spacing = 8
     local max_slots = settings.inventory.max_slots or 4
     local slot_box_width = max_slots * (slot_size + slot_spacing) + 24
     local slot_box_x = left_x
-    local slot_box_y = left_y + heart_box_height + 8
+    local slot_box_y = xp_box_y + xp_box_height + 14 -- Increased margin between XP bar and inventory
     love.graphics.setColor(0.12,0.12,0.12,0.92)
     love.graphics.rectangle("fill", slot_box_x, slot_box_y, slot_box_width, slot_size + 16, 10, 10)
     for idx = 1, max_slots do

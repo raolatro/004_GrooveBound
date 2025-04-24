@@ -19,13 +19,12 @@ local loot = require "scripts/loot"
 local inventory = require "scripts/inventory"
 local level_stats = require "scripts/level_stats"
 local pause_menu = require "scripts/pause_menu"
+local shop_menu = require "scripts/shop_menu"
 local scenario = require "scripts/scenario"
 
 require("scripts/init_fonts")()
 
--- Define arena margin and make it accessible to other modules
-arena_margin = 32
-scenario.settings.arena_margin = arena_margin
+-- Arena margin is now always read from settings.floor.arena_margin
 
 local enemy_spawn_timer = 0
 -- Wave and boss escalation variables
@@ -55,8 +54,6 @@ function love.load()
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
     -- Initialize scenario system (floor, background, etc.)
-    -- Make sure scenario uses the correct arena margin
-    scenario.settings.arena_margin = arena_margin
     scenario.init()
     debug.log("Game loaded.")
     -- debug.log("Milestone: Attraction and snap/ease-in features enabled.")
@@ -93,8 +90,8 @@ function love.update(dt)
             level_stats.set_boss(nil)
         end
     end
-    -- Pause logic
-    if pause_menu.active or game_paused then
+    -- Pause logic - either normal pause or shop menu active
+    if pause_menu.active or game_paused or shop_menu.active then
         return
     end
     -- Main gameplay update
@@ -289,9 +286,12 @@ function love.update(dt)
 end
 
 function love.draw()
-    -- Draw game state: game over, pause menu, or normal gameplay
+    -- Draw game state: game over, pause menu, shop menu, or normal gameplay
     if game_over.active then
         game_over.draw()
+    elseif shop_menu.active then
+        -- Draw the shop menu when active (level up)
+        shop_menu.draw()
     elseif pause_menu.active or game_paused then
         debug.log("[Main] Drawing pause menu (pause_menu.active=" .. tostring(pause_menu.active) .. ", game_paused=" .. tostring(game_paused) .. ")")
         -- Only pause_menu.draw handles the pause overlay and UI
@@ -309,7 +309,7 @@ function love.draw()
         
         -- Draw arena boundary (now as a faint outline since we have floor tiles)
         love.graphics.setColor(0.3, 0.3, 0.3, 0.4)
-        love.graphics.rectangle("line", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
+        love.graphics.rectangle("line", settings.floor.arena_margin, settings.floor.arena_margin, settings.main.window_width-settings.floor.arena_margin*2, settings.main.window_height-settings.floor.arena_margin*2)
         -- Draw corpses under entities
         love.graphics.setColor(0.5,0.5,0.5,1)
         for _, c in ipairs(enemy.corpses) do
@@ -369,6 +369,11 @@ function love.mousepressed(x, y, button)
     -- Check for game over screen interactions first
     if game_over.active then
         if game_over.mousepressed(x, y, button) then return end
+    end
+    
+    -- Check for shop menu interactions when level up
+    if shop_menu.active then
+        if shop_menu.mousepressed(x, y, button) then return end
     end
     
     -- Check for pause menu interactions when paused

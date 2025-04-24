@@ -89,10 +89,15 @@ if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                     -- Spawn loot drop near corpse
                     loot.spawn(e.x, e.y)
                     sfx.play('dead') -- Play death SFX
+                    
+                    -- Save enemy's original HP (for XP) before removing it
+                    local original_hp = get_settings('enemy_hp')
+                    local enemy_x, enemy_y = e.x, e.y
+                    
                     table.remove(enemy.enemies, i)
                     -- debug.log("Enemy dead!")
-                    -- Score system
-                    scoring.add_kill(killed_by_groove)
+                    -- Score system - pass HP and position for XP
+                    scoring.add_kill(killed_by_groove, original_hp, enemy_x, enemy_y)
                     -- Popup if killed by groove
                     if killed_by_groove then
                         local popup = require "scripts/popup"

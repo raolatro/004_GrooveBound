@@ -12,40 +12,30 @@ scenario.current_floor = nil
 -- Floor configurations that can be loaded
 scenario.floors = {}
 
--- Scenario settings (will be added to settings.lua in the future if needed)
-scenario.settings = {
-    tile_size = 64,
-    -- Balance the weights - first tile is more common but not dominant
-    tile_weights = {3, 1, 1, 1, 1, 1, 1, 1},
-    -- The margin for the arena (should match arena_margin in main.lua)
-    arena_margin = 32
-}
-
 -- Initialize the scenario module
 function scenario.init()
-    -- Load floor tile image
-    scenario.tile_image = love.graphics.newImage("assets/img/floor-tiles1.jpg")
+    -- Load floor tile image from settings
+    scenario.tile_image = love.graphics.newImage(settings.floor.image_path)
     
-    -- Create quads for each 64x64 tile in the 4x2 grid
+    -- Create quads for each tile in the grid (from settings)
     scenario.tile_quads = {}
-    for y = 0, 1 do
-        for x = 0, 3 do
+    for y = 0, settings.floor.tile_grid_height - 1 do
+        for x = 0, settings.floor.tile_grid_width - 1 do
             table.insert(scenario.tile_quads, love.graphics.newQuad(
-                x * 64, y * 64, 64, 64, scenario.tile_image:getDimensions()
+                x * settings.floor.tile_size, y * settings.floor.tile_size,
+                settings.floor.tile_size, settings.floor.tile_size,
+                scenario.tile_image:getDimensions()
             ))
         end
     end
     
     -- Define the first level floor configuration
     scenario.floors["level1"] = {
-        tile_size = scenario.settings.tile_size,
-        -- Weights for each tile (indices correspond to tile_quads indices)
-        -- First tile has higher weight but balanced to not be too dominant
-        tile_weights = scenario.settings.tile_weights,
-        -- Use window dimensions from settings
+        tile_size = settings.floor.tile_size,
+        tile_weights = settings.floor.tile_weights,
         width = settings.main.window_width,
         height = settings.main.window_height,
-        margin = scenario.settings.arena_margin
+        margin = settings.floor.arena_margin
     }
     
     -- Set the current floor to level1
