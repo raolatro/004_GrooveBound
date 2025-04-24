@@ -209,33 +209,10 @@ function love.update(dt)
             local dx, dy = d.x - px, d.y - py
             local pickup_radius = outline_radius
             if dx*dx + dy*dy <= pickup_radius*pickup_radius then
-                -- Check if this is any kind of cash/coin item (matches our new loot system)
+                -- Check if this is a cash/coin type item
                 if d.id:match("coin") or d.id:match("gold") or d.id:match("treasure") or d.id == "money" then
-                    -- Handle cash pickup
-                    sfx.play('coin')
-                    local md = settings.item_data
-                    
-                    -- Get value from loot types if possible
-                    local value = 10 -- default value
-                    if d.value then
-                        -- Use the value directly from the drop (new system)
-                        value = d.value
-                    elseif d.id == "money" and d.rarity then
-                        -- Legacy money with rarity (old system)
-                        value = md.Items.money.baseValue * md.Rarity[d.rarity].multiplier
-                    end
-                    
-                    -- Add to player cash total
-                    if not hud.cash then hud.cash = 0 end
-                    hud.cash = hud.cash + value
-                    
-                    -- Simple pickup message
-                    popup.spawn({ 
-                        x = px, 
-                        y = py - 20, 
-                        text = "+$"..value, 
-                        color = d.tint or {1, 0.9, 0, 1} -- Use drop tint or default gold
-                    })
+                    -- Call loot's pickup handler which will handle the popup and logic based on loot type
+                    loot.on_pickup(i, px, py)
                 else
                     -- Handle weapon pickup (old system)
                     debug.log('Weapon picked up: '..d.id)
@@ -258,9 +235,9 @@ function love.update(dt)
                         -- New weapon notification
                         popup.create_notification("Got a new " .. display_name .. "!!", popup.STYLES.WEAPON, color)
                     end
-                    -- Note: 'level_up' and 'max_level' popups handled internally by inventory.add
-                    -- If action is "full", inventory is full, no popup needed here.
                 end
+                
+                -- Remove the item from drops regardless of type
                 table.remove(loot.drops, i)
             end
         end
@@ -303,8 +280,7 @@ function love.update(dt)
             player.fire_timer = settings.projectile.fire_rate
         end
     end
-
-end
+end  -- End of love.update function
 
 function love.draw()
     -- Draw game state: game over, pause menu, shop menu, or normal gameplay

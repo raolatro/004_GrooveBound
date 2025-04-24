@@ -151,27 +151,29 @@ function loot.update(dt, player_x, player_y, outline_radius)
             end
             -- Handle cash pickups
             else
-                -- Find the loot type by ID to get value
-                local loot_value = 10 -- default value
-                local loot_name = "Coin" -- default name
+                -- Find the loot type by ID to get value, name, tint, and size
+                local loot_value, loot_name, loot_tint, loot_size = 10, "Coin", {1,0.9,0,1}, 10
                 for _, loot_type in ipairs(data.LootTypes) do
                     if loot_type.id == d.id then
                         loot_value = loot_type.value
                         loot_name = loot_type.name
+                        loot_tint = loot_type.tint or loot_tint
+                        loot_size = loot_type.size or loot_size
                         break
                     end
                 end
-                
+                -- Overwrite drop's tint and size for consistency
+                d.tint = loot_tint
+                d.size = loot_size
                 -- Add money to player cash
                 if not hud.cash then hud.cash = 0 end
                 hud.cash = hud.cash + loot_value
-                
-                -- Create popup showing the cash pickup amount
+                -- Create popup showing the loot name and cash pickup amount
                 popup.spawn({
                     x = d.x,
                     y = d.y,
-                    text = "$" .. loot_value,
-                    color = {1, 0.9, 0, 1}, -- Golden yellow
+                    text = loot_name .. " +$" .. loot_value,
+                    color = loot_tint,
                     font_size = 16,
                     fade_duration = 0.5,
                     stay_duration = 0.2,
@@ -272,6 +274,78 @@ function loot.draw()
     
     -- Reset color
     love.graphics.setColor(1, 1, 1, 1)
+end
+
+-- Handle loot pickup when player touches it
+function loot.on_pickup(index, player_x, player_y)
+    -- Get the drop being picked up
+    local drop = loot.drops[index]
+    if not drop then return end  -- Safety check
+    
+    -- Setup required modules
+    local data = settings.item_data
+    local hud = require "scripts/hud"
+    local popup = require "scripts/popup"
+    local sfx = require "scripts/sfx"
+    
+    -- Debug log
+    debug.log("Loot picked up: " .. drop.id .. " at position " .. drop.x .. ", " .. drop.y)
+    
+    -- Check if it's a cash/coin type
+    local is_cash = drop.id:match("coin") or drop.id:match("gold") or drop.id:match("treasure") or drop.id == "money"
+    
+    if is_cash then
+        -- Find the loot type to get name, value, tint, and size
+        local loot_value, loot_name, loot_tint, loot_size = 10, "Coin", {1,0.9,0,1}, 10
+        
+        -- Get correct loot info from LootTypes in item_data
+        for _, loot_type in ipairs(data.LootTypes) do
+            if loot_type.id == drop.id then
+                loot_value = loot_type.value
+                loot_name = loot_type.name
+                loot_tint = loot_type.tint or loot_tint
+                loot_size = loot_type.size or loot_size
+                break
+            end
+        end
+        
+        -- Play pickup sound
+        if sfx.play then sfx.play('coin') end
+        
+        -- Add value to player cash
+        if not hud.cash then hud.cash = 0 end
+        hud.cash = hud.cash + loot_value
+        
+        -- Create the popup with loot name and value
+        popup.spawn({
+            x = drop.x,
+            y = drop.y - 20,
+            text = loot_name .. " +$" .. loot_value,
+            color = loot_tint,
+            font_size = 16,
+            fade_duration = 0.5,
+            stay_duration = 0.3,
+        })
+    else
+        -- Handle legacy weapon pickups - this should rarely happen with updated system
+        local inventory = require "scripts/inventory"
+        
+        -- Add to inventory and get result info
+        local success, action, category, level = inventory.add(drop.id)
+        
+        -- Play weapon pickup sound
+        if sfx.play then sfx.play('weapon') end
+        
+        -- Create appropriate notification
+        if action == "level_up" then
+            popup.create_notification(category:upper() .. " upgraded to LVL " .. level, popup.STYLES.WEAPON, drop.color or {1,1,1,1})
+        elseif action == "added" then
+            popup.create_notification("Picked up " .. category:upper(), popup.STYLES.WEAPON, drop.color or {1,1,1,1})
+        end
+    end
+    
+    -- Remove the loot from the drops array
+    table.remove(loot.drops, index)
 end
 
 -- Draw all loot drops

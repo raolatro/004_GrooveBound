@@ -60,7 +60,7 @@ _G.reset_item_levels = reset_weapons
 local LootTypes = {
     -- Common loot (small coins)
     { 
-        name = "Small Coin", 
+        name = "Penny", 
         id = "coin_small", 
         value = 5, 
         size = 8, 
@@ -69,7 +69,7 @@ local LootTypes = {
         weight = Rarity.Common.weight * 2
     },
     { 
-        name = "Coin", 
+        name = "Dollar", 
         id = "coin_medium", 
         value = 10, 
         size = 10, 
@@ -79,7 +79,7 @@ local LootTypes = {
     },
     -- Uncommon loot (medium value)
     { 
-        name = "Large Coin", 
+        name = "MP3 Player", 
         id = "coin_large", 
         value = 25, 
         size = 12, 
@@ -89,7 +89,7 @@ local LootTypes = {
     },
     -- Rare loot (high value)
     { 
-        name = "Gold Nugget", 
+        name = "iPod Nano", 
         id = "gold_nugget", 
         value = 50, 
         size = 14, 
@@ -99,7 +99,7 @@ local LootTypes = {
     },
     -- Epic loot (very high value)
     { 
-        name = "Gold Bar", 
+        name = "iPhone 16 Plus", 
         id = "gold_bar", 
         value = 100, 
         size = 16, 
@@ -109,7 +109,7 @@ local LootTypes = {
     },
     -- Legendary loot (extremely high value)
     { 
-        name = "Treasure", 
+        name = "Stratocaster Guitar", 
         id = "treasure", 
         value = 250, 
         size = 20, 

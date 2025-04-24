@@ -161,7 +161,7 @@ function shop_menu.draw()
     -- Title
     love.graphics.setFont(shop_menu._fonts.header)
     love.graphics.setColor(0.4, 0.6, 1, 1) -- Blue color for level up
-    love.graphics.printf("LEVEL UP!", box_x, box_y + 30, box_w, "center")
+    love.graphics.printf("LEVEL UP! Time for shopping.", box_x, box_y + 30, box_w, "center")
     
     -- Level and cash display
     love.graphics.setFont(shop_menu._fonts.body)
@@ -174,7 +174,7 @@ function shop_menu.draw()
     
     -- Shop instruction
     love.graphics.setColor(0.8, 0.8, 0.8, 1)
-    love.graphics.printf("Select a weapon to buy or upgrade:", box_x, box_y + 130, box_w, "center")
+    -- love.graphics.printf("Select a weapon to buy or upgrade:", box_x, box_y + 130, box_w, "center")
     
     -- Draw shop items (3 side by side)
     for i = 1, math.min(3, #shop_menu.available_items) do
@@ -213,7 +213,7 @@ function shop_menu.draw()
         love.graphics.printf(display_name, box.x, box.y + 80, box.w, "center")
         
         -- Weapon level indicator
-        local level_text = item.has_weapon and "LEVEL " .. item.shop_level or "NEW"
+        local level_text = item.has_weapon and "Level up +1 to LVL " .. item.shop_level or "New weapon!"
         love.graphics.printf(level_text, box.x, box.y + 110, box.w, "center")
         
         -- Price in gold/yellow
@@ -225,11 +225,11 @@ function shop_menu.draw()
         if not can_afford then
             -- Red "Cannot Afford" text
             love.graphics.setColor(1, 0.3, 0.3, 1) -- Red
-            love.graphics.printf("Can't Afford", box.x, box.y + 170, box.w, "center")
+            love.graphics.printf("Not enough cash", box.x, box.y + 170, box.w, "center")
         else
             -- Green "Click to Buy" text
             love.graphics.setColor(0.3, 1, 0.3, 1) -- Green
-            love.graphics.printf("Click to Buy", box.x, box.y + 170, box.w, "center")
+            love.graphics.printf("Buy", box.x, box.y + 170, box.w, "center")
         end
     end
     
@@ -273,9 +273,9 @@ function shop_menu.purchase_item(item_index)
         
         -- Create a popup for the purchase
         if action == "level_up" then
-            popup.create_notification(category:upper() .. " UPGRADED TO LEVEL " .. level, popup.STYLES.WEAPON, item.color)
+            popup.create_notification(category:upper() .. " upgraded to LVL " .. level, popup.STYLES.WEAPON, item.color)
         else
-            popup.create_notification("PURCHASED NEW " .. category:upper(), popup.STYLES.WEAPON, item.color)
+            popup.create_notification("Purchased " .. category:upper(), popup.STYLES.WEAPON, item.color)
         end
         
         -- Recalculate item price for this slot (for multiple purchases)
