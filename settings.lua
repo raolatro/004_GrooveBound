@@ -51,7 +51,7 @@ local settings = {
     },
 
     player = {
-        speed = 20,
+        speed = 10,
         hp = 7,
     },
     projectile = {

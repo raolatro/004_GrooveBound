@@ -19,10 +19,14 @@ local loot = require "scripts/loot"
 local inventory = require "scripts/inventory"
 local level_stats = require "scripts/level_stats"
 local pause_menu = require "scripts/pause_menu"
+local scenario = require "scripts/scenario"
 
 require("scripts/init_fonts")()
 
-local arena_margin = 32
+-- Define arena margin and make it accessible to other modules
+arena_margin = 32
+scenario.settings.arena_margin = arena_margin
+
 local enemy_spawn_timer = 0
 -- Wave and boss escalation variables
 wave_timer = settings.wave_duration or 15
@@ -31,6 +35,11 @@ current_wave = 1
 current_boss = 0
 
 
+
+function love.resize(w, h)
+    -- Update scenario dimensions on window resize
+    scenario.resize(w, h)
+end
 
 function love.load()
     -- Load custom cursor image
@@ -45,6 +54,10 @@ function love.load()
     hud.reset() -- Ensure HUD and fonts are always initialized
     player.init()
     camera.init(gamepad.x, gamepad.y, settings.main.camera_delay)
+    -- Initialize scenario system (floor, background, etc.)
+    -- Make sure scenario uses the correct arena margin
+    scenario.settings.arena_margin = arena_margin
+    scenario.init()
     debug.log("Game loaded.")
     -- debug.log("Milestone: Attraction and snap/ease-in features enabled.")
     enemy.spawn_far(gamepad.x, gamepad.y)
@@ -290,8 +303,13 @@ function love.draw()
         -- (Beat checker text removed as requested)
         -- Draw everything that should move with the camera
         -- Draw everything that moves with the camera
-        love.graphics.setColor(0.1,0.1,0.1,1)
-        love.graphics.rectangle("fill", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
+        
+        -- Draw floor tiles
+        scenario.draw_floor()
+        
+        -- Draw arena boundary (now as a faint outline since we have floor tiles)
+        love.graphics.setColor(0.3, 0.3, 0.3, 0.4)
+        love.graphics.rectangle("line", arena_margin, arena_margin, settings.main.window_width-arena_margin*2, settings.main.window_height-arena_margin*2)
         -- Draw corpses under entities
         love.graphics.setColor(0.5,0.5,0.5,1)
         for _, c in ipairs(enemy.corpses) do
