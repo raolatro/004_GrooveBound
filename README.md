@@ -6,7 +6,7 @@ GrooveBound is a rhythm-based top-down shooter built with LÖVE2D (Lua). You con
 
 ## ⬇️ Download
 
-- [Download GrooveBound for macOS Silicon](https://raoni.studio/games/groovebound/download/)
+- [Download GrooveBound prototype for macOS](https://raoni.studio/games/groovebound/download/)
 
 ---
 
