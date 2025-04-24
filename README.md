@@ -4,6 +4,19 @@ GrooveBound is a rhythm-based top-down shooter built with LÖVE2D (Lua). You con
 
 ---
 
+## ⬇️ Download
+
+- [Download GrooveBound for macOS Silicon](https://raoni.studio/games/groovebound/download/)
+
+---
+
+## 📝 Devlog
+
+- Check the [FULL DEVLOG](index.html](https://raoni.studio/games/groovebound/) here.
+
+---
+
+
 ## 🎮 How to Play
 
 - **Move:** WASD or Arrow Keys
@@ -26,41 +39,6 @@ GrooveBound is a rhythm-based top-down shooter built with LÖVE2D (Lua). You con
 - In-game, real-time settings menu (work-in-progress)
 - Game Over screen with scoring
 - Smooth camera and modular codebase
-
----
-
-## 🚧 Project Status (April 2025)
-
-- **Core gameplay:** Implemented (movement, shooting, enemies)
-- **Beat system:** Fully functional, with visual feedback
-- **Settings menu:** In-game, extensible for future options
-- **Game Over screen:** Shows score and restart button
-- **Visuals:** Animated sprites, glowing effects, and custom UI
-- **Codebase:** Modular, commented, and ready for expansion
-
----
-
-## ⬇️ Download
-
-- [Download GrooveBound for macOS Silicon](https://raoni.studio/games/groovebound/download/)
-
----
-
-## 📝 Devlog
-
-- See the [FULL DEVLOG]([index.html](https://raoni.studio/games/groovebound/)).
-
----
-
-## 🛠️ Next Steps
-
-- Add more enemy types and attack patterns
-- Implement power-ups and upgrades
-- Expand settings menu (audio, controls, accessibility)
-- Add sound effects and music
-- Polish visuals and UI animations
-- Refine scoring and progression
-- Playtesting and balancing
 
 ---
 
