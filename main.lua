@@ -307,8 +307,9 @@ function love.draw()
         -- Draw arena boundary (now as a faint outline since we have floor tiles)
         love.graphics.setColor(0.3, 0.3, 0.3, 0.4)
         love.graphics.rectangle("line", settings.floor.arena_margin, settings.floor.arena_margin, settings.main.window_width-settings.floor.arena_margin*2, settings.main.window_height-settings.floor.arena_margin*2)
-        -- Draw corpses under entities
-        love.graphics.setColor(0.5,0.5,0.5,1)
+        -- Corpses are temporarily hidden
+        -- We keep the corpse data in memory but set opacity to 0
+        love.graphics.setColor(0.5,0.5,0.5,0)
         for _, c in ipairs(enemy.corpses) do
             love.graphics.line(c.x-8, c.y-8, c.x+8, c.y+8)
             love.graphics.line(c.x+8, c.y-8, c.x-8, c.y+8)

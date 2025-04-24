@@ -156,20 +156,43 @@ function enemy.update(dt, player_x, player_y, projectiles)
             local e_radius = e.is_boss and (e.boss_radius or 40) or (e.radius or 30)
             if collision.circle_circle(e.x, e.y, e_radius, p.x, p.y, p.radius) then
                 -- Scalable: use projectile damage type
-                local dmg = p.on_beat and settings.projectile.on_beat_damage or settings.projectile.normal_damage
-                e.hp = e.hp - dmg
+                local base_dmg = p.on_beat and settings.projectile.on_beat_damage or settings.projectile.normal_damage
+                
+                -- Bosses take 2.5x damage from player attacks
+                local dmg_multiplier = e.is_boss and 2.5 or 1
+                local final_dmg = base_dmg * dmg_multiplier
+                
+                -- Apply damage and show debug message for boss hits
+                e.hp = e.hp - final_dmg
+                if e.is_boss then
+                    debug.log("Boss hit! Damage: " .. final_dmg .. " (" .. base_dmg .. " x " .. dmg_multiplier .. ")")
+                end
                 e.flash = get_settings('enemy_flash_duration')
                 local killed_by_groove = (p.on_beat and e.hp <= 0)
                 table.remove(projectiles, j)
                 -- debug.log("Enemy hit!" .. (killed_by_groove and " Killed by groove!" or ""))
                 if e.hp <= 0 and e.state ~= "death" then
                     table.insert(enemy.corpses, {x=e.x, y=e.y})
-                    -- Spawn loot drop near corpse
-                    loot.spawn(e.x, e.y)
-                    sfx.play('dead') -- Play death SFX
+                    
+                    -- Spawn multiple loot drops based on enemy type and current wave
+                    local current_wave = _G.current_wave or 1
+                    local total_loot_value = loot.spawn_multiple(
+                        e.x, e.y,         -- Position 
+                        e.is_boss,         -- Is this a boss?
+                        killed_by_groove,  -- Was it killed with rhythm/groove?
+                        current_wave       -- Current wave for scaling
+                    )
+                    
+                    -- Play death sound effect
+                    sfx.play(e.is_boss and (e.boss_sfx or 'boss_death') or 'dead')
+                    
                     -- Save enemy's original HP (for XP) before removing it
                     local original_hp = get_settings('enemy_hp')
                     local enemy_x, enemy_y = e.x, e.y
+                    
+                    -- Debug log for loot drops
+                    debug.log(string.format("%s dropped $%d worth of loot", 
+                        e.is_boss and "Boss" or "Enemy", total_loot_value))
                     -- Start death animation
                     e.state = "death"
                     e.anim_frame = 1

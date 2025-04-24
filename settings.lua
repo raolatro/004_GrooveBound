@@ -217,6 +217,16 @@ local settings = {
         attraction_radius_mult = 70, -- chase starts at outline_radius * this
         pickup_radius_mult = 0.8, -- now matches beat_checker_base_radius (which is 64px)
         show_pickup_radius = true, -- toggle visibility of pickup radius
+        
+        -- Multiple loot drop settings
+        min_drops = 1,       -- Minimum number of loot items per kill
+        max_drops = 5,       -- Maximum number of loot items per kill (cap)
+        boss_min_drops = 3,  -- Minimum number of loot items per boss kill
+        boss_max_drops = 12, -- Maximum number of loot items per boss kill
+        
+        -- Wave scaling settings
+        wave_scaling = 0.5,  -- How much to increase loot per wave (0.5 = +50% per 10 waves)
+        groove_bonus = 1,    -- Extra loot for killing with groove/on-beat
     },
     weapon = {
         attraction_enabled = true,

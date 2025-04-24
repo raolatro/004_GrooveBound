@@ -196,11 +196,49 @@ end
 -- Attraction debug overlay is now handled in player.draw for accuracy. This function is no longer needed.
 function loot.draw_debug() end
 
--- Spawn a new drop near (x,y) with random offset
-function loot.spawn(x, y)
+-- Spawn a single loot item of specified type with proper visual properties
+function loot.spawn_item(x, y, offset_range, chosen_loot)
+    local data = settings.item_data
+    offset_range = offset_range or 30
+    
+    -- Add random offset so drops aren't exactly on the same position
+    local offset_x = math.random(-offset_range, offset_range)
+    local offset_y = math.random(-offset_range, offset_range)
+    
+    -- Ensure chosen_loot has all required properties
+    if not chosen_loot.size then chosen_loot.size = 10 end
+    if not chosen_loot.tint then chosen_loot.tint = {1, 0.9, 0, 1} end
+    if not chosen_loot.value then chosen_loot.value = 10 end
+    
+    -- Slightly vary size and tint to make each loot item look unique
+    local size_variation = math.random(90, 110) / 100  -- ±10% variation
+    local tint_variation = {
+        math.min(1, chosen_loot.tint[1] * math.random(95, 105) / 100),
+        math.min(1, chosen_loot.tint[2] * math.random(95, 105) / 100),
+        math.min(1, chosen_loot.tint[3] * math.random(95, 105) / 100),
+        chosen_loot.tint[4] or 1
+    }
+    
+    -- Create the drop with proper properties
+    local new_loot = {
+        id = chosen_loot.id,
+        x = x + offset_x,
+        y = y + offset_y,
+        size = chosen_loot.size * size_variation,  -- Vary size slightly
+        tint = tint_variation,  -- Vary color slightly
+        value = chosen_loot.value,
+        name = chosen_loot.name or "Coin"
+    }
+    
+    table.insert(loot.drops, new_loot)
+    return new_loot
+end
+
+-- Roll drop table to select a random loot type based on weights
+function loot.roll_loot_type()
     local data = settings.item_data
     
-    -- Roll drop table by weight to select a loot type (only loot, no weapons)
+    -- Roll drop table by weight to select a loot type
     local total_weight = 0
     for _, loot_type in ipairs(data.LootTypes) do
         total_weight = total_weight + (loot_type.weight or 1)
@@ -234,6 +272,7 @@ function loot.spawn(x, y)
             -- Emergency fallback if loot types table is empty
             chosen_loot = {
                 id = "coin_medium",
+                name = "Coin",
                 size = 10,
                 tint = {1, 0.9, 0, 1},
                 value = 10
@@ -241,22 +280,62 @@ function loot.spawn(x, y)
         end
     end
     
-    -- Add random offset so drops aren't exactly on monster position
-    local offset_range = 30
-    local offset_x = math.random(-offset_range, offset_range)
-    local offset_y = math.random(-offset_range, offset_range)
+    return chosen_loot
+end
+
+-- Spawn a new drop near (x,y) with random offset
+function loot.spawn(x, y)
+    -- For backward compatibility, spawn a single loot item
+    local chosen_loot = loot.roll_loot_type()
+    local new_loot = loot.spawn_item(x, y, 30, chosen_loot)
+    debug.log("Spawned loot: " .. new_loot.id .. " with value $" .. new_loot.value)
+    return new_loot
+end
+
+-- Spawn multiple loot items based on enemy type and wave
+function loot.spawn_multiple(x, y, is_boss, killed_by_groove, wave_number)
+    local settings = require "settings"
+    local loot_settings = settings.loot
+    local data = settings.item_data
+    wave_number = wave_number or (_G.current_wave or 1)
     
-    -- Create the drop with the loot properties
-    table.insert(loot.drops, {
-        id = chosen_loot.id,
-        x = x + offset_x,
-        y = y + offset_y,
-        size = chosen_loot.size or 10,
-        tint = chosen_loot.tint or {1, 0.9, 0, 1},
-        value = chosen_loot.value or 10
-    })
+    -- Calculate wave scaling factor (e.g., +50% every 10 waves)
+    local wave_scaling = 1 + (loot_settings.wave_scaling * (wave_number / 10))
     
-    debug.log("Spawned loot: " .. chosen_loot.id .. " with value " .. (chosen_loot.value or 10))
+    -- Determine base min/max drops based on enemy type
+    local min_drops = is_boss and loot_settings.boss_min_drops or loot_settings.min_drops
+    local max_drops = is_boss and loot_settings.boss_max_drops or loot_settings.max_drops
+    
+    -- Add bonus for killing with rhythm/groove
+    if killed_by_groove then
+        min_drops = min_drops + loot_settings.groove_bonus
+        max_drops = max_drops + loot_settings.groove_bonus
+    end
+    
+    -- Apply wave scaling to min/max drops (with a floor function to ensure whole numbers)
+    min_drops = math.floor(min_drops * wave_scaling)
+    max_drops = math.floor(max_drops * wave_scaling)
+    
+    -- Calculate final number of drops, capped at max_drops
+    local num_drops = math.min(math.random(min_drops, max_drops), max_drops)
+    
+    -- Log the drop calculations
+    debug.log(string.format("Spawning %d loot items (min=%d, max=%d, wave=%d, scaling=%.2f, boss=%s, groove=%s)", 
+        num_drops, min_drops, max_drops, wave_number, wave_scaling, 
+        tostring(is_boss), tostring(killed_by_groove)))
+    
+    -- Spawn the calculated number of loot items
+    local total_value = 0
+    local scattered_range = is_boss and 60 or 40  -- Wider scattering for boss loot
+    
+    for i = 1, num_drops do
+        local chosen_loot = loot.roll_loot_type()
+        local new_loot = loot.spawn_item(x, y, scattered_range, chosen_loot)
+        total_value = total_value + new_loot.value
+    end
+    
+    -- Return total value of spawned loot
+    return total_value
 end
 
 -- Draw loot drops with appropriate size and color for each type
