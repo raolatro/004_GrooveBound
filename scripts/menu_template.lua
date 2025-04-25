@@ -123,19 +123,21 @@ function menu_template.calculate_layout(state, w, h)
         }
     end
     
-    -- Position navigation arrows
+    -- Position navigation arrows OUTSIDE the menu box, vertically aligned with item cards
     local arrow_size = state.config.arrow_size or menu_template.defaults.arrow_size
-    local arrow_y = box_y + (state.config.arrow_y_offset or menu_template.defaults.arrow_y_offset)
+    local item_y = box_y + (state.config.items_y_offset or menu_template.defaults.items_y_offset)
+    local item_box_h = state.config.item_box_h or menu_template.defaults.item_box_h
+    local arrow_y = item_y + (item_box_h - arrow_size) / 2
     
     state.nav_arrows.left.box = {
-        x = box_x + 30,
+        x = box_x - arrow_size - 24, -- 24px gap outside box
         y = arrow_y,
         w = arrow_size,
         h = arrow_size
     }
     
     state.nav_arrows.right.box = {
-        x = box_x + box_w - 30 - arrow_size,
+        x = box_x + box_w + 24, -- 24px gap outside box
         y = arrow_y,
         w = arrow_size,
         h = arrow_size
@@ -143,15 +145,21 @@ function menu_template.calculate_layout(state, w, h)
     
     -- Setup buttons if provided
     if state.config.buttons then
-        local button_y = box_y + box_h - 80
+        -- Place buttons BELOW the menu box and page text
+        local page_text_gap = 40
+        local button_gap = 20
+        local button_y = box_y + box_h + page_text_gap + 40 -- 40px below box and page text
         local total_buttons_width = 0
         
         -- Calculate total width of buttons
         for _, button in ipairs(state.config.buttons) do
-            total_buttons_width = total_buttons_width + (button.width or 160) + 20
+            total_buttons_width = total_buttons_width + (button.width or 160) + button_gap
+        end
+        if total_buttons_width > 0 then
+            total_buttons_width = total_buttons_width - button_gap -- remove last gap
         end
         
-        -- Position buttons
+        -- Position buttons centered
         local button_x = box_x + (box_w - total_buttons_width) / 2
         state.button_boxes = {}
         
@@ -168,7 +176,7 @@ function menu_template.calculate_layout(state, w, h)
                 button = button
             }
             
-            button_x = button_x + width + 20
+            button_x = button_x + width + button_gap
         end
     end
 end
@@ -305,15 +313,16 @@ function menu_template.draw_navigation(state, show_pagination)
         )
     end
     
-    -- Page text
+    -- Page text BELOW the menu box
     love.graphics.setColor(0.7, 0.7, 0.7, 1)
     love.graphics.setFont(state.config.fonts.body)
     local page_text = "Page " .. state.current_page .. " of " .. state.total_pages
     love.graphics.printf(page_text, 
                         state.menu_box.x, 
-                        state.menu_box.y + (state.config.page_text_y_offset or menu_template.defaults.page_text_y_offset), 
+                        state.menu_box.y + state.menu_box.h + 24, -- 24px below box
                         state.menu_box.w, 
                         "center")
+
 end
 
 -- Draw the menu title and subtitle

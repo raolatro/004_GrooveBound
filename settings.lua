@@ -6,7 +6,7 @@ local settings = {
             weapons_volume = 2, -- weapon sounds relative volume (multiplied by global volume)
             loot_enabled = true,
             weapon_enabled = true,
-            projectile_enabled = false,
+            projectile_enabled = true,
             dead_enabled = true,
         },
         scoring = {
