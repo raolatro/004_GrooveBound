@@ -85,9 +85,11 @@ function enemy.spawn_far(player_x, player_y)
         y = math.random(get_settings('window_height'))
         tries = tries + 1
     until ((x-player_x)^2 + (y-player_y)^2) > min_dist^2 or tries > 10
+    -- Get HP from wave settings
+    local hp = get_settings('enemy_hp')
     -- Initialize animation state for walk
     table.insert(enemy.enemies, {
-        x=x, y=y, hp=get_settings('enemy_hp'), flash=0,
+        x=x, y=y, hp=hp, max_hp=hp, flash=0,
         anim_timer=0, anim_frame=1, anim_row=settings.enemy1.directions.down, state="walk", dead_time=0, death_played=false
     })
     -- debug.log("Enemy spawned far.")
@@ -252,6 +254,12 @@ function enemy.draw()
         end
     end
     for _, e in ipairs(enemy.enemies) do
+        -- Store reference to max HP if not already stored
+        -- This helps us track the original HP for the HP bar
+        if not e.max_hp and e.hp then
+            e.max_hp = e.hp
+        end
+        
         if e.is_boss then
             -- Draw miniboss with custom color and radius
             love.graphics.setColor(e.boss_color or {1,1,0,1})
@@ -261,6 +269,24 @@ function enemy.draw()
             love.graphics.setLineWidth(4)
             love.graphics.circle("line", e.x, e.y, (e.boss_radius or 40) + 2)
             love.graphics.setLineWidth(1)
+            
+            -- Draw red HP bar under boss
+            if e.hp and e.max_hp and e.hp > 0 and e.state ~= "death" then
+                -- HP bar dimensions and positioning
+                local bar_width = (e.boss_radius or 40) * 2
+                local bar_height = 8
+                local bar_x = e.x - bar_width / 2
+                local bar_y = e.y + (e.boss_radius or 40) + 5
+                
+                -- Background (black outline)
+                love.graphics.setColor(0, 0, 0, 0.8)
+                love.graphics.rectangle("fill", bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2)
+                
+                -- Red HP bar
+                love.graphics.setColor(0.9, 0.2, 0.2, 1)
+                local hp_ratio = e.hp / e.max_hp
+                love.graphics.rectangle("fill", bar_x, bar_y, bar_width * hp_ratio, bar_height)
+            end
         else
             -- Draw enemy1 sprite (walk or death)
             love.graphics.setColor(1,1,1,1)
@@ -275,8 +301,27 @@ function enemy.draw()
             if quad and img then
                 love.graphics.draw(img, quad, e.x - settings.enemy1.walk_frame_size.w/2, e.y - settings.enemy1.walk_frame_size.h/2)
             end
+            
+            -- Draw red HP bar under regular enemy
+            if e.hp and e.max_hp and e.hp > 0 and e.state ~= "death" then
+                -- HP bar dimensions and positioning
+                local bar_width = settings.enemy1.walk_frame_size.w
+                local bar_height = 4
+                local bar_x = e.x - bar_width / 2
+                local bar_y = e.y + settings.enemy1.walk_frame_size.h/2 + 2
+                
+                -- Background (black outline)
+                love.graphics.setColor(0, 0, 0, 0.8)
+                love.graphics.rectangle("fill", bar_x - 1, bar_y - 1, bar_width + 2, bar_height + 2)
+                
+                -- Red HP bar
+                love.graphics.setColor(0.9, 0.2, 0.2, 1)
+                local hp_ratio = e.hp / e.max_hp
+                love.graphics.rectangle("fill", bar_x, bar_y, bar_width * hp_ratio, bar_height)
+            end
         end
-        -- Draw HP above enemy (only if alive)
+        
+        -- Draw HP text above enemy (only if alive)
         if e.hp and e.hp > 0 and e.state ~= "death" then
             local prev_font = love.graphics.getFont()
             love.graphics.setFont(enemy._hp_font)
@@ -304,7 +349,7 @@ function enemy.spawn_boss(player_x, player_y, hp, speed, radius, color, sfx)
     
     -- Add essential state and animation properties for proper movement
     table.insert(enemy.enemies, {
-        x = x, y = y, hp = hp, speed = speed, radius = radius, is_boss = true,
+        x = x, y = y, hp = hp, max_hp = hp, speed = speed, radius = radius, is_boss = true,
         boss_color = color, boss_radius = radius, boss_sfx = sfx, flash = 0,
         -- Add these essential properties for update logic to work
         state = "walk", -- This is critical - allows update to move the boss

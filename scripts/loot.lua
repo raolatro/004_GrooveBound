@@ -1,6 +1,7 @@
 -- scripts/loot.lua: spawn and draw loot drops
 local debug = require "scripts/debug"
 local settings = require "settings"
+local hud = require "scripts/hud"  -- Added missing import for hud module
 local loot = {}
 loot.drops = {}
 

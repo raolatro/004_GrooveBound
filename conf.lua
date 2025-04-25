@@ -2,7 +2,7 @@
 function love.conf(t)
     -- Use dofile to load settings.lua as a table, since require is not available here
     -- Try to load settings.lua from the root directory; fallback to defaults if not found
-    local settings = { window_width = 1920, window_height = 1080 }
+    local settings = { window_width = 1280, window_height = 720 }
     local ok, loaded = pcall(dofile, "settings.lua")
     if ok and type(loaded) == "table" then
         settings = loaded
