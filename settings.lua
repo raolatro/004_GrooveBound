@@ -351,14 +351,30 @@ settings.waves = {
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 40, 80, 160, 240, 320, 400, 480, 560, 640, 720, 800 }, -- Boss HP per boss number
-    speed = { 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300 },
-    radius = { 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240 },
-    color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1}, {0.2,0.2,1,1} },
-    sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10', 'boss11' },
+    -- Steady linear HP increase instead of exponential
+    hp = { 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 }, -- Boss HP for 10 bosses
+    -- Speed increases gradually for all 10 bosses
+    speed = { 100, 110, 120, 130, 140, 150, 160, 170, 180, 190 },
+    -- Radius increases gradually for all 10 bosses
+    radius = { 40, 45, 50, 55, 60, 65, 70, 75, 80, 85 },
+    -- 10 unique colors for each boss
+    color = {
+        {1.0, 0.2, 0.2, 1.0}, -- Red (Boss 1)
+        {0.4, 0.0, 1.0, 1.0}, -- Purple (Boss 2)
+        {1.0, 0.6, 0.0, 1.0}, -- Orange (Boss 3)
+        {0.0, 0.8, 0.8, 1.0}, -- Cyan (Boss 4)
+        {0.2, 0.2, 1.0, 1.0}, -- Blue (Boss 5)
+        {0.0, 0.8, 0.2, 1.0}, -- Green (Boss 6)
+        {1.0, 0.8, 0.0, 1.0}, -- Gold (Boss 7)
+        {0.8, 0.0, 0.6, 1.0}, -- Magenta (Boss 8)
+        {0.5, 0.5, 0.5, 1.0}, -- Silver (Boss 9)
+        {0.9, 0.1, 0.5, 1.0}, -- Pink (Boss 10)
+    },
+    -- 10 sound effects, one for each boss
+    sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10' },
 }
-settings.wave_duration = 20
-settings.boss_duration = 10
+settings.wave_duration = 15
+settings.boss_duration = 45
 
 -- Weapon categories and levels
 settings.weapons = {

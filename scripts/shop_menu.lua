@@ -37,7 +37,10 @@ function shop_menu.generate_items(level)
     shop_menu.available_items = {}
     shop_menu.current_page = 1
     shop_menu.purchased = {}
-    shop_menu.can_reroll = true
+    -- Only allow reroll if not already used
+    if shop_menu.can_reroll == nil then
+        shop_menu.can_reroll = true
+    end
     
     -- Use the enhanced powerup module to roll shop options including weapons
     -- Total items is fixed at 5 (with pagination showing 3 at a time)
@@ -195,16 +198,16 @@ function shop_menu.draw()
     -- Debug overlay removed for cleaner shop UI
     
     -- Level and cash display
-    love.graphics.setFont(shop_menu._fonts.body)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.printf("You reached level " .. shop_menu.current_level, box_x, box_y + 70, box_w, "center")
+    -- love.graphics.setFont(shop_menu._fonts.body)
+    -- love.graphics.setColor(1, 1, 1, 1)
+    -- love.graphics.printf("You reached level " .. shop_menu.current_level, box_x, box_y + 70, box_w, "center")
     
     -- Display available cash in yellow
-    love.graphics.setColor(1, 0.9, 0, 1) -- Gold color
-    love.graphics.printf("Your Cash: $" .. (hud.cash or 0), box_x, box_y + 100, box_w, "center")
+    -- love.graphics.setColor(1, 0.9, 0, 1) -- Gold color
+    --love.graphics.printf("Your Cash: $" .. (hud.cash or 0), box_x, box_y + 100, box_w, "center")
     
     -- Shop instruction
-    love.graphics.setColor(0.8, 0.8, 0.8, 1)
+    -- love.graphics.setColor(0.8, 0.8, 0.8, 1)
     -- love.graphics.printf("Select a power-up to buy:", box_x, box_y + 130, box_w, "center")
     
     -- Calculate visible item range for current page
@@ -285,8 +288,9 @@ function shop_menu.draw()
                     love.graphics.line(x1, y1, x2, y2)
                 end
                 love.graphics.setColor(rarity_colors)
-                love.graphics.printf(name, box.x, box.y + 70, box.w, "center")
-                love.graphics.setColor(0.85, 0.85, 0.85, 1)
+love.graphics.setFont(shop_menu._fonts.body) -- Ensure correct font for item name/title
+love.graphics.printf(name, box.x, box.y + 70, box.w, "center")
+love.graphics.setColor(0.85, 0.85, 0.85, 1)
                 love.graphics.setFont(shop_menu._fonts.body)
                 love.graphics.printf(description, box.x + 10, box.y + 95, box.w - 20, "center")
                 -- Category tag at bottom
@@ -344,9 +348,13 @@ function shop_menu.draw()
     
     -- Draw REROLL button (left)
     local reroll = shop_menu._reroll_btn
-    love.graphics.setColor(0.1, 0.6, 0.1, 1)
+    if shop_menu.can_reroll then
+        love.graphics.setColor(0.1, 0.6, 0.1, 1)
+    else
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.3) -- Greyed out and faded
+    end
     love.graphics.rectangle("fill", reroll.x, reroll.y, reroll.w, reroll.h, 10, 10)
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(1, 1, 1, shop_menu.can_reroll and 1 or 0.4)
     love.graphics.setLineWidth(2)
     love.graphics.rectangle("line", reroll.x, reroll.y, reroll.w, reroll.h, 10, 10)
     love.graphics.setLineWidth(1)
@@ -465,6 +473,14 @@ end
 -- Handle mouse clicks on the shop menu
 function shop_menu.mousepressed(x, y, button)
     if not shop_menu.active or button ~= 1 then return false end
+    
+    -- Handle REROLL button click (disable after use)
+    local reroll = shop_menu._reroll_btn
+    if shop_menu.can_reroll and x >= reroll.x and x <= reroll.x + reroll.w and y >= reroll.y and y <= reroll.y + reroll.h then
+        shop_menu.can_reroll = false -- Disable reroll after use
+        shop_menu.generate_items(shop_menu.current_level) -- Reroll items
+        return true
+    end
     
     -- Check if any item was clicked
     for i, box in ipairs(shop_menu.item_boxes) do

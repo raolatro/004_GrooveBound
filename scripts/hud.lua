@@ -133,7 +133,14 @@ function hud.draw()
         local y0 = slot_box_y + 8
         local s = inventory.slots[idx]
         if s then
-            love.graphics.setColor(s.color or {1,1,1,1})
+            -- Always use color from settings if available, fallback to slot color, else white
+            local weapon_color = {1,1,1,1}
+            if s.category and settings.weapons[s.category] and settings.weapons[s.category].color then
+                weapon_color = settings.weapons[s.category].color
+            elseif s.color then
+                weapon_color = s.color
+            end
+            love.graphics.setColor(weapon_color)
             love.graphics.circle("fill", x0 + slot_size/2, y0 + slot_size/2, slot_size/2 - 4)
             love.graphics.setColor(0,0,0,1)
             love.graphics.setFont(hud.font)

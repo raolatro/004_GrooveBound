@@ -204,8 +204,21 @@ function powerup.roll_enhanced_level_up_options(count, wave)
         table.remove(combined_pool, idx)
     end
     
-    debug.log("[PowerUp] Final level-up menu has " .. #options .. " options")
-    return options
+    -- Deduplicate weapons: only one per weapon category
+    local unique = {}
+    local deduped = {}
+    for _, opt in ipairs(options) do
+        if opt.is_weapon then
+            if not unique[opt.id] then
+                unique[opt.id] = true
+                table.insert(deduped, opt)
+            end
+        else
+            table.insert(deduped, opt)
+        end
+    end
+    debug.log("[PowerUp] Final level-up menu has " .. #deduped .. " unique options")
+    return deduped
 end
 
 -- Roll random power-ups for shop menu (legacy version for compatibility)

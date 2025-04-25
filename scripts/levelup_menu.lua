@@ -138,9 +138,9 @@ function levelup_menu.draw()
     love.graphics.printf("LEVEL UP!", box_x, box_y + 30, box_w, "center")
     
     -- Level display
-    love.graphics.setFont(levelup_menu._fonts.body)
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.printf("You reached level " .. levelup_menu.current_level, box_x, box_y + 70, box_w, "center")
+    -- love.graphics.setFont(levelup_menu._fonts.body)
+    -- love.graphics.setColor(1, 1, 1, 1)
+    -- love.graphics.printf("You reached level " .. levelup_menu.current_level, box_x, box_y + 70, box_w, "center")
     
     -- Level up instruction
     love.graphics.setColor(0.8, 0.8, 0.8, 1)
