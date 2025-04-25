@@ -23,28 +23,47 @@ local font = settings.main.fonts
 -- Popup spawn
 -- Helper function to create a notification popup with a predefined style
 function popup.create_notification(text, style_name, color)
+    -- Filter notifications - only allow wave and boss notifications
+    -- Skip weapon-related notifications by checking the style and text content
+    if style_name == popup.STYLES.WEAPON then
+        -- Skip all weapon-related notifications
+        return nil
+    end
+    
+    -- Also skip level up notifications, keeping only wave and boss
+    if text:match("LEVEL UP") then
+        -- We still want to show the main level up notification
+        if style_name ~= popup.STYLES.MAIN then
+            return nil
+        end
+    end
+    
     local style = settings.popup.styles[style_name] or settings.popup.styles.subhead
     if not style then
         style = {}
     end
     
-    -- Apply the style's settings
+    -- Override font size to ensure uniform smaller size for all notifications
+    local uniform_font_size = 24 -- Smaller uniform size for all notifications
+    
+    -- Apply the style's settings with size override, but remove box and outline for notifications
     local args = {
         text = text,
         color = color or style.color or {1, 1, 1, 1},
-        font_size = style.font_size,
+        font_size = uniform_font_size, -- Use uniform size instead of style's font_size
         fade_duration = style.fade_duration,
         hold_time = style.hold_time,
-        box = style.box,
-        box_color = style.box_color,
-        box_padding = style.box_padding,
-        outline = style.outline,
-        outline_color = color or style.outline_color,  -- Use main color for outline by default
-        outline_width = style.outline_width,
+        box = false, -- Remove background box
+        box_color = nil,
+        box_padding = 0,
+        outline = false, -- Remove outline
+        outline_color = nil,
+        outline_width = 0,
         shadow = style.shadow,
         shadow_color = style.shadow_color,
         shadow_offset = style.shadow_offset,
-        popup_type = popup.TYPES.NOTIFICATION  -- Always a notification
+        popup_type = popup.TYPES.NOTIFICATION,  -- Always a notification
+        right_aligned = true -- Flag to indicate right alignment
     }
     
     return popup.spawn(args)
@@ -57,11 +76,8 @@ function popup.spawn(args)
     -- Hold time: how long to show at full opacity before fading
     local hold_time = args.hold_time or 2.0 -- Default 2 seconds hold time
     
-    -- For notifications, reduce font size by 50%
+    -- Use the provided font size directly without reduction
     local font_size = args.font_size or s.font_size
-    if args.popup_type == popup.TYPES.NOTIFICATION and args.font_size then
-        font_size = math.floor(args.font_size * 0.5) -- Reduce by 50%
-    end
     
     local p = {
         x = args.x or 0,
@@ -91,9 +107,14 @@ function popup.spawn(args)
     
     -- Handle notification popups differently
     if p.popup_type == popup.TYPES.NOTIFICATION then
-        -- For notifications, always position at top center with margin
-        p.x = love.graphics.getWidth() / 2
-        p.y = 100 -- Start with top margin of 100px
+        -- For notifications, position on the right side below Kills HUD
+        local w = love.graphics.getWidth()
+        local right_margin = 20 -- Space from right edge
+        local top_margin = 260  -- MUCH larger margin from top for more space below HUD
+        
+        -- Position x on the right side of the screen
+        p.x = w - right_margin
+        p.y = top_margin -- Increased Y position below the Kills HUD
         
         -- Stack notifications to avoid overlapping
         -- Calculate position based on existing notifications
@@ -102,6 +123,9 @@ function popup.spawn(args)
             total_height = total_height + existing.height + 10 -- 10px spacing between stacked notifications
         end
         p.y = p.y + total_height
+        
+        -- Set right-aligned flag
+        p.right_aligned = args.right_aligned or false
         
         -- Add to notification stack
         table.insert(popup.notification_stack, p)
@@ -190,10 +214,14 @@ function popup.draw()
         p.width = box_width
         p.height = box_height
         
-        -- For centered notifications, position text centered
+        -- For notifications, position text based on alignment
         local text_x = 0
         if p.popup_type == popup.TYPES.NOTIFICATION then
-            text_x = -tw/2  -- Center the text horizontally
+            if p.right_aligned then
+                text_x = -tw  -- Right-align the text
+            else
+                text_x = -tw/2  -- Center the text horizontally
+            end
         end
         
         -- Shadow
@@ -212,34 +240,10 @@ function popup.draw()
         end
         
         -- Box
-        if p.box then
-            local box_x = text_x - p.box_padding
-            local box_y = -p.box_padding
-            
-            -- For notification popups, center the box
-            if p.popup_type == popup.TYPES.NOTIFICATION then
-                box_x = -box_width/2
-            end
-            
-            love.graphics.setColor(p.box_color[1], p.box_color[2], p.box_color[3], (p.box_color[4] or 1) * alpha)
-            love.graphics.rectangle("fill", box_x, box_y, box_width, box_height, 8, 8)
-        end
+        -- (Notification popups no longer draw a box or background)
         
         -- Outline
-        if p.outline then
-            local box_x = text_x - p.box_padding
-            local box_y = -p.box_padding
-            
-            -- For notification popups, center the outline
-            if p.popup_type == popup.TYPES.NOTIFICATION then
-                box_x = -box_width/2
-            end
-            
-            love.graphics.setColor(p.outline_color[1], p.outline_color[2], p.outline_color[3], (p.outline_color[4] or 1) * alpha)
-            love.graphics.setLineWidth(p.outline_width or 2)
-            love.graphics.rectangle("line", box_x, box_y, box_width, box_height, 8, 8)
-            love.graphics.setLineWidth(1)
-        end
+        -- (Notification popups no longer draw an outline or border)
         
         -- Text
         love.graphics.setColor(p.color[1], p.color[2], p.color[3], (p.color[4] or 1) * alpha)

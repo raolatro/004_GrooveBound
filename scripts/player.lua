@@ -216,6 +216,54 @@ function player.damage(amount)
 end
 
 function player.update(dt)
+    local inventory = require "scripts/inventory"
+    local weapon = require "scripts/weapon"
+    -- Table to track fire timers for each secondary weapon
+    if not player.secondary_timers then player.secondary_timers = {} end
+    for _, w in ipairs(inventory.get_active()) do
+        if w.category ~= "forward" and w.category ~= "drones" then
+            -- Secondary weapons (blaster, shotgun, etc) fire continuously, ignoring enemy presence
+            local weapon_settings = settings.weapons[w.category] and settings.weapons[w.category][w.level or 1] or {}
+            local fire_rate = weapon_settings.fire_rate or 1
+            if not player.secondary_timers[w.category] then
+                player.secondary_timers[w.category] = 0
+            end
+            player.secondary_timers[w.category] = player.secondary_timers[w.category] - dt
+            if player.secondary_timers[w.category] <= 0 then
+                -- Special case for cross/blaster weapon pattern
+                if w.category == "cross" then
+                    -- Cross gun fires in multiple directions forming a star/cross pattern
+                    local dirs = {}
+                    local n = weapon_settings.directions or 4 -- Default to 4 directions
+                    local player_aim = gamepad.dir or 0 -- Use player aim as rotation angle
+                    
+                    -- Create evenly spaced directions and rotate by player aim
+                    for i=1,n do
+                        table.insert(dirs, player_aim + (2*math.pi/n)*(i-1))
+                    end
+                    
+                    -- Fire in all directions simultaneously
+                    for _, dir in ipairs(dirs) do
+                        weapon.spawn(gamepad.x, gamepad.y, dir, true, weapon_settings)
+                    end
+                elseif w.category == "area" then
+                    -- Area/shotgun pattern
+                    local pellets = weapon_settings.pellets or 5
+                    local spread = weapon_settings.spread or 30
+                    local dir = gamepad.dir or 0
+                    for i = 1, pellets do
+                        local angle = dir + math.rad(-spread/2 + spread*(i-1)/(pellets-1))
+                        weapon.spawn(gamepad.x, gamepad.y, angle, true, weapon_settings)
+                    end
+                else
+                    -- Other secondary weapons: fire straight ahead
+                    local dir = gamepad.dir or 0
+                    weapon.spawn(gamepad.x, gamepad.y, dir, true, weapon_settings)
+                end
+                player.secondary_timers[w.category] = 1 / fire_rate
+            end
+        end
+    end
     gamepad.update(dt)
     gamepad.clamp_to_bounds(settings.main.window_width, settings.main.window_height)
 
