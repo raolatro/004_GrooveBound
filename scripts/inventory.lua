@@ -38,6 +38,31 @@ function inventory.add(item, silent)
     
     -- Check if weapon of same category exists, attempt to level it up
     local idx = inventory.find_by_category(item.category)
+    local player = require "scripts/player"
+
+    -- If this is a new weapon (not in inventory), apply all relevant power-up effects
+    if not idx then
+        local weapon_id = item.id or item.category
+        -- Apply all stacked power-up effects to this weapon
+        for powerup_id, effect in pairs(player.powerup_effects or {}) do
+            local data = require("data/powerups")[powerup_id]
+            if data and data.modifiers then
+                local count = effect.count or 1
+                local scope = effect.targets or { type = "global" }
+                for i = 1, count do
+                    if scope.type == "global" then
+                        player.apply_global_modifiers(data.modifiers)
+                    elseif scope.type == "category" and scope.category == item.category then
+                        player.apply_category_modifiers(scope.category, data.modifiers)
+                    elseif scope.type == "weapon" and (scope.weapon == weapon_id or scope.weapon == item.category) then
+                        player.apply_weapon_modifiers(weapon_id, data.modifiers)
+                    end
+                end
+            end
+        end
+    end
+
+    -- If we found an existing weapon, try to level it up
     if idx then
         local current_weapon = inventory.slots[idx]
         local current_level = current_weapon.level or 1

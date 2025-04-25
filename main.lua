@@ -21,6 +21,10 @@ local level_stats = require "scripts/level_stats"
 local pause_menu = require "scripts/pause_menu"
 local levelup_menu = require "scripts/levelup_menu"
 local scenario = require "scripts/scenario"
+local powerup = require "scripts/powerup"
+
+-- Always use global shop_menu
+shop_menu = require("scripts/shop_menu")
 
 require("scripts/init_fonts")()
 
@@ -56,6 +60,9 @@ function love.load()
     -- Initialize scenario system (floor, background, etc.)
     scenario.init()
     debug.log("Game loaded.")
+    -- Initialize power-up system
+    powerup.init()
+    debug.log("Power-up system initialized.")
     -- debug.log("Milestone: Attraction and snap/ease-in features enabled.")
     enemy.spawn_far(gamepad.x, gamepad.y)
     -- debug.log("Enemy spawned.")
@@ -90,8 +97,8 @@ function love.update(dt)
             level_stats.set_boss(nil)
         end
     end
-    -- Pause logic - either normal pause or shop menu active
-    if pause_menu.active or game_paused or levelup_menu.active then
+    -- Pause logic - either normal pause, shop, or level-up menu active
+    if pause_menu.active or game_paused or levelup_menu.active or (shop_menu and shop_menu.active) then
         return
     end
     -- Main gameplay update
@@ -275,7 +282,7 @@ function love.update(dt)
             local dir = gamepad.dir or 0
             local on_beat = player.on_beat_fire
             weapon.spawn(gamepad.x, gamepad.y, dir, on_beat)
-            debug.log("Weapon auto-fired at enemy.")
+            -- debug.log("Weapon auto-fired at enemy.")
             player.register_fire()
             player.fire_timer = settings.projectile.fire_rate
         end
@@ -283,13 +290,18 @@ function love.update(dt)
 end  -- End of love.update function
 
 function love.draw()
+    print("DRAW: shop_menu.active=", shop_menu and shop_menu.active, "levelup_menu.active=", levelup_menu and levelup_menu.active, "pause_menu.active=", pause_menu and pause_menu.active, "game_paused=", game_paused)
+
     -- Draw game state: game over, pause menu, level up menu, or normal gameplay
     if game_over.active then
         game_over.draw()
+    elseif shop_menu and shop_menu.active then
+        -- Draw the shop menu
+        shop_menu.draw()
     elseif levelup_menu.active then
         -- Draw level up menu
         levelup_menu.draw()
-    elseif pause_menu.active or game_paused then
+    elseif (pause_menu.active or game_paused) and not (shop_menu and shop_menu.active) and not levelup_menu.active then
         debug.log("[Main] Drawing pause menu (pause_menu.active=" .. tostring(pause_menu.active) .. ", game_paused=" .. tostring(game_paused) .. ")")
         -- Only pause_menu.draw handles the pause overlay and UI
         pause_menu.draw()
@@ -369,7 +381,12 @@ function love.mousepressed(x, y, button)
         if game_over.mousepressed(x, y, button) then return end
     end
     
-    -- Check for shop menu interactions when level up
+    -- Check for shop menu interactions when active
+    if shop_menu and shop_menu.active then
+        if shop_menu.mousepressed(x, y, button) then return end
+    end
+    
+    -- Check for levelup menu interactions when active
     if levelup_menu.active then
         if levelup_menu.mousepressed(x, y, button) then return end
     end
@@ -399,7 +416,11 @@ end
 -- Handle mouse movement for UI hover states
 function love.mousemoved(x, y, dx, dy)
     -- Forward mouse movement to shop menu for hover effects
-    local levelup_menu = require "scripts/levelup_menu"
+    if shop_menu and shop_menu.active then
+        shop_menu.mousemoved(x, y)
+    end
+    
+    -- Forward mouse movement to levelup menu for hover effects
     if levelup_menu.active then
         levelup_menu.mousemoved(x, y)
     end
@@ -408,6 +429,17 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.keypressed(key)
+    -- Forward keypressed to shop menu when it's active
+    if shop_menu and shop_menu.active then
+        if key == "escape" then
+            shop_menu.hide()
+            return
+        end
+        if shop_menu.keypressed and shop_menu.keypressed(key) then
+            return
+        end
+    end
+
     if key == "escape" then
         if hud.active then
             hud.active = false

@@ -209,6 +209,44 @@ local settings = {
     },
     -- Load item drop settings
     item_data = require "data/items",
+    
+    -- Power-up system settings
+    powerups = {
+        -- Configuration for the power-up system
+        level_up_count = 3,        -- Number of options presented in level-up menu
+        shop_count = 4,            -- Number of options presented in shop menu
+        always_include_ultimate = true, -- Always include ultimate upgrade in post-boss shop
+        
+        -- Rarity weights for level-up menu
+        level_up_weights = {
+            common = 10,
+            uncommon = 8,
+            rare = 5,
+            epic = 3,
+            legendary = 1,
+            extremely_legendary = 0, -- Never in level-up menu
+        },
+        
+        -- Rarity weights for shop menu (higher = more likely)
+        shop_weights = {
+            common = 1,
+            uncommon = 2,
+            rare = 3,
+            epic = 4,
+            legendary = 5,
+            extremely_legendary = 10, -- Special handling for extremely legendary
+        },
+        
+        -- Rarity colors for UI
+        colors = {
+            common = {0.7, 0.7, 0.7, 1},       -- Gray
+            uncommon = {0.0, 0.7, 0.0, 1},     -- Green
+            rare = {0.0, 0.4, 0.9, 1},         -- Blue
+            epic = {0.7, 0.2, 0.9, 1},         -- Purple
+            legendary = {1.0, 0.6, 0.0, 1},    -- Orange
+            extremely_legendary = {1.0, 0.1, 0.1, 1}, -- Red
+        },
+    },
     loot = {
         attraction_enabled = true, -- coins chase player
         attraction_speed = 500,   -- px/sec
@@ -298,29 +336,29 @@ settings.loot = {
 
 settings.waves = {
     { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
-    { hp = 12, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
-    { hp = 15, speed = 90, spawn_rate = 1.9, max_enemies = 12 }, -- Wave 3
-    { hp = 20, speed = 100, spawn_rate = 1.8, max_enemies = 15 }, -- Wave 4
-    { hp = 25, speed = 110, spawn_rate = 1.5, max_enemies = 20 }, -- Wave 5
-    { hp = 30, speed = 120, spawn_rate = 1.2, max_enemies = 25 }, -- Wave 6
-    { hp = 35, speed = 130, spawn_rate = 1.0, max_enemies = 30 }, -- Wave 7
-    { hp = 40, speed = 140, spawn_rate = 0.9, max_enemies = 35 }, -- Wave 8
-    { hp = 45, speed = 150, spawn_rate = 0.8, max_enemies = 45 }, -- Wave 9
-    { hp = 50, speed = 160, spawn_rate = 0.7, max_enemies = 50 }, -- Wave 10
-    { hp = 55, speed = 170, spawn_rate = 0.6, max_enemies = 55 }, -- Wave 11
-    { hp = 60, speed = 180, spawn_rate = 0.5, max_enemies = 60 }, -- Wave 12
-    { hp = 65, speed = 190, spawn_rate = 0.4, max_enemies = 65 }, -- Wave 13
+    { hp = 12, speed = 70, spawn_rate = 2.3, max_enemies = 10 }, -- Wave 2
+    { hp = 15, speed = 70, spawn_rate = 2.1, max_enemies = 12 }, -- Wave 3
+    { hp = 20, speed = 70, spawn_rate = 1.9, max_enemies = 15 }, -- Wave 4
+    { hp = 25, speed = 70, spawn_rate = 1.7, max_enemies = 20 }, -- Wave 5
+    { hp = 30, speed = 70, spawn_rate = 1.5, max_enemies = 25 }, -- Wave 6
+    { hp = 30, speed = 70, spawn_rate = 1.3, max_enemies = 30 }, -- Wave 7
+    { hp = 30, speed = 70, spawn_rate = 1.1, max_enemies = 35 }, -- Wave 8
+    { hp = 30, speed = 70, spawn_rate = 0.9, max_enemies = 45 }, -- Wave 9
+    { hp = 30, speed = 70, spawn_rate = 0.7, max_enemies = 50 }, -- Wave 10
+    { hp = 30, speed = 70, spawn_rate = 0.6, max_enemies = 55 }, -- Wave 11
+    { hp = 30, speed = 70, spawn_rate = 0.5, max_enemies = 60 }, -- Wave 12
+    { hp = 30, speed = 70, spawn_rate = 0.4, max_enemies = 65 }, -- Wave 13
     -- Add more for easy tuning
 }
 settings.boss = {
-    hp = { 20, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400 }, -- Boss HP per boss number
+    hp = { 40, 80, 160, 240, 320, 400, 480, 560, 640, 720, 800 }, -- Boss HP per boss number
     speed = { 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300 },
     radius = { 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240 },
     color = { {1,0.2,0.2,1}, {0.4,0,1,1}, {1,0.6,0,1}, {0,0.8,0.8,1}, {0.2,0.2,1,1} },
     sfx = { 'boss1', 'boss2', 'boss3', 'boss4', 'boss5', 'boss6', 'boss7', 'boss8', 'boss9', 'boss10', 'boss11' },
 }
-settings.wave_duration = 15
-settings.boss_duration = 40
+settings.wave_duration = 20
+settings.boss_duration = 10
 
 -- Weapon categories and levels
 settings.weapons = {

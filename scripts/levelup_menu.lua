@@ -1,15 +1,16 @@
--- scripts/levelup_menu.lua: Handles the level up weapon selection interface
+-- scripts/levelup_menu.lua: Handles the level up power-up selection interface
 local settings = require "settings"
 local debug = require "scripts/debug"
 local hud = require "scripts/hud"
+local powerup = require "scripts/powerup"
 
 local levelup_menu = {}
 
 -- Level up state
 levelup_menu.active = false
 levelup_menu.current_level = 1
-levelup_menu.available_items = {}  -- Items available for selection
-levelup_menu.hover_item = nil      -- Item player is hovering over
+levelup_menu.available_items = {}  -- Power-ups available for selection
+levelup_menu.hover_item = nil      -- Power-up player is hovering over
 
 -- Font system for level up menu
 function levelup_menu.reload_fonts()
@@ -23,63 +24,37 @@ end
 -- Load fonts on module load
 levelup_menu.reload_fonts()
 
--- Generate a random selection of weapons for the level up based on player level
+-- Generate a random selection of power-ups for the level up menu
 function levelup_menu.generate_items(level)
-    local data = settings.item_data
-    local inventory = require "scripts/inventory"
-    local weapons = {}
-    
     -- Reset available items
     levelup_menu.available_items = {}
     
-    -- Gather all weapon types
-    for id, item in pairs(data.Items) do
-        if item.type == "weapon" then
-            -- Find if player already has this weapon and its level by category
-            local has_weapon = false
-            local player_weapon_level = 1
+    debug.log("[LevelUpMenu] Generating options for level " .. level)
+    
+    -- Use the new enhanced function that supports weapons in the level up menu
+    -- Pass the current level/wave to control weapon probability
+    local options = powerup.roll_enhanced_level_up_options(settings.powerups.level_up_count or 3, level)
+    debug.log("[LevelUpMenu] Roll returned " .. #options .. " options")
+    
+    -- If we got options (power-ups or weapons), add them to available items
+    if #options > 0 then
+        for i, option in ipairs(options) do
+            local is_weapon = option.is_weapon or option.data.is_weapon or false
+            local item_type = is_weapon and "weapon" or "powerup"
+            debug.log("[LevelUpMenu] Adding " .. item_type .. " option " .. i .. ": " .. option.id .. " (" .. option.data.name .. ")")
             
-            -- Look for weapons by category instead of ID, since that's how inventory.add works
-            local idx = inventory.find_by_category(item.category)
-            if idx then
-                local slot = inventory.slots[idx]
-                has_weapon = true
-                player_weapon_level = slot.level or 1
-                debug.log("Found existing weapon: " .. item.category .. " at level " .. player_weapon_level)
-            end
-            
-            -- Calculate next level
-            local next_level = has_weapon and player_weapon_level + 1 or 1
-            
-            debug.log("Adding levelup item: " .. item.category .. ", level: " .. 
-                      (has_weapon and player_weapon_level or "not owned") .. 
-                      ", next level: " .. next_level)
-            
-            -- Add to potential levelup items
-            table.insert(weapons, {
-                id = id,
-                category = item.category,
-                has_weapon = has_weapon,
-                player_level = player_weapon_level,
-                next_level = next_level,
-                color = item.color or {1, 1, 1, 1}
+            table.insert(levelup_menu.available_items, {
+                id = option.id,
+                data = option.data,
+                is_weapon = is_weapon,
+                color = powerup.get_rarity_color(option.data.rarity)
             })
         end
+    else
+        debug.log("[LevelUpMenu] Warning: No options available for level up")
     end
     
-    -- Shuffle the weapons list
-    for i = #weapons, 2, -1 do
-        local j = math.random(i)
-        weapons[i], weapons[j] = weapons[j], weapons[i]
-    end
-    
-    -- Select up to 3 weapons for the level up screen
-    local count = math.min(3, #weapons)
-    for i = 1, count do
-        table.insert(levelup_menu.available_items, weapons[i])
-    end
-    
-    debug.log("Generated " .. count .. " level up options")
+    debug.log("[LevelUpMenu] Final menu has " .. #levelup_menu.available_items .. " options")
 end
 
 -- Show the level up menu when leveling up
@@ -189,27 +164,62 @@ function levelup_menu.draw()
         love.graphics.rectangle("line", box.x, box.y, box.w, box.h, 15, 15)
         love.graphics.setLineWidth(1)
         
-        -- Draw weapon dot 3x bigger
-        local dot_size = 15  -- 3x the normal size
-        love.graphics.circle("fill", box.x + box.w/2, box.y + 50, dot_size)
-        love.graphics.setColor(1, 1, 1, 0.4)
-        love.graphics.circle("line", box.x + box.w/2, box.y + 50, dot_size + 1)
+        -- Draw power-up icon (colored gem/crystal)
+        local icon_size = 20
+        local icon_y = box.y + 40
         
-        -- Weapon name and level
-        love.graphics.setColor(item.color)
+        -- Set icon color based on rarity
+        local power_data = item.data
+        local rarity_colors = settings.powerups.colors[power_data.rarity] or {1, 1, 1, 1}
+        love.graphics.setColor(rarity_colors)
+        
+        -- Draw a hexagon gem icon
+        local sides = 6
+        local radius = icon_size
+        local x, y = box.x + box.w/2, icon_y
+        
+        -- Draw gem/crystal
+        for i = 1, sides do
+            local angle1 = (i - 1) * (2 * math.pi / sides)
+            local angle2 = i * (2 * math.pi / sides)
+            local x1 = x + radius * math.cos(angle1)
+            local y1 = y + radius * math.sin(angle1)
+            local x2 = x + radius * math.cos(angle2)
+            local y2 = y + radius * math.sin(angle2)
+            love.graphics.polygon("fill", x, y, x1, y1, x2, y2)
+        end
+        
+        -- Outline
+        love.graphics.setColor(1, 1, 1, 0.6)
+        love.graphics.setLineWidth(1)
+        for i = 1, sides do
+            local angle1 = (i - 1) * (2 * math.pi / sides)
+            local angle2 = i * (2 * math.pi / sides)
+            local x1 = x + radius * math.cos(angle1)
+            local y1 = y + radius * math.sin(angle1)
+            local x2 = x + radius * math.cos(angle2)
+            local y2 = y + radius * math.sin(angle2)
+            love.graphics.line(x1, y1, x2, y2)
+        end
+        
+        -- Power-up name and description
+        local power_data = item.data
+        local name = power_data.name or "Unknown Power-up"
+        local description = power_data.description or ""
+        
+        -- Set color based on rarity
+        local rarity_colors = settings.powerups.colors[power_data.rarity] or {1, 1, 1, 1}
+        love.graphics.setColor(rarity_colors)
+        
+        -- Power-up name
+        love.graphics.printf(name, box.x, box.y + 70, box.w, "center")
+        
+        -- Reset color for description
+        love.graphics.setColor(0.85, 0.85, 0.85, 1)
         love.graphics.setFont(levelup_menu._fonts.body)
         
-        -- Get display name from settings if available
-        local category = item.category or "unknown"
-        local weapon_settings = settings.weapons[category] or {}
-        local display_name = weapon_settings.display_name or category:upper()
-        
-        -- Weapon name
-        love.graphics.printf(display_name, box.x, box.y + 80, box.w, "center")
-        
-        -- Weapon level indicator
-        local level_text = item.has_weapon and "Level up to LVL " .. item.next_level or "New weapon!"
-        love.graphics.printf(level_text, box.x, box.y + 110, box.w, "center")
+        -- Power-up description (with word wrap)
+        love.graphics.printf(description, box.x + 10, box.y + 100, box.w - 20, "center")
         
         -- Action text in a nice color
         love.graphics.setColor(0.3, 1, 0.5, 1) -- Green
@@ -228,44 +238,56 @@ function levelup_menu.draw()
     love.graphics.printf("SKIP", btn.x, btn.y + 12, btn.w, "center")
 end
 
--- Handle item selection
+-- Handle item selection (could be a power-up or weapon)
 function levelup_menu.select_item(item_index)
     local item = levelup_menu.available_items[item_index]
     if not item then return false end
     
-    -- Add the weapon to inventory or level it up
-    local inventory = require "scripts/inventory"
-    local popup = require "scripts/popup"
-    local success, action, category, level = inventory.add(item.id)
+    local success = false
     
-    if success then
-        -- Play appropriate weapon sound based on action type and category
-        local sfx = require "scripts/sfx"
-        if sfx.play then
-            if action == "level_up" then
-                -- Play weapon level up sound
-                sfx.play('weapon_levelup', category)
-            else
-                -- Play weapon picked sound
-                sfx.play('weapon_picked', category)
+    -- Handle differently based on item type
+    if item.is_weapon then
+        -- It's a weapon, add it to inventory
+        local inventory = require "scripts/inventory"
+        local debug = require "scripts/debug"
+        local popup = require "scripts/popup"
+        
+        debug.log("[LevelUpMenu] Adding weapon to inventory: " .. item.id)
+        
+        -- Create a weapon item for inventory using the category
+        local weapon_item = {
+            type = "weapon",
+            category = item.data.category or item.id,
+            level = 1,
+            color = powerup.get_rarity_color("rare")
+        }
+        
+        -- Add to inventory
+        local result, action = inventory.add(weapon_item, false)
+        success = (result == true)
+        
+        if success then
+            -- Show weapon acquisition notification
+            local display_name = item.data.name or item.id:gsub("^%l", string.upper)
+            popup.create_notification("NEW WEAPON: " .. display_name, popup.STYLES.WEAPON, weapon_item.color)
+            
+            -- Play weapon pickup sound
+            local sfx = require "scripts/sfx"
+            if sfx.play then
+                sfx.play('weapon_pickup')
             end
         end
-        
-        -- Create a popup for the selection
-        if action == "level_up" then
-            popup.create_notification(category:upper() .. " upgraded to LVL " .. level, popup.STYLES.WEAPON, item.color)
-        else
-            popup.create_notification("Acquired " .. category:upper(), popup.STYLES.WEAPON, item.color)
-        end
-        
-        -- Close the level up menu and continue the game
+    else
+        -- It's a regular power-up
+        success = powerup.acquire(item.id, true)
+    end
+    
+    if success then
+        -- Close the level up menu
         levelup_menu.hide()
-        
-        debug.log(category .. " " .. (action == "level_up" and "upgraded" or "acquired") .. " to level " .. level)
         return true
     end
     
-    debug.log("Failed to upgrade " .. (item.category or "unknown"))
     return false
 end
 

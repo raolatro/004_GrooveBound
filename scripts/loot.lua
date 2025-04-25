@@ -373,7 +373,7 @@ function loot.on_pickup(index, player_x, player_y)
     local sfx = require "scripts/sfx"
     
     -- Debug log
-    debug.log("Loot picked up: " .. drop.id .. " at position " .. drop.x .. ", " .. drop.y)
+    -- debug.log("Loot picked up: " .. drop.id .. " at position " .. drop.x .. ", " .. drop.y)
     
     -- Check if it's a cash/coin type
     local is_cash = drop.id:match("coin") or drop.id:match("gold") or drop.id:match("treasure") or drop.id == "money"

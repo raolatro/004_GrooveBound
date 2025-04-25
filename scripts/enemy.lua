@@ -96,6 +96,28 @@ function enemy.spawn_far(player_x, player_y)
 end
 
 function enemy.update(dt, player_x, player_y, projectiles)
+    -- Handle shop timer if a boss was recently killed
+    if enemy.pending_shop and enemy.shop_timer then
+        enemy.shop_timer = enemy.shop_timer - dt
+        
+        if enemy.shop_timer <= 0 then
+            -- Reset the timer and flag
+            enemy.shop_timer = nil
+            enemy.pending_shop = false
+            
+            -- Get current player level
+            local player_level = require("scripts/player").level or 1
+            
+            -- Show the shop menu using the global shop_menu variable
+            shop_menu.show(player_level)
+            
+            -- Force game to pause
+            _G.game_paused = true
+            
+            debug.log("Shop menu opened after boss kill - menu active: " .. tostring(shop_menu.active))
+        end
+    end
+    
     local player_radius = 16
     local enemy_radius = 12
     enemy.explosions = enemy.explosions or {}
@@ -195,6 +217,16 @@ function enemy.update(dt, player_x, player_y, projectiles)
                     -- Debug log for loot drops
                     debug.log(string.format("%s dropped $%d worth of loot", 
                         e.is_boss and "Boss" or "Enemy", total_loot_value))
+                    
+                    -- If this was a boss, trigger the shop menu after a short delay
+                    if e.is_boss then
+                        debug.log("Boss killed! Opening shop menu soon...")
+                        -- Create a timer to open the shop after the death animation
+                        -- This ensures everything resolves before the shop appears
+                        enemy.shop_timer = 1.5 -- seconds delay
+                        enemy.pending_shop = true
+                    end
+                    
                     -- Start death animation
                     e.state = "death"
                     e.anim_frame = 1
@@ -232,8 +264,6 @@ end
 function enemy.draw()
     -- Draw all enemies and their HP
     local hp_settings = settings.enemy_hp_display
-    -- Cache font by size
-    enemy._hp_font = enemy._hp_font or love.graphics.newFont(hp_settings.font_size)
     -- Draw explosions (sacrificed enemies)
     enemy.explosions = enemy.explosions or {}
     local now = love.timer.getTime()
