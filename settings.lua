@@ -3,9 +3,10 @@ local settings = {
     main = {
         sfx = {
             volume = 0.25, -- global SFX volume (0-1)
+            weapons_volume = 2, -- weapon sounds relative volume (multiplied by global volume)
             loot_enabled = true,
             weapon_enabled = true,
-            projectile_enabled = true,
+            projectile_enabled = false,
             dead_enabled = true,
         },
         scoring = {
@@ -136,14 +137,14 @@ local settings = {
         font_size = 20,         -- font size in px for popup text
         stay_duration = 3,      -- seconds popup stays before fading
         fade_duration = 0.3,    -- seconds to fade out
-        y_offset = 10,
+        y_offset = -25,         -- pixels above enemy center
         box = false,
         box_color = {0,0,0,0.7},
         
         -- XP popup settings
         xp_text = "+%d XP",    -- XP popup text format (will be formatted with amount)
         xp_color = {0.4, 0.6, 1, 1}, -- blue color for XP popups
-        box_padding = 5,
+        box_padding = 8,
         outline = false,
         outline_color = {1,1,1,1},
         outline_width = 2,

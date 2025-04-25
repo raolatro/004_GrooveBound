@@ -13,6 +13,7 @@ local paths = {
     },
     assets = {
         sfx = {
+            base_path = "assets/sfx/",
             coin = {
                 "assets/sfx/coin1.ogg",
                 "assets/sfx/coin2.ogg",
@@ -22,7 +23,6 @@ local paths = {
                 "assets/sfx/coin6.ogg",
                 "assets/sfx/coin7.ogg",
             },
-            weapon = "assets/sfx/weapon.ogg",
             projectile = {
                 "assets/sfx/projectile1.ogg",
                 "assets/sfx/projectile2.ogg",
@@ -33,7 +33,21 @@ local paths = {
                 "assets/sfx/dead2.ogg",
                 "assets/sfx/dead3.ogg",
                 "assets/sfx/dead4.ogg",
-            }
+            },
+            -- New weapon sounds
+            weapon_picked = {
+                -- forward = "assets/sfx/weapon-pistol1-picked.ogg", -- Pistol (placeholder)
+                cross = "assets/sfx/weapon-cross1-picked.ogg",    -- Blaster
+                area = "assets/sfx/weapon-heavy1-picked.ogg",     -- Shotgun
+                drones = "assets/sfx/weapon-drones1-picked.ogg",  -- Drones
+            },
+            weapon_levelup = {
+                forward = "assets/sfx/weapon-pistol1-levelup.ogg", -- Pistol
+                cross = "assets/sfx/weapon-cross1-levelup.ogg",  -- Blaster
+                area = "assets/sfx/weapon-heavy1-levelup.ogg",     -- Shotgun
+                drones = "assets/sfx/weapon-drones1-levelup.ogg",  -- Drones
+            },
+            levelup = "assets/sfx/levelup.ogg"
         },
         img = "assets/img/",
         hp = "assets/img/hp.png",

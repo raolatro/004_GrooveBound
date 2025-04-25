@@ -89,7 +89,7 @@ local LootTypes = {
     },
     -- Rare loot (high value)
     { 
-        name = "iPod Nano", 
+        name = "iPhone", 
         id = "gold_nugget", 
         value = 50, 
         size = 14, 
@@ -99,7 +99,7 @@ local LootTypes = {
     },
     -- Epic loot (very high value)
     { 
-        name = "iPhone 16 Plus", 
+        name = "Macbook Pro", 
         id = "gold_bar", 
         value = 100, 
         size = 16, 

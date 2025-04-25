@@ -163,23 +163,13 @@ function loot.update(dt, player_x, player_y, outline_radius)
                         break
                     end
                 end
-                -- Overwrite drop's tint and size for consistency
+                -- Always update drop's tint and size for consistency
                 d.tint = loot_tint
                 d.size = loot_size
                 -- Add money to player cash
                 if not hud.cash then hud.cash = 0 end
                 hud.cash = hud.cash + loot_value
-                -- Create popup showing the loot name and cash pickup amount
-                popup.spawn({
-                    x = d.x,
-                    y = d.y,
-                    text = loot_name .. " +$" .. loot_value,
-                    color = loot_tint,
-                    font_size = 16,
-                    fade_duration = 0.5,
-                    stay_duration = 0.2,
-                    y_offset = -20,
-                })
+                -- Popup is now created in on_pickup function to avoid duplicates
                 
                 -- Play cash pickup sound
                 if sfx.play then
@@ -343,10 +333,9 @@ function loot.spawn_multiple(x, y, is_boss, killed_by_groove, wave_number)
     for i = 1, num_drops do
         local chosen_loot = loot.roll_loot_type()
         local new_loot = loot.spawn_item(x, y, scattered_range, chosen_loot)
-        
-        -- Apply value scaling to this loot item
+        -- Optionally scale value for groove/boss drops
         new_loot.value = math.floor(new_loot.value * value_multiplier)
-        
+        table.insert(loot.drops, new_loot)
         total_value = total_value + new_loot.value
     end
     

@@ -69,6 +69,28 @@ function popup.create_notification(text, style_name, color)
     return popup.spawn(args)
 end
 
+-- Helper function to find non-overlapping position for popups
+local function find_non_overlapping_position(base_x, base_y, existing_popups)
+    local padding = 15
+    local attempts = 0
+    local x, y = base_x, base_y
+    
+    while attempts < 10 do
+        local collision = false
+        for _, p in ipairs(existing_popups) do
+            if math.abs(p.x - x) < padding and math.abs(p.y - y) < padding then
+                collision = true
+                x = x + (math.random() * 20 - 10)
+                y = y - padding
+                break
+            end
+        end
+        if not collision then break end
+        attempts = attempts + 1
+    end
+    return x, y
+end
+
 function popup.spawn(args)
     -- args: {x, y, text, color, font_size, fade_duration, hold_time, y_offset, box, box_color, box_padding, outline, outline_color, outline_width, shadow, shadow_color, shadow_offset, popup_type}
     local s = settings.popup
@@ -129,11 +151,23 @@ function popup.spawn(args)
         
         -- Add to notification stack
         table.insert(popup.notification_stack, p)
+    else
+        -- For standard popups, use position collision avoidance
+        local player = require "scripts/player"
+        local px = (player and player.x) or (love.graphics.getWidth() / 2)
+        local py = (player and player.y) or (love.graphics.getHeight() / 2)
+        if type(px) ~= 'number' then px = love.graphics.getWidth() / 2 end
+        if type(py) ~= 'number' then py = love.graphics.getHeight() / 2 end
+        local x, y = find_non_overlapping_position(px, py - 50, popup.active)
+        p.x = x
+        p.y = y
     end
     
     table.insert(popup.active, p)
     return p
 end
+
+-- Function moved above popup.spawn
 
 function popup.update(dt)
     -- Update all active popups
@@ -184,7 +218,7 @@ function popup.draw()
         else
             -- Standard popups use their original position + y_offset
             -- This is where y_offset from settings is applied
-            love.graphics.translate(p.x, p.y + (p.y_offset or 0))
+            love.graphics.translate(p.x, p.y + (p.y_offset or -30))  -- Bring closer to character
         end
         
         -- Set font for popup

@@ -38,6 +38,13 @@ function scoring.add_xp(x, y, amount)
                  settings.xp.levels[new_level].threshold .. ")")
         
         hud.level = new_level
+        
+        -- Play player level up sound
+        local sfx = require "scripts/sfx"
+        if sfx.play then
+            sfx.play('levelup') -- Play the player level up sound
+        end
+        
         scoring.trigger_level_up(new_level)
     end
 end

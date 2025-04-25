@@ -65,9 +65,10 @@ function inventory.add(item, silent)
                 -- Use ONLY the weapon style for level up notification (no extra popups)
                 popup.create_notification(display_name .. " LEVEL " .. new_level, popup.STYLES.WEAPON, weapon_color)
                 
-                -- Play level up sound if available
-                if sfx and sfx.play then
-                    sfx.play('levelup')
+                -- Play weapon-specific level up sound
+                local sfx = require "scripts/sfx"
+                if sfx.play then
+                    sfx.play('weapon_levelup', category)
                 end
             end
             

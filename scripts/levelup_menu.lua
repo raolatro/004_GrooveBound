@@ -239,10 +239,16 @@ function levelup_menu.select_item(item_index)
     local success, action, category, level = inventory.add(item.id)
     
     if success then
-        -- Play selection sound
+        -- Play appropriate weapon sound based on action type and category
         local sfx = require "scripts/sfx"
         if sfx.play then
-            sfx.play('purchase')
+            if action == "level_up" then
+                -- Play weapon level up sound
+                sfx.play('weapon_levelup', category)
+            else
+                -- Play weapon picked sound
+                sfx.play('weapon_picked', category)
+            end
         end
         
         -- Create a popup for the selection
