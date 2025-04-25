@@ -35,17 +35,39 @@ function shop_menu.generate_items(level)
     -- Gather all weapon types
     for id, item in pairs(data.Items) do
         if item.type == "weapon" then
-            -- Find if player already has this weapon and its level
+            -- Find if player already has this weapon and its level by category
             local has_weapon = false
             local player_weapon_level = 1
             
-            for _, slot in ipairs(inventory.slots) do
-                if slot and slot.id == id then
-                    has_weapon = true
-                    player_weapon_level = slot.level or 1
-                    break
-                end
+            -- Look for weapons by category instead of ID, since that's how inventory.add works
+            local idx = inventory.find_by_category(item.category)
+            if idx then
+                local slot = inventory.slots[idx]
+                has_weapon = true
+                player_weapon_level = slot.level or 1
+                debug.log("Found existing weapon: " .. item.category .. " at level " .. player_weapon_level)
             end
+            
+            -- Calculate price based on the next level (current level + 1 if owned)
+            local next_level = has_weapon and player_weapon_level + 1 or 1
+            
+            -- Base prices by category
+            local base_prices = {
+                forward = 100,
+                cross = 150,
+                drones = 200,
+                area = 250
+            }
+            
+            -- Get base price for this category or default to 100
+            local base_price = base_prices[item.category] or 100
+            
+            -- Calculate final price: next level * base price
+            local final_price = next_level * base_price
+            
+            debug.log("Adding shop item: " .. item.category .. ", level: " .. 
+                      (has_weapon and player_weapon_level or "not owned") .. 
+                      ", shop price: $" .. final_price)
             
             -- Add to potential shop items with correct level and price
             table.insert(weapons, {
@@ -53,14 +75,9 @@ function shop_menu.generate_items(level)
                 category = item.category,
                 has_weapon = has_weapon,
                 player_level = player_weapon_level,
-                shop_level = has_weapon and player_weapon_level + 1 or 1,
+                shop_level = next_level,
                 color = item.color or {1, 1, 1, 1},
-                -- Scale price with level and rarity
-                price = (has_weapon and player_weapon_level + 1 or 1) * 
-                        (item.category == "forward" and 100 or 
-                         item.category == "cross" and 150 or 
-                         item.category == "drones" and 200 or 
-                         item.category == "area" and 250 or 100)
+                price = final_price
             })
         end
     end

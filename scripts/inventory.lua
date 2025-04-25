@@ -20,7 +20,8 @@ function inventory.find_by_category(category)
 end
 
 -- Add a weapon (itemId or item table) to inventory or level up existing weapon
-function inventory.add(item)
+-- The silent parameter suppresses notifications and sounds, useful for initial game load
+function inventory.add(item, silent)
     local data = settings.item_data
     local debug = require "scripts/debug"
     local popup = require "scripts/popup"
@@ -54,23 +55,20 @@ function inventory.add(item)
             
             debug.log("Inventory: leveled up " .. category .. " weapon to level " .. new_level)
             
-            -- Get weapon color and display name
-            local weapon_color = {1, 1, 1, 1}
-            local weapon_settings = settings.weapons[category]
-            local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
-            
-            -- Get color from item data if available
-            if data.Items[category .. "Gun"] and data.Items[category .. "Gun"].color then
-                weapon_color = data.Items[category .. "Gun"].color
-            end
-            
-            -- Use ONLY the weapon style for level up notification (no extra popups)
-            popup.create_notification(display_name .. " LEVEL " .. new_level, popup.STYLES.WEAPON, weapon_color)
-            -- No other popups for level up
-            
-            -- Play level up sound if available
-            if sfx and sfx.play then
-                sfx.play('levelup')
+            -- Only show notification if not silent
+            if not silent then
+                -- Get weapon color and display name
+                local weapon_color = {1, 1, 1, 1}
+                local weapon_settings = settings.weapons[category]
+                local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
+                
+                -- Use ONLY the weapon style for level up notification (no extra popups)
+                popup.create_notification(display_name .. " LEVEL " .. new_level, popup.STYLES.WEAPON, weapon_color)
+                
+                -- Play level up sound if available
+                if sfx and sfx.play then
+                    sfx.play('levelup')
+                end
             end
             
             -- Trigger a visual effect or feedback for level-up
@@ -78,12 +76,15 @@ function inventory.add(item)
         else
             debug.log("Inventory: " .. category .. " weapon already at max level (" .. current_level .. ")")
             
-            -- Get weapon display name
-            local weapon_settings = settings.weapons[category]
-            local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
-            
-            -- Use the weapon style for max level notification with silver color
-            popup.create_notification(display_name .. " MAXED OUT!", popup.STYLES.WEAPON, {0.8, 0.8, 0.8, 1})
+            -- Only show notification if not silent
+            if not silent then
+                -- Get weapon display name
+                local weapon_settings = settings.weapons[category]
+                local display_name = weapon_settings and weapon_settings.display_name or category:gsub("^%l", string.upper)
+                
+                -- Use the weapon style for max level notification with silver color
+                popup.create_notification(display_name .. " MAXED OUT!", popup.STYLES.WEAPON, {0.8, 0.8, 0.8, 1})
+            end
             
             return false, "max_level", category, current_level
         end

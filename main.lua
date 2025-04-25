@@ -61,8 +61,8 @@ function love.load()
     -- debug.log("Enemy spawned.")
     -- Hook beat event to player visual cue
     beat.on_beat(player.on_beat)
-    -- Give player starting forward gun
-    inventory.add("forwardGun")
+    -- Give player starting forward gun (silently, with no popup)
+    inventory.add("forwardGun", true) -- true = silent mode, no popup
     -- Reset escalation
     wave_timer = settings.wave_duration or 15
     boss_timer = settings.boss_duration or 60

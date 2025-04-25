@@ -300,8 +300,9 @@ function loot.spawn_multiple(x, y, is_boss, killed_by_groove, wave_number)
     local data = settings.item_data
     wave_number = wave_number or (_G.current_wave or 1)
     
-    -- Calculate wave scaling factor (e.g., +50% every 10 waves)
-    local wave_scaling = 1 + (loot_settings.wave_scaling * (wave_number / 10))
+    -- Calculate wave scaling factors for both drops and value
+    local wave_drop_scaling = 1 + (loot_settings.wave_drop_scaling * wave_number)
+    local wave_value_scaling = 1 + (loot_settings.wave_value_scaling * wave_number)
     
     -- Determine base min/max drops based on enemy type
     local min_drops = is_boss and loot_settings.boss_min_drops or loot_settings.min_drops
@@ -314,16 +315,26 @@ function loot.spawn_multiple(x, y, is_boss, killed_by_groove, wave_number)
     end
     
     -- Apply wave scaling to min/max drops (with a floor function to ensure whole numbers)
-    min_drops = math.floor(min_drops * wave_scaling)
-    max_drops = math.floor(max_drops * wave_scaling)
+    min_drops = math.floor(min_drops * wave_drop_scaling)
+    max_drops = math.floor(max_drops * wave_drop_scaling)
     
     -- Calculate final number of drops, capped at max_drops
     local num_drops = math.min(math.random(min_drops, max_drops), max_drops)
     
     -- Log the drop calculations
-    debug.log(string.format("Spawning %d loot items (min=%d, max=%d, wave=%d, scaling=%.2f, boss=%s, groove=%s)", 
-        num_drops, min_drops, max_drops, wave_number, wave_scaling, 
-        tostring(is_boss), tostring(killed_by_groove)))
+    debug.log(string.format("Spawning %d loot items (min=%d, max=%d, wave=%d, drop_scaling=%.2f, value_scaling=%.2f)", 
+        num_drops, min_drops, max_drops, wave_number, wave_drop_scaling, wave_value_scaling))
+    
+    -- Apply value multipliers for special conditions
+    local value_multiplier = 1.0
+    if is_boss then value_multiplier = value_multiplier * loot_settings.boss_value_multiplier end
+    if killed_by_groove then value_multiplier = value_multiplier * loot_settings.groove_value_multiplier end
+    
+    -- Apply wave scaling to value multiplier
+    value_multiplier = value_multiplier * wave_value_scaling
+    
+    debug.log(string.format("Loot value multiplier: %.2f (wave=%d, boss=%s, groove=%s)",
+        value_multiplier, wave_number, tostring(is_boss), tostring(killed_by_groove)))
     
     -- Spawn the calculated number of loot items
     local total_value = 0
@@ -332,6 +343,10 @@ function loot.spawn_multiple(x, y, is_boss, killed_by_groove, wave_number)
     for i = 1, num_drops do
         local chosen_loot = loot.roll_loot_type()
         local new_loot = loot.spawn_item(x, y, scattered_range, chosen_loot)
+        
+        -- Apply value scaling to this loot item
+        new_loot.value = math.floor(new_loot.value * value_multiplier)
+        
         total_value = total_value + new_loot.value
     end
     

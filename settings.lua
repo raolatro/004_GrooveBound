@@ -279,15 +279,34 @@ local settings = {
     }
 }
 
+-- Loot drop settings
+settings.loot = {
+    -- Base drop rates and settings
+    min_drops = 1,               -- Minimum number of drops for regular enemies
+    max_drops = 3,               -- Maximum number of drops for regular enemies
+    boss_min_drops = 5,          -- Minimum number of drops for bosses
+    boss_max_drops = 10,         -- Maximum number of drops for bosses
+    groove_bonus = 1,            -- Extra drops for groove/rhythm kills
+    wave_scaling = 0.15,         -- +15% per 10 waves by default (multiply by wave/10)
+    
+    -- Wave-based loot scaling parameters
+    wave_value_scaling = 0.1,    -- Increase drop value by 10% per wave
+    wave_drop_scaling = 0.05,    -- Increase drop count by 5% per wave
+    
+    -- Value scaling for different enemy types
+    boss_value_multiplier = 2.0, -- Bosses drop items worth 2x more
+    groove_value_multiplier = 1.5 -- Groove kills drop items worth 1.5x more
+}
+
 settings.waves = {
     { hp = 10, speed = 70, spawn_rate = 2.5, max_enemies = 8 }, -- Wave 1
     { hp = 12, speed = 80, spawn_rate = 2, max_enemies = 10 }, -- Wave 2
-    { hp = 14, speed = 90, spawn_rate = 1.5, max_enemies = 15 }, -- Wave 3
-    { hp = 20, speed = 100, spawn_rate = 1.5, max_enemies = 20 }, -- Wave 4
-    { hp = 25, speed = 110, spawn_rate = 1.3, max_enemies = 25 }, -- Wave 5
-    { hp = 30, speed = 120, spawn_rate = 1.1, max_enemies = 30 }, -- Wave 6
-    { hp = 35, speed = 130, spawn_rate = 1.0, max_enemies = 35 }, -- Wave 7
-    { hp = 40, speed = 140, spawn_rate = 0.9, max_enemies = 40 }, -- Wave 8
+    { hp = 15, speed = 90, spawn_rate = 1.9, max_enemies = 12 }, -- Wave 3
+    { hp = 20, speed = 100, spawn_rate = 1.8, max_enemies = 15 }, -- Wave 4
+    { hp = 25, speed = 110, spawn_rate = 1.5, max_enemies = 20 }, -- Wave 5
+    { hp = 30, speed = 120, spawn_rate = 1.2, max_enemies = 25 }, -- Wave 6
+    { hp = 35, speed = 130, spawn_rate = 1.0, max_enemies = 30 }, -- Wave 7
+    { hp = 40, speed = 140, spawn_rate = 0.9, max_enemies = 35 }, -- Wave 8
     { hp = 45, speed = 150, spawn_rate = 0.8, max_enemies = 45 }, -- Wave 9
     { hp = 50, speed = 160, spawn_rate = 0.7, max_enemies = 50 }, -- Wave 10
     { hp = 55, speed = 170, spawn_rate = 0.6, max_enemies = 55 }, -- Wave 11
