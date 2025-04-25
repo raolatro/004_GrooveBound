@@ -205,10 +205,7 @@ local settings = {
         },
     },
     enemy_hp_display = {
-        font_size = 12,           -- px
-        color = {0,0,0,1},       -- black
-        y_offset = -7,          -- pixels above enemy center
-        font = nil,              -- can set a custom font path if needed
+        y_offset = -7,          -- pixels above enemy center (if needed for bar positioning)
     },
     -- Load item drop settings
     item_data = require "data/items",

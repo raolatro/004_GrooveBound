@@ -321,17 +321,7 @@ function enemy.draw()
             end
         end
         
-        -- Draw HP text above enemy (only if alive)
-        if e.hp and e.hp > 0 and e.state ~= "death" then
-            local prev_font = love.graphics.getFont()
-            love.graphics.setFont(enemy._hp_font)
-            love.graphics.setColor(hp_settings.color)
-            local hp_text = tostring(e.hp)
-            local text_width = enemy._hp_font:getWidth(hp_text)
-            love.graphics.print(hp_text, e.x - text_width / 2, e.y + (hp_settings.y_offset or -18))
-            love.graphics.setFont(prev_font)
-            love.graphics.setColor(1,1,1,1)
-        end
+        -- (Removed HP text display for a cleaner look)
     end
 end
 
