@@ -19,7 +19,7 @@ local loot = require "scripts/loot"
 local inventory = require "scripts/inventory"
 local level_stats = require "scripts/level_stats"
 local pause_menu = require "scripts/pause_menu"
-local shop_menu = require "scripts/shop_menu"
+local levelup_menu = require "scripts/levelup_menu"
 local scenario = require "scripts/scenario"
 
 require("scripts/init_fonts")()
@@ -91,7 +91,7 @@ function love.update(dt)
         end
     end
     -- Pause logic - either normal pause or shop menu active
-    if pause_menu.active or game_paused or shop_menu.active then
+    if pause_menu.active or game_paused or levelup_menu.active then
         return
     end
     -- Main gameplay update
@@ -283,12 +283,12 @@ function love.update(dt)
 end  -- End of love.update function
 
 function love.draw()
-    -- Draw game state: game over, pause menu, shop menu, or normal gameplay
+    -- Draw game state: game over, pause menu, level up menu, or normal gameplay
     if game_over.active then
         game_over.draw()
-    elseif shop_menu.active then
-        -- Draw the shop menu when active (level up)
-        shop_menu.draw()
+    elseif levelup_menu.active then
+        -- Draw level up menu
+        levelup_menu.draw()
     elseif pause_menu.active or game_paused then
         debug.log("[Main] Drawing pause menu (pause_menu.active=" .. tostring(pause_menu.active) .. ", game_paused=" .. tostring(game_paused) .. ")")
         -- Only pause_menu.draw handles the pause overlay and UI
@@ -370,8 +370,8 @@ function love.mousepressed(x, y, button)
     end
     
     -- Check for shop menu interactions when level up
-    if shop_menu.active then
-        if shop_menu.mousepressed(x, y, button) then return end
+    if levelup_menu.active then
+        if levelup_menu.mousepressed(x, y, button) then return end
     end
     
     -- Check for pause menu interactions when paused
@@ -399,9 +399,9 @@ end
 -- Handle mouse movement for UI hover states
 function love.mousemoved(x, y, dx, dy)
     -- Forward mouse movement to shop menu for hover effects
-    local shop_menu = require "scripts/shop_menu"
-    if shop_menu.active then
-        shop_menu.mousemoved(x, y)
+    local levelup_menu = require "scripts/levelup_menu"
+    if levelup_menu.active then
+        levelup_menu.mousemoved(x, y)
     end
     
     -- Add other UI hover handlers here if needed

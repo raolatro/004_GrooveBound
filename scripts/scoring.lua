@@ -100,9 +100,9 @@ function scoring.trigger_level_up(new_level)
              " | Next level at: " .. next_threshold .. 
              " (need " .. (next_threshold - hud.xp) .. " more XP)")
     
-    -- Activate the shop menu
-    local shop_menu = require "scripts/shop_menu"
-    shop_menu.show(new_level)
+    -- Activate the level up menu
+    local levelup_menu = require "scripts/levelup_menu"
+    levelup_menu.show(new_level)
     
     -- Pause the game during level up
     _G.game_paused = true
