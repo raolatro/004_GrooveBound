@@ -236,19 +236,19 @@ function enemy.update(dt, player_x, player_y, projectiles)
                     -- Score system - pass HP and position for XP
                     scoring.add_kill(killed_by_groove, original_hp, enemy_x, enemy_y)
                     -- Popup if killed by groove
-                    if killed_by_groove then
-                        local popup = require "scripts/popup"
-                        popup.spawn({
-                            x = e.x + 30 + 20, -- Use fixed radius of 30 (from settings.enemy.radius)
-                            y = e.y,
-                            text = settings.popup.killed_text,
-                            color = settings.popup.killed_color,
-                            font_size = 18,
-                            fade_duration = settings.popup.fade_duration,
-                            stay_duration = settings.popup.stay_duration,
-                            y_offset = 0,
-                        })
-                    end
+                    -- if killed_by_groove then
+                        -- local popup = require "scripts/popup"
+                        -- popup.spawn({
+                        --     x = e.x + 30 + 20, -- Use fixed radius of 30 (from settings.enemy.radius)
+                        --     y = e.y,
+                        --     text = settings.popup.killed_text,
+                        --     color = settings.popup.killed_color,
+                        --     font_size = 18,
+                        --     fade_duration = settings.popup.fade_duration,
+                        --     stay_duration = settings.popup.stay_duration,
+                        --     y_offset = 0,
+                        -- })
+                    -- end
                     break
                 end
             end

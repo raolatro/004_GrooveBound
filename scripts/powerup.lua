@@ -197,10 +197,18 @@ function powerup.roll_enhanced_level_up_options(count, wave)
         table.insert(combined_pool, item)
     end
     
-    -- Fill remaining slots randomly
+    -- Fill remaining slots randomly up to max_items total
+    local used_ids = {}
     for i = 1, math.min(remaining_slots, #combined_pool) do
         local idx = math.random(#combined_pool)
-        table.insert(options, combined_pool[idx])
+        local item = combined_pool[idx]
+        
+        -- Ensure we don't add duplicate items
+        if not used_ids[item.id] then
+            used_ids[item.id] = true
+            table.insert(options, item)
+        end
+        
         table.remove(combined_pool, idx)
     end
     
@@ -239,6 +247,9 @@ function powerup.roll_enhanced_shop_options(count, allow_levelup_items, max_item
     local powerups_available = {}
     local inventory = require "scripts/inventory"
     local settings_data = require "settings"
+    
+    -- Keep track of IDs to prevent duplicates
+    local used_ids = {}
     
     debug.log("[PowerUp] Rolling enhanced shop options, count: " .. count)
     
