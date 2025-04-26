@@ -1,4 +1,7 @@
 -- settings.lua
+-- Ensure item data is always loaded for inventory operations
+local item_data = require "data/items"
+
 local settings = {
     main = {
         sfx = {
@@ -13,7 +16,7 @@ local settings = {
             kill_point = 10,         -- points for normal kill
             groove_kill_point = 50, -- points for groove kill
         },
-        auto_fire_angle = 0.15, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
+        auto_fire_angle = 0.25, -- radians, smaller = stricter auto-fire aim (default ~4.5 degrees)
         window_width = 1920,
         window_height = 1080,
         bpm = 32,
@@ -315,6 +318,14 @@ local settings = {
     }
 }
 
+-- Attach item data to settings for global access
+-- Expose both Items and LootTypes for compatibility with inventory and loot systems
+settings.item_data = {
+    Items = item_data,
+    LootTypes = require("data/items").LootTypes,
+    Rarity = require("data/items").Rarity
+}
+
 -- Loot drop settings
 settings.loot = {
     -- Base drop rates and settings
@@ -381,6 +392,7 @@ settings.weapons = {
     forward = {
         display_name = "Pistol",
         projectile_image = "assets/img/projectile1.png",
+        color = {1, 1, 1, 1}, -- White for pistol/forward gun
         -- Main gun, fires forward
         { damage = 1, fire_rate = 1.0, pierce = false, radius = 10 },
         { damage = 1, fire_rate = 1.2, pierce = true, radius = 10 },
@@ -396,6 +408,7 @@ settings.weapons = {
     },
     cross = {
         display_name = "Blaster",
+        color = {0, 1, 0, 1}, -- Green for cross/blaster
         -- Fires in 4 or more directions
         { damage = 1, fire_rate = 0.5, pierce = false, radius = 10, directions = 2 },
         { damage = 2, fire_rate = 0.7, pierce = true, radius = 10, directions = 4 },
@@ -412,6 +425,7 @@ settings.weapons = {
     },
     drones = {
         display_name = "Drones",
+        color = {0, 1, 1, 1}, -- Cyan for drones
         -- Sprite settings for drones
         sprite_path = "assets/img/drone1-sprite.png",
         sprite_frames = 4,        -- Total frames in spritesheet
@@ -431,6 +445,7 @@ settings.weapons = {
     },
     area = {
         display_name = "Shotgun",
+        color = {1, 0.5, 0, 1}, -- Orange for shotgun/area weapon
         -- Shotgun-like, fires multiple projectiles in a spread
         { pellets = 2, damage = 3, spread = 10, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange
         { pellets = 3, damage = 3, spread = 20, fire_rate = 1, color = {1,0.5,0,1} }, -- Orange

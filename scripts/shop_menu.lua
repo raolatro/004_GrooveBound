@@ -246,12 +246,15 @@ function shop_menu.purchase_item(index, item)
         if item.is_weapon then
             -- Add weapon to inventory
             local inventory = require "scripts/inventory"
-            inventory.add(item.id)
-            debug.log("[ShopMenu] Added weapon " .. item.id .. " to inventory")
+            debug.log("[ShopMenu] About to add weapon to inventory: category = " .. item.id .. ", data = " .. tostring(item.data))
+            debug.log("[ShopMenu] Item is_weapon = " .. tostring(item.is_weapon) .. ", category = " .. tostring(item.data and item.data.category or "nil"))
+            local success = inventory.add(item.id)
+            debug.log("[ShopMenu] Added weapon " .. item.id .. " to inventory, success=" .. tostring(success))
         else
-            -- Grant power-up effect
-            powerup.apply(item.id) 
-            debug.log("[ShopMenu] Applied power-up " .. item.id)
+            -- Grant power-up using the correct API
+            local powerup = require "scripts/powerup"
+            powerup.acquire(item.id)
+            debug.log("[ShopMenu] Acquired power-up " .. item.id)
         end
         
         -- Play purchase sound

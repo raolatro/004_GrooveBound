@@ -537,6 +537,8 @@ function player.init()
     player.fire_timer = 0
     -- Ensure player always starts with the forward gun
     local inventory = require "scripts/inventory"
+    -- Explicitly reset inventory to initialize the pistol
+    inventory.reset()
     -- Sync HP to hud for UI
     local hud = require "scripts/hud"
     hud.player_max_hp = player.max_hp

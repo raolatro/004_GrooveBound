@@ -9,6 +9,46 @@ function inventory.reset()
     for i = 1, settings.inventory.max_slots do
         inventory.slots[i] = nil
     end
+    -- Always add the pistol (forwardGun) as the starting weapon
+    inventory.init_starting_weapons()
+end
+
+-- Add starting weapons to inventory (always include the pistol)
+function inventory.init_starting_weapons()
+    local debug = require "scripts/debug"
+    
+    -- First, try using inventory.add with item ID
+    local data = settings.item_data and settings.item_data.Items
+    if data and data.forwardGun then
+        inventory.add("forwardGun", true) -- silent: don't show popup
+        debug.log("Inventory: Added starting pistol via normal method")
+    else
+        -- Fallback: Manually add the pistol to the first slot
+        inventory.slots[1] = {
+            id = "forwardGun",
+            category = "forward",
+            type = "weapon",
+            level = 1,
+            damage = 1,
+            color = {1,1,1,1}
+        }
+        debug.log("Inventory: Added starting pistol via fallback method")
+    end
+    
+    -- Verify the pistol was added
+    local has_pistol = false
+    for _, slot in ipairs(inventory.slots) do
+        if slot and slot.category == "forward" then
+            has_pistol = true
+            break
+        end
+    end
+    
+    if has_pistol then
+        debug.log("Inventory: Successfully verified pistol in inventory")
+    else
+        debug.log("Inventory: WARNING - Failed to add starting pistol to inventory!")
+    end
 end
 
 -- Helper: find index of slot by weapon category
@@ -26,8 +66,22 @@ function inventory.add(item, silent)
     local debug = require "scripts/debug"
     local popup = require "scripts/popup"
     
-    -- Accept either itemId or item table
-    if type(item) == "string" then
+    debug.log("Inventory: Adding item: " .. tostring(item and item.id or item))
+    
+    -- Handle case where a category string is passed directly (from level-up or shop menu)
+    if type(item) == "string" and settings.weapons[item] then
+        -- This is a weapon category! Create a valid weapon item
+        debug.log("Inventory: Creating weapon from category: " .. item)
+        item = {
+            id = item .. "Gun", -- Convention: crossGun, dronesGun, etc.
+            type = "weapon",
+            category = item,
+            level = 1,
+            damage = settings.weapons[item][1] and settings.weapons[item][1].damage or 1
+        }
+    -- Otherwise try to look it up in item_data.Items
+    elseif type(item) == "string" then
+        debug.log("Inventory: Looking up item in settings.item_data.Items: " .. item)
         item = data.Items[item]
     end
     
@@ -35,6 +89,8 @@ function inventory.add(item, silent)
         debug.log("Inventory: invalid or non-weapon item " .. tostring(item and item.id or item))
         return
     end
+    
+    debug.log("Inventory: Processing weapon: " .. item.category .. ", type: " .. item.type)
     
     -- Check if weapon of same category exists, attempt to level it up
     local idx = inventory.find_by_category(item.category)

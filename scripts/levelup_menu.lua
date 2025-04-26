@@ -258,9 +258,10 @@ function levelup_menu.select_item(index, item)
         inventory.add(item.id)
         debug.log("[LevelUpMenu] Added weapon " .. item.id .. " to inventory")
     else
-        -- Grant power-up effect
-        powerup.apply(item.id)
-        debug.log("[LevelUpMenu] Applied power-up " .. item.id)
+        -- Grant power-up using the correct API
+        local powerup = require "scripts/powerup"
+        powerup.acquire(item.id)
+        debug.log("[LevelUpMenu] Acquired power-up " .. item.id)
     end
     
     -- Play sound effect

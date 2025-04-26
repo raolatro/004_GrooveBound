@@ -59,9 +59,10 @@ function powerup.init()
     powerup.active_effects = {}
     powerup.active_triggers = {}
     
-    debug.log("[PowerUp] Initialization complete: " .. level_up_count .. " level-up items, " .. shop_count .. " shop items")
-    
-    -- Debug: Show first 5 items in level-up pool
+    debug.log("[PowerUp] Initialization complete: " .. level_up_count .. 
+              " level-up power-ups and " .. shop_count .. " shop power-ups")
+              
+    -- For debugging, print out the first few level-up power-ups
     local count = 0
     for id, data in pairs(powerup.level_up_pool) do
         debug.log("[PowerUp] Level-up pool item: " .. id .. " (" .. data.name .. ")")
@@ -100,16 +101,8 @@ function powerup.roll_enhanced_level_up_options(count, wave)
     -- Check if player is missing any weapons
     local player_weapons = {}
     for _, weapon in ipairs(inventory.get_active() or {}) do
-        if weapon and weapon.category then
-            debug.log("[PowerUp] Found player weapon: " .. weapon.category)
-            player_weapons[weapon.category] = true
-        end
+        player_weapons[weapon.category] = true
     end
-    
-    -- Always mark the forward gun (pistol) as owned, since it's the starting weapon
-    -- This ensures it never shows up in level-up options even if inventory is bugged
-    player_weapons["forward"] = true
-    debug.log("[PowerUp] Excluding pistol (forward) from level-up options")
     
     -- Get all available weapons from settings
     local all_weapon_categories = {}
@@ -186,69 +179,42 @@ function powerup.roll_enhanced_level_up_options(count, wave)
     if guarantee_weapon then
         local idx = math.random(#weapons_available)
         local weapon = weapons_available[idx]
-        local weapon_desc = weapon.data.name or weapon.id
-        debug.log("[PowerUp] Guaranteed weapon slot: " .. weapon_desc)
+        weapon.is_weapon = true -- Mark as weapon for the UI
         table.insert(options, weapon)
+        table.remove(weapons_available, idx)
         remaining_slots = remaining_slots - 1
+        debug.log("[PowerUp] Guaranteed weapon slot filled with: " .. weapon.id)
     end
     
-    -- Fill the rest with a mix of weapons and power-ups
-    while remaining_slots > 0 do
-        -- Determine what pool to pull from
-        local total_pool_size = #weapons_available + #powerups_available
-        if total_pool_size == 0 then break end
-        
-        -- Calculate weighted chance for a weapon (higher in early waves)
-        local weapon_chance = 0.3 -- Default 30% chance for a weapon
-        if wave > 0 and wave <= 4 then
-            weapon_chance = 0.5 -- 50% chance in early waves
-        end
-        
-        -- Adjust if one pool is empty
-        if #weapons_available == 0 then 
-            weapon_chance = 0
-        elseif #powerups_available == 0 then
-            weapon_chance = 1
-        end
-        
-        -- Roll to determine what type we get
-        local roll = math.random()
-        local selected_item
-        
-        if roll < weapon_chance and #weapons_available > 0 then
-            -- Select weapon
-            local idx = math.random(#weapons_available)
-            selected_item = weapons_available[idx]
-            table.remove(weapons_available, idx)
-        elseif #powerups_available > 0 then
-            -- Select power-up
-            local idx = math.random(#powerups_available)
-            selected_item = powerups_available[idx]
-            table.remove(powerups_available, idx)
-        elseif #weapons_available > 0 then
-            -- Fallback to weapons if powerups empty
-            local idx = math.random(#weapons_available)
-            selected_item = weapons_available[idx]
-            table.remove(weapons_available, idx)
-        else
-            -- No more options
-            break
-        end
-        
-        table.insert(options, selected_item)
-        remaining_slots = remaining_slots - 1
+    -- Create a combined pool of remaining weapons and power-ups
+    local combined_pool = {}
+    for _, item in ipairs(weapons_available) do
+        item.is_weapon = true
+        table.insert(combined_pool, item)
+    end
+    for _, item in ipairs(powerups_available) do
+        item.is_weapon = false
+        table.insert(combined_pool, item)
     end
     
-    -- Log what we're offering
-    for i, opt in ipairs(options) do
-        local opt_type = opt.is_weapon and "weapon" or "powerup"
-        debug.log("[PowerUp] Level up option " .. i .. ": " .. opt_type .. " - " .. opt.id)
+    -- Fill remaining slots randomly up to max_items total
+    local used_ids = {}
+    for i = 1, math.min(remaining_slots, #combined_pool) do
+        local idx = math.random(#combined_pool)
+        local item = combined_pool[idx]
+        
+        -- Ensure we don't add duplicate items
+        if not used_ids[item.id] then
+            used_ids[item.id] = true
+            table.insert(options, item)
+        end
+        
+        table.remove(combined_pool, idx)
     end
     
-    -- De-duplicate options (ensure each unique weapon appears only once)
-    local deduped = {}
+    -- Deduplicate weapons: only one per weapon category
     local unique = {}
-    
+    local deduped = {}
     for _, opt in ipairs(options) do
         if opt.is_weapon then
             if not unique[opt.id] then
@@ -303,31 +269,32 @@ function powerup.roll_enhanced_shop_options(count, allow_levelup_items, max_item
     end
     
     -- First, collect all unowned weapons into the weapon pool
-    if has_empty_slots then -- Only show weapons if player has slots
-        for category, _ in pairs(all_weapon_categories) do
-            if not player_weapons[category] then
-                -- Create a weapon entry with a name and price
-                local weapon_data = settings_data.weapons[category]
-                local display_name = weapon_data.display_name or category:gsub("^%l", string.upper)
-                local price = (settings_data.shop and settings_data.shop.weapon_prices and settings_data.shop.weapon_prices[category]) or 150
-                
-                -- Add this weapon to the available pool
-                table.insert(weapons_available, {
-                    id = category,
-                    price = price,
-                    data = {
-                        name = display_name,
-                        description = "New weapon: " .. display_name,
-                        rarity = "rare", -- All weapons are classified as "Rare"
-                        is_weapon = true,
-                        category = category
-                    }
-                })
-            end
+    for category, _ in pairs(all_weapon_categories) do
+        if not player_weapons[category] then
+            -- Create a weapon entry with name, description and shop price
+            local weapon_data = settings_data.weapons[category]
+            local display_name = weapon_data.display_name or category:gsub("^%l", string.upper)
+            
+            -- Set a base shop price for weapons (can be adjusted based on weapon power)
+            local weapon_price = 300 -- Base price for all weapons
+            
+            debug.log("[PowerUp] Adding unowned weapon to shop: " .. category)
+            
+            table.insert(weapons_available, {
+                id = category,
+                data = {
+                    name = display_name,
+                    description = "New weapon: " .. display_name,
+                    rarity = "rare", -- All weapons are "Rare"
+                    is_weapon = true,
+                    category = category,
+                    cost = weapon_price
+                }
+            })
         end
     end
     
-    -- Now collect power-ups into a separate pool
+    -- Now collect power-ups for the shop pool
     for id, data in pairs(powerup.shop_pool) do
         -- Skip power-ups the player already has if they're non-stackable
         if not data.stackable and player and player.has_powerup and player.has_powerup(id) then
@@ -338,34 +305,9 @@ function powerup.roll_enhanced_shop_options(count, allow_levelup_items, max_item
                 -- Skip non-shop items
             else
                 -- Weight by rarity (legendary appears more in shop)
-                local weight = powerup.get_rarity_weight(data.rarity)
-                if data.rarity == "legendary" or data.rarity == "extremely_legendary" then
-                    weight = weight * 2 -- Double weight for legendary items in shop
-                end
-                
-                -- Get price from a variety of sources
-                local price = 0
-                if data.price then
-                    -- If powerup has defined price
-                    price = data.price
-                elseif settings_data.shop and settings_data.shop.prices and settings_data.shop.prices[data.rarity] then
-                    -- If settings has prices by rarity
-                    price = settings_data.shop.prices[data.rarity]
-                else
-                    -- Fallback default prices based on rarity
-                    local rarity_prices = {
-                        common = 50,
-                        uncommon = 100,
-                        rare = 150,
-                        epic = 250,
-                        legendary = 500,
-                        extremely_legendary = 1000
-                    }
-                    price = rarity_prices[data.rarity] or 100
-                end
-                
+                local weight = powerup.get_shop_rarity_weight(data.rarity)
                 for i = 1, weight do
-                    table.insert(powerups_available, {id = id, data = data, price = price})
+                    table.insert(powerups_available, {id = id, data = data})
                 end
             end
         end
@@ -384,35 +326,37 @@ function powerup.roll_enhanced_shop_options(count, allow_levelup_items, max_item
     -- Ensure at least 2 weapons if player has empty slots and weapons are available
     local weapon_count = math.min(2, #weapons_available)
     if has_empty_slots and weapon_count > 0 then
-        -- Add weapons to the start of the shop
+        -- Add at least 2 weapons (or as many as available) to ensure player can get weapons
         for i = 1, weapon_count do
-            if #weapons_available == 0 then break end
-            local idx = math.random(#weapons_available)
-            local weapon = weapons_available[idx]
-            table.remove(weapons_available, idx)
-            
-            -- Skip this weapon if it was already added (using ID as key)
-            if used_ids[weapon.id] then
-                i = i - 1 -- Try again
-            else
-                used_ids[weapon.id] = true
+            if #weapons_available > 0 then
+                local idx = math.random(#weapons_available)
+                local weapon = weapons_available[idx]
+                weapon.is_weapon = true -- Mark as weapon for the UI
                 table.insert(options, weapon)
+                table.remove(weapons_available, idx)
+                debug.log("[PowerUp] Guaranteed weapon slot filled with: " .. weapon.id)
             end
         end
     end
     
-    -- Fill the rest with power-ups
-    while #options < max_items and #powerups_available > 0 do
-        local idx = math.random(#powerups_available)
-        local powerup_option = powerups_available[idx]
-        table.remove(powerups_available, idx)
-        
-        -- Skip duplicates
-        if used_ids[powerup_option.id] then
-            -- Skip this power-up
-        else
-            used_ids[powerup_option.id] = true
-            table.insert(options, powerup_option)
+    -- Create a combined pool of remaining weapons and power-ups
+    local combined_pool = {}
+    for _, item in ipairs(weapons_available) do
+        item.is_weapon = true
+        table.insert(combined_pool, item)
+    end
+    for _, item in ipairs(powerups_available) do
+        item.is_weapon = false
+        table.insert(combined_pool, item)
+    end
+    
+    -- Fill remaining slots randomly up to max_items total
+    local remaining_slots = math.min(max_items - #options, #combined_pool)
+    for i = 1, remaining_slots do
+        if #combined_pool > 0 then
+            local idx = math.random(#combined_pool)
+            table.insert(options, combined_pool[idx])
+            table.remove(combined_pool, idx)
         end
     end
     
@@ -435,162 +379,170 @@ end
 -- Get weight multiplier based on rarity for level-up rolls
 function powerup.get_rarity_weight(rarity)
     -- Use weights from settings if available, otherwise use defaults
-    if settings.powerups and settings.powerups.weights and settings.powerups.weights[rarity] then
-        return settings.powerups.weights[rarity]
+    if settings.powerups and settings.powerups.level_up_weights and settings.powerups.level_up_weights[rarity] then
+        return settings.powerups.level_up_weights[rarity]
     end
     
-    -- Default weights by rarity
+    -- Fallback default weights
     local weights = {
-        common = 80,
-        uncommon = 60,
-        rare = 40,
-        epic = 20,
-        legendary = 10,
-        extremely_legendary = 1
+        common = 10,
+        uncommon = 8,
+        rare = 5,
+        epic = 3,
+        legendary = 1,
+        extremely_legendary = 0 -- Never in level-up menu
     }
-    
-    return weights[rarity] or 50
+    return weights[rarity] or 0
 end
 
--- Acquire a power-up (permanent effect)
+-- Get weight multiplier based on rarity for shop rolls
+function powerup.get_shop_rarity_weight(rarity)
+    -- Use weights from settings if available, otherwise use defaults
+    if settings.powerups and settings.powerups.shop_weights and settings.powerups.shop_weights[rarity] then
+        return settings.powerups.shop_weights[rarity]
+    end
+    
+    -- Fallback default weights
+    local weights = {
+        common = 1,
+        uncommon = 2,
+        rare = 3,
+        epic = 4,
+        legendary = 5,
+        extremely_legendary = 0 -- Special handling for extremely legendary
+    }
+    return weights[rarity] or 0
+end
+
+-- Apply a power-up to the player
 function powerup.acquire(id, free)
-    if not id then 
-        debug.log("[PowerUp] Attempted to acquire nil power-up")
-        return false
-    end
+    free = free or false
+    local data = powerup.data[id]
     
-    local data = powerup.data and powerup.data[id]
     if not data then
-        debug.log("[PowerUp] Unable to acquire power-up " .. id .. " - data not found")
+        debug.log("[PowerUp] Error: tried to acquire unknown power-up " .. tostring(id))
         return false
     end
     
-    -- If it's not free, check player cash
+    -- If not free, check and deduct cash
     if not free then
-        -- Get price, falling back to defaults
-        local price = data.price or (data.rarity and settings.shop and settings.shop.prices and settings.shop.prices[data.rarity]) or 100
-        
-        -- Attempt to spend cash
-        local hud = require "scripts/hud"
-        local player_cash = hud.cash or 0
-        if player_cash < price then
-            debug.log("[PowerUp] Not enough cash to acquire " .. id .. " (need " .. price .. ", have " .. player_cash .. ")")
-            return false, "not_enough_cash", price
-        end
-        
-        hud.cash = player_cash - price
-        debug.log("[PowerUp] Spent " .. price .. " cash to acquire " .. id)
-    end
-    
-    -- Apply the power-up to the player
-    player.add_powerup(id, data)
-    
-    -- Trigger power-up effect and visual feedback
-    powerup.apply_effect(id, data)
-    
-    debug.log("[PowerUp] Acquired " .. id .. " (" .. (data.name or "unnamed") .. ")")
-    return true
-end
-
--- Apply a one-time power-up effect, with associated particle/UI feedback
-function powerup.apply_effect(id, data)
-    if not data then
-        data = powerup.data and powerup.data[id]
-        if not data then
-            debug.log("[PowerUp] Cannot apply effect for " .. id .. " - data not found")
+        local cost = data.cost or 0
+        if cost > 0 and (not player.spend_cash or not player.spend_cash(cost)) then
+            debug.log("[PowerUp] Not enough cash to acquire " .. data.name)
             return false
         end
     end
     
-    -- Create visual effect based on rarity
-    local color = powerup.get_rarity_color(data.rarity)
+    -- Add to player's acquired power-ups
+    player.add_powerup(id, data)
     
-    -- Create floating notification
+    -- Show acquisition popup
     popup.spawn({
         x = love.graphics.getWidth() / 2,
-        y = love.graphics.getHeight() / 2 - 50,
-        text = data.name,
-        color = color,
+        y = love.graphics.getHeight() / 2 - 100,
+        text = "Acquired: " .. data.name,
+        color = powerup.get_rarity_color(data.rarity),
         font_size = 24,
-        fade_duration = 0.3,
+        fade_duration = 0.5,
         stay_duration = 1.5,
         popup_type = popup.TYPES.NOTIFICATION
     })
     
-    -- Play sound effect based on rarity
-    if sfx and sfx.play then
-        local sound_name = "powerup"
-        if data.rarity == "legendary" or data.rarity == "extremely_legendary" then
-            sound_name = "powerup_legendary"
-        end
-        sfx.play(sound_name)
-    end
+    -- Play acquisition sound
+    sfx.play("powerup_acquire")
     
+    -- Apply modifiers based on scope type
+    powerup.apply_modifiers(id, data)
+    
+    debug.log("[PowerUp] Acquired " .. data.name)
     return true
 end
 
--- Register a trigger for event-based power-ups
-function powerup.register_trigger(trigger_type, id, data)
-    -- Ensure the trigger list exists
+-- Apply power-up modifiers based on scope
+function powerup.apply_modifiers(id, data)
+    if not data.scope then return end
+    
+    -- Store in active effects for triggering
+    if data.scope.type == "triggered" then
+        powerup.register_trigger(id, data)
+    end
+    
+    -- Apply immediate stat modifiers based on scope
+    if data.scope.type == "global" then
+        -- Apply to all weapons
+        player.apply_global_modifiers(data.modifiers)
+    elseif data.scope.type == "category" then
+        -- Apply to specific weapon category(ies)
+        local categories = data.scope.category
+        if type(categories) == "string" then
+            categories = {categories}
+        end
+        
+        for _, category in ipairs(categories) do
+            player.apply_category_modifiers(category, data.modifiers)
+        end
+    elseif data.scope.type == "weapon" then
+        -- Apply to specific weapon
+        local weapon_id = data.scope.weapon_id
+        player.apply_weapon_modifiers(weapon_id, data.modifiers)
+    end
+end
+
+-- Register a trigger-based power-up
+function powerup.register_trigger(id, data)
+    if not data.scope or data.scope.type ~= "triggered" or not data.scope.trigger then
+        return
+    end
+    
+    local trigger_type = data.scope.trigger
+    
     if not powerup.active_triggers[trigger_type] then
         powerup.active_triggers[trigger_type] = {}
     end
     
-    -- Add the trigger
     table.insert(powerup.active_triggers[trigger_type], {
         id = id,
         data = data,
-        cooldown = data.cooldown or 5.0, -- Default 5 second cooldown
-        last_trigger = 0,
         active = false,
-        activation_time = 0
+        activation_time = 0,
+        cooldown = data.cooldown or 0,
+        last_trigger = 0,
+        streak_counter = 0
     })
-    
-    debug.log("[PowerUp] Registered trigger: " .. trigger_type .. " for " .. id)
 end
 
--- Process "on_hit" triggers
-function powerup.on_hit(hit_enemy, projectile)
-    -- Process on-hit triggers
-    if powerup.active_triggers["on_hit"] then
-        for _, trigger in ipairs(powerup.active_triggers["on_hit"]) do
-            if love.timer.getTime() - trigger.last_trigger > trigger.cooldown then
-                local data = trigger.data
-                local chance = data.trigger_chance or 0.1 -- Default 10% chance
-                
-                -- Roll for trigger
-                if math.random() < chance then
-                    trigger.last_trigger = love.timer.getTime()
-                    
-                    -- Activate the effect
-                    powerup.activate_triggered_effect(trigger)
-                end
-            end
-        end
-    end
-end
-
--- Process "on_kill" triggers
+-- Handle on-kill trigger checks
 function powerup.on_kill(killed_enemy, killed_on_beat)
     -- Process on-kill triggers
     if powerup.active_triggers["on_kill"] then
         for _, trigger in ipairs(powerup.active_triggers["on_kill"]) do
             if love.timer.getTime() - trigger.last_trigger > trigger.cooldown then
-                local data = trigger.data
-                local chance = data.trigger_chance or 0.2 -- Default 20% chance
-                
-                -- Check for on-beat condition if required
-                if data.require_on_beat and not killed_on_beat then
-                    -- Skip if on-beat required but kill wasn't on beat
-                else
-                    -- Roll for trigger
-                    if math.random() < chance then
-                        trigger.last_trigger = love.timer.getTime()
-                        
-                        -- Activate the effect
-                        powerup.activate_triggered_effect(trigger)
-                    end
-                end
+                trigger.last_trigger = love.timer.getTime()
+                -- Apply the effect
+                powerup.activate_triggered_effect(trigger)
+            end
+        end
+    end
+    
+    -- Process on-beat-kill triggers
+    if killed_on_beat and powerup.active_triggers["on_beat_kill"] then
+        for _, trigger in ipairs(powerup.active_triggers["on_beat_kill"]) do
+            if love.timer.getTime() - trigger.last_trigger > trigger.cooldown then
+                trigger.last_trigger = love.timer.getTime()
+                -- Apply the effect
+                powerup.activate_triggered_effect(trigger)
+            end
+        end
+    end
+    
+    -- Process kill streak triggers
+    if powerup.active_triggers["on_kill_streak"] then
+        for _, trigger in ipairs(powerup.active_triggers["on_kill_streak"]) do
+            trigger.streak_counter = trigger.streak_counter + 1
+            if trigger.streak_counter >= (trigger.data.scope.streak or 5) then
+                trigger.streak_counter = 0
+                -- Apply the effect
+                powerup.activate_triggered_effect(trigger)
             end
         end
     end
@@ -649,7 +601,7 @@ end
 
 -- Get color based on rarity for UI
 function powerup.get_rarity_color(rarity)
-    -- Use colors from settings if available
+    -- Use colors from settings if available, otherwise use defaults
     if settings.powerups and settings.powerups.colors and settings.powerups.colors[rarity] then
         return settings.powerups.colors[rarity]
     end
